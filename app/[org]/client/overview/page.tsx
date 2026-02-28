@@ -1,35 +1,40 @@
+import { createClient } from "@/lib/supabase/server"
+import { notFound } from "next/navigation"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  getClientBuildings,
+  getClientRecentActivities,
+  getClientDashboardStats,
+} from "@/lib/queries/client-dashboard"
+import { ClientDashboard } from "./client-dashboard"
 
 export const metadata = {
   title: "Overview - SpaceOps",
 }
 
-export default async function ClientOverviewPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand">
-          Building Overview
-        </h1>
-        <p className="text-muted-foreground">Your cleaning service dashboard</p>
-      </div>
+export default async function ClientOverviewPage({
+  params,
+}: {
+  params: { org: string }
+}) {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Your Buildings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            No buildings configured yet. Your service provider will set
-            things up for you.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+  if (!user) return notFound()
+
+  const [buildings, activities, stats] = await Promise.all([
+    getClientBuildings(supabase),
+    getClientRecentActivities(supabase),
+    getClientDashboardStats(supabase),
+  ])
+
+  return (
+    <ClientDashboard
+      buildings={buildings}
+      activities={activities}
+      stats={stats}
+      orgSlug={params.org}
+    />
   )
 }
