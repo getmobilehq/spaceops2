@@ -97,3 +97,22 @@ export async function getRoomTaskDetail(
   if (error) throw error
   return data
 }
+
+/**
+ * Get a room task for inspection with assigned user info.
+ */
+export async function getRoomTaskForInspection(
+  supabase: SupabaseClient<Database>,
+  taskId: string
+) {
+  const { data, error } = await supabase
+    .from("room_tasks")
+    .select(
+      "*, rooms(id, name, room_type_id, room_types(name)), cleaning_activities(id, name, status, scheduled_date, window_start, window_end, floors(floor_name, buildings(name))), users!room_tasks_assigned_to_fkey(id, first_name, last_name)"
+    )
+    .eq("id", taskId)
+    .single()
+
+  if (error) throw error
+  return data
+}

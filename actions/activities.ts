@@ -9,6 +9,7 @@ import {
   cancelActivitySchema,
   closeActivitySchema,
   updateRoomTaskStatusSchema,
+  inspectRoomTaskSchema,
   type CreateActivityInput,
   type UpdateActivityInput,
   type AssignRoomTasksInput,
@@ -16,6 +17,7 @@ import {
   type CancelActivityInput,
   type CloseActivityInput,
   type UpdateRoomTaskStatusInput,
+  type InspectRoomTaskInput,
 } from "@/lib/validations/activity"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -277,5 +279,42 @@ export async function updateRoomTaskStatus(
     .eq("id", parsed.data.taskId)
 
   if (error) return { success: false, error: "Failed to update task status" }
+  return { success: true }
+}
+
+export async function inspectRoomTask(
+  input: InspectRoomTaskInput
+): Promise<ActionResult> {
+  const parsed = inspectRoomTaskSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Verify task exists and is in "done" status (ready for inspection)
+  const { data: task } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, status")
+    .eq("id", parsed.data.taskId)
+    .single()
+
+  if (!task) return { success: false, error: "Task not found" }
+  if (task.status !== "done") {
+    return { success: false, error: "Only completed tasks can be inspected" }
+  }
+
+  const { error } = await ctx.supabase
+    .from("room_tasks")
+    .update({
+      status: parsed.data.result,
+      inspected_by: ctx.user.id,
+      inspected_at: new Date().toISOString(),
+      inspection_note: parsed.data.note ?? null,
+    })
+    .eq("id", parsed.data.taskId)
+
+  if (error) return { success: false, error: "Failed to inspect task" }
   return { success: true }
 }

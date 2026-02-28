@@ -39,6 +39,7 @@ import {
   Clock,
   MapPin,
   ChevronLeft,
+  ClipboardCheck,
 } from "lucide-react"
 
 interface RoomTask {
@@ -313,6 +314,16 @@ export function ActivityDetail({
                         ? `${task.users.first_name} ${task.users.last_name}`
                         : "Unassigned"}
                     </span>
+                  )}
+                  {isActive && task.status === "done" && (
+                    <Link
+                      href={`/${orgSlug}/supervisor/activities/${activity.id}/inspect/${task.id}`}
+                    >
+                      <Button size="sm" variant="outline" className="h-7 text-xs">
+                        <ClipboardCheck className="mr-1 h-3.5 w-3.5" />
+                        Inspect
+                      </Button>
+                    </Link>
                   )}
                   <Badge variant="outline" className={statusConf.className}>
                     {statusConf.label}

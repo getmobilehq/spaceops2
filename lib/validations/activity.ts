@@ -45,6 +45,12 @@ export const updateRoomTaskStatusSchema = z.object({
   status: z.enum(["not_started", "in_progress", "done", "has_issues"]),
 })
 
+export const inspectRoomTaskSchema = z.object({
+  taskId: z.string().uuid(),
+  result: z.enum(["inspected_pass", "inspected_fail"]),
+  note: z.string().max(500).optional(),
+})
+
 export type CreateActivityInput = z.infer<typeof createActivitySchema>
 export type UpdateActivityInput = z.infer<typeof updateActivitySchema>
 export type AssignRoomTasksInput = z.infer<typeof assignRoomTasksSchema>
@@ -52,3 +58,4 @@ export type PublishActivityInput = z.infer<typeof publishActivitySchema>
 export type CancelActivityInput = z.infer<typeof cancelActivitySchema>
 export type CloseActivityInput = z.infer<typeof closeActivitySchema>
 export type UpdateRoomTaskStatusInput = z.infer<typeof updateRoomTaskStatusSchema>
+export type InspectRoomTaskInput = z.infer<typeof inspectRoomTaskSchema>
