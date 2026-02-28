@@ -1191,7 +1191,114 @@ async function testDashboards() {
 }
 
 // =========================================================
-// 16. ACTIVITY TEMPLATES & DELETE ACTIVITY
+// 16. NOTIFICATIONS
+// =========================================================
+async function testNotifications() {
+  console.log("\n🔔 NOTIFICATIONS");
+  const { sb: supSb, user: supUser } = await authedClient("supervisor");
+  const { sb: janSb, user: janUser } = await authedClient("janitor");
+  const orgId = supUser.app_metadata.org_id;
+
+  // Create a notification for janitor (use admin client since the inserter
+  // can't SELECT back a notification for another user due to RLS)
+  let testNotifId;
+  try {
+    const { data, error } = await admin
+      .from("notifications")
+      .insert({
+        org_id: orgId,
+        user_id: janUser.id,
+        type: "test",
+        title: "Test notification",
+        body: "This is a test notification",
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    testNotifId = data.id;
+    pass("Create notification");
+  } catch (e) {
+    fail("Create notification", e.message);
+  }
+
+  if (!testNotifId) return;
+
+  // Janitor can see their notification
+  try {
+    const { data, error } = await janSb
+      .from("notifications")
+      .select("*")
+      .eq("user_id", janUser.id);
+    if (error) throw error;
+    const found = data.find((n) => n.id === testNotifId);
+    if (!found) throw new Error("Notification not found");
+    if (found.is_read) throw new Error("Should be unread");
+    pass("Janitor sees notification (unread)");
+  } catch (e) {
+    fail("Janitor sees notification", e.message);
+  }
+
+  // Supervisor cannot see janitor's notification
+  try {
+    const { data } = await supSb
+      .from("notifications")
+      .select("id")
+      .eq("id", testNotifId);
+    if (data && data.length > 0) {
+      fail("RLS: supervisor cannot see janitor notifications", "Notification visible to wrong user");
+    } else {
+      pass("RLS: supervisor cannot see janitor notifications");
+    }
+  } catch (e) {
+    pass("RLS: supervisor cannot see janitor notifications");
+  }
+
+  // Mark as read
+  try {
+    const { error } = await janSb
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", testNotifId);
+    if (error) throw error;
+
+    const { data } = await janSb
+      .from("notifications")
+      .select("is_read")
+      .eq("id", testNotifId)
+      .single();
+    if (!data?.is_read) throw new Error("Still unread");
+    pass("Mark notification as read");
+  } catch (e) {
+    fail("Mark notification as read", e.message);
+  }
+
+  // Unread count
+  try {
+    // Create another unread (use admin client to bypass SELECT RLS)
+    await admin.from("notifications").insert({
+      org_id: orgId,
+      user_id: janUser.id,
+      type: "test2",
+      title: "Second test",
+    });
+
+    const { count, error } = await janSb
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", janUser.id)
+      .eq("is_read", false);
+    if (error) throw error;
+    pass(`Unread count (${count})`);
+  } catch (e) {
+    fail("Unread count", e.message);
+  }
+
+  // Cleanup
+  await admin.from("notifications").delete().eq("user_id", janUser.id);
+}
+
+// =========================================================
+// 17. ACTIVITY TEMPLATES & DELETE ACTIVITY
 // =========================================================
 let testTemplateId;
 
@@ -1514,6 +1621,7 @@ async function main() {
   await testPassInspection();
   await testReports();
   await testDashboards();
+  await testNotifications();
   await testActivityTemplates();
   await cleanup();
 

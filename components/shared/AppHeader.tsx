@@ -9,6 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { AppSidebar } from "./AppSidebar"
+import { NotificationBell } from "./NotificationBell"
 import { useOrg } from "@/components/shared/OrgProvider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -45,6 +46,8 @@ export function AppHeader() {
           {orgName}
         </span>
       </div>
+
+      <NotificationBell />
     </header>
   )
 }

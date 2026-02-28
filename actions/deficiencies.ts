@@ -7,6 +7,7 @@ import {
   type CreateDeficiencyInput,
   type ResolveDeficiencyInput,
 } from "@/lib/validations/deficiency"
+import { createNotification } from "@/actions/notifications"
 
 type ActionResult = { success: true } | { success: false; error: string }
 type ActionResultWithId =
@@ -77,6 +78,20 @@ export async function createDeficiency(
     .single()
 
   if (error) return { success: false, error: "Failed to create deficiency" }
+
+  // Notify assigned janitor
+  if (parsed.data.assignedTo) {
+    await createNotification(ctx.supabase, {
+      orgId: ctx.orgId,
+      userId: parsed.data.assignedTo,
+      type: "deficiency_assigned",
+      title: "Deficiency assigned to you",
+      body: parsed.data.description.length > 80
+        ? parsed.data.description.slice(0, 80) + "..."
+        : parsed.data.description,
+    })
+  }
+
   return { success: true, id: deficiency.id }
 }
 
@@ -94,7 +109,7 @@ export async function resolveDeficiency(
   // Verify deficiency exists and is open or in_progress
   const { data: deficiency } = await ctx.supabase
     .from("deficiencies")
-    .select("id, status")
+    .select("id, status, reported_by, description")
     .eq("id", parsed.data.deficiencyId)
     .single()
 
@@ -114,5 +129,20 @@ export async function resolveDeficiency(
     .eq("id", parsed.data.deficiencyId)
 
   if (error) return { success: false, error: "Failed to resolve deficiency" }
+
+  // Notify the supervisor who reported the deficiency
+  if (deficiency.reported_by && deficiency.reported_by !== ctx.user.id) {
+    const desc = deficiency.description.length > 80
+      ? deficiency.description.slice(0, 80) + "..."
+      : deficiency.description
+    await createNotification(ctx.supabase, {
+      orgId: ctx.orgId,
+      userId: deficiency.reported_by,
+      type: "deficiency_resolved",
+      title: "Deficiency resolved",
+      body: desc,
+    })
+  }
+
   return { success: true }
 }

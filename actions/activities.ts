@@ -21,6 +21,7 @@ import {
   type InspectRoomTaskInput,
   type DeleteActivityInput,
 } from "@/lib/validations/activity"
+import { createNotification } from "@/actions/notifications"
 
 type ActionResult = { success: true } | { success: false; error: string }
 type ActionResultWithId =
@@ -218,6 +219,13 @@ export async function publishActivity(
     }
   }
 
+  // Get activity name for notification
+  const { data: activity } = await ctx.supabase
+    .from("cleaning_activities")
+    .select("name")
+    .eq("id", parsed.data.activityId)
+    .single()
+
   const { error } = await ctx.supabase
     .from("cleaning_activities")
     .update({ status: "active" })
@@ -225,6 +233,23 @@ export async function publishActivity(
     .eq("status", "draft")
 
   if (error) return { success: false, error: "Failed to publish activity" }
+
+  // Notify assigned janitors
+  const uniqueJanitors = Array.from(new Set(tasks.map((t) => t.assigned_to).filter(Boolean)))
+  const activityName = activity?.name || "Activity"
+  for (const janitorId of uniqueJanitors) {
+    if (janitorId) {
+      await createNotification(ctx.supabase, {
+        orgId: ctx.orgId,
+        userId: janitorId,
+        type: "activity_published",
+        title: "New activity assigned",
+        body: `You have been assigned tasks in "${activityName}"`,
+        // No link since server actions don't have the org slug
+      })
+    }
+  }
+
   return { success: true }
 }
 
@@ -314,7 +339,7 @@ export async function inspectRoomTask(
   // Verify task exists and is in "done" status (ready for inspection)
   const { data: task } = await ctx.supabase
     .from("room_tasks")
-    .select("id, status")
+    .select("id, status, assigned_to, rooms(name)")
     .eq("id", parsed.data.taskId)
     .single()
 
@@ -334,6 +359,20 @@ export async function inspectRoomTask(
     .eq("id", parsed.data.taskId)
 
   if (error) return { success: false, error: "Failed to inspect task" }
+
+  // Notify the assigned janitor of the inspection result
+  if (task.assigned_to) {
+    const isPassed = parsed.data.result === "inspected_pass"
+    const roomName = task.rooms?.name || "Room"
+    await createNotification(ctx.supabase, {
+      orgId: ctx.orgId,
+      userId: task.assigned_to,
+      type: isPassed ? "inspection_pass" : "inspection_fail",
+      title: isPassed ? "Inspection passed" : "Inspection failed",
+      body: `${roomName} has been marked as ${isPassed ? "passed" : "failed"}`,
+    })
+  }
+
   return { success: true }
 }
 

@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "./AppSidebar"
 import { AppHeader } from "./AppHeader"
+import { NotificationBell } from "./NotificationBell"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -20,6 +21,11 @@ export function AppLayout({ children, mainClassName }: AppLayoutProps) {
       <div className="flex-1 flex flex-col">
         {/* Mobile header with hamburger */}
         <AppHeader />
+
+        {/* Desktop topbar (notification bell) */}
+        <div className="hidden lg:flex items-center justify-end border-b bg-white px-8 py-2">
+          <NotificationBell />
+        </div>
 
         <main className={mainClassName || "flex-1 p-6 lg:p-8"}>
           {children}
