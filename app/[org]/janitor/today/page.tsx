@@ -7,7 +7,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SignOutButton } from "@/components/shared/SignOutButton"
 import { getJanitorTodayTasks } from "@/lib/queries/activities"
 import { Clock, MapPin, ChevronRight } from "lucide-react"
 
@@ -67,14 +66,11 @@ export default async function JanitorTodayPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-brand">Today</h1>
-          <p className="text-muted-foreground text-sm">
-            {user?.user_metadata?.first_name || "Welcome"}
-          </p>
-        </div>
-        <SignOutButton />
+      <div>
+        <h1 className="text-xl font-bold text-brand">Today</h1>
+        <p className="text-muted-foreground text-sm">
+          {user?.user_metadata?.first_name || "Welcome"}
+        </p>
       </div>
 
       {tasks.length === 0 ? (

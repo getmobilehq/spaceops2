@@ -1,4 +1,5 @@
 import { RoleGuard } from "@/components/shared/RoleGuard"
+import { AppLayout } from "@/components/shared/AppLayout"
 import { Toaster } from "@/components/ui/toaster"
 
 export default function SupervisorLayout({
@@ -8,12 +9,10 @@ export default function SupervisorLayout({
 }) {
   return (
     <RoleGuard allowedRoles={["supervisor", "admin"]}>
-      <div className="min-h-screen bg-surface">
-        <main className="p-6 lg:p-8">
-          {children}
-        </main>
-        <Toaster />
-      </div>
+      <AppLayout>
+        {children}
+      </AppLayout>
+      <Toaster />
     </RoleGuard>
   )
 }

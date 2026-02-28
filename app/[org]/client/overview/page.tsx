@@ -4,7 +4,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { SignOutButton } from "@/components/shared/SignOutButton"
 
 export const metadata = {
   title: "Overview - SpaceOps",
@@ -13,14 +12,11 @@ export const metadata = {
 export default async function ClientOverviewPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand">
-            Building Overview
-          </h1>
-          <p className="text-muted-foreground">Your cleaning service dashboard</p>
-        </div>
-        <SignOutButton />
+      <div>
+        <h1 className="text-2xl font-bold text-brand">
+          Building Overview
+        </h1>
+        <p className="text-muted-foreground">Your cleaning service dashboard</p>
       </div>
 
       <Card>

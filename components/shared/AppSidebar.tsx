@@ -5,49 +5,31 @@ import { usePathname } from "next/navigation"
 import { useOrg } from "@/components/shared/OrgProvider"
 import { SignOutButton } from "@/components/shared/SignOutButton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  LayoutDashboard,
-  Users,
-  Settings,
-  Building2,
-  ClipboardCheck,
-  UserCircle,
-  BarChart3,
-} from "lucide-react"
+import { NAV_CONFIG } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 
-const navItems = [
-  {
-    label: "Dashboard",
-    href: "dashboard",
-    icon: LayoutDashboard,
-    enabled: true,
-  },
-  { label: "Users", href: "users", icon: Users, enabled: true },
-  { label: "Settings", href: "settings", icon: Settings, enabled: true },
-  {
-    label: "Buildings",
-    href: "buildings",
-    icon: Building2,
-    enabled: true,
-  },
-  {
-    label: "Checklists",
-    href: "checklists",
-    icon: ClipboardCheck,
-    enabled: true,
-  },
-  { label: "Clients", href: "clients", icon: UserCircle, enabled: true },
-  { label: "Reports", href: "reports", icon: BarChart3, enabled: false },
-]
+interface AppSidebarProps {
+  className?: string
+  onNavClick?: () => void
+}
 
-export function AdminSidebar() {
+export function AppSidebar({ className, onNavClick }: AppSidebarProps) {
   const { orgSlug, orgName, orgLogoUrl } = useOrg()
   const pathname = usePathname()
-  const basePath = `/${orgSlug}/admin`
+
+  // Derive role from URL: /{orgSlug}/{role}/...
+  const segments = pathname.split("/").filter(Boolean)
+  const role = segments[1] || "admin"
+  const basePath = `/${orgSlug}/${role}`
+  const navItems = NAV_CONFIG[role] || []
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-white">
+    <aside
+      className={cn(
+        "flex h-screen w-64 flex-col border-r bg-white",
+        className
+      )}
+    >
       {/* Org header */}
       <div className="flex items-center gap-3 border-b px-4 py-5">
         <Avatar className="h-9 w-9">
@@ -84,6 +66,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={href}
+              onClick={onNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive

@@ -1,4 +1,5 @@
 import { RoleGuard } from "@/components/shared/RoleGuard"
+import { AppLayout } from "@/components/shared/AppLayout"
 import { Toaster } from "@/components/ui/toaster"
 
 export default function ClientLayout({
@@ -8,12 +9,10 @@ export default function ClientLayout({
 }) {
   return (
     <RoleGuard allowedRoles={["client"]}>
-      <div className="min-h-screen bg-surface">
-        <main className="p-6 lg:p-8 max-w-6xl mx-auto">
-          {children}
-        </main>
-        <Toaster />
-      </div>
+      <AppLayout mainClassName="flex-1 p-6 lg:p-8 max-w-6xl mx-auto">
+        {children}
+      </AppLayout>
+      <Toaster />
     </RoleGuard>
   )
 }

@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { SignOutButton } from "@/components/shared/SignOutButton"
 import {
   getSupervisorActivities,
   getSupervisorBuildings,
@@ -39,16 +38,13 @@ export default async function SupervisorDashboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand">
-            Supervisor Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome, {user?.user_metadata?.first_name || user?.email}
-          </p>
-        </div>
-        <SignOutButton />
+      <div>
+        <h1 className="text-2xl font-bold text-brand">
+          Supervisor Dashboard
+        </h1>
+        <p className="text-muted-foreground">
+          Welcome, {user?.user_metadata?.first_name || user?.email}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -6,6 +6,7 @@ import {
   getTaskItemResponses,
 } from "@/lib/queries/task-responses"
 import { TaskExecutionView } from "./task-execution-view"
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs"
 
 export const metadata = {
   title: "Room Task - SpaceOps",
@@ -56,12 +57,22 @@ export default async function TaskDetailPage({
     responses = []
   }
 
+  const roomName = (task.rooms as { name?: string } | null)?.name || "Room Task"
+
   return (
-    <TaskExecutionView
-      task={task}
-      checklist={checklist}
-      existingResponses={responses}
-      orgSlug={params.org}
-    />
+    <div className="space-y-4">
+      <Breadcrumbs
+        items={[
+          { label: "Today", href: `/${params.org}/janitor/today` },
+          { label: roomName },
+        ]}
+      />
+      <TaskExecutionView
+        task={task}
+        checklist={checklist}
+        existingResponses={responses}
+        orgSlug={params.org}
+      />
+    </div>
   )
 }
