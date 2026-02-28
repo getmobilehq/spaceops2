@@ -4,8 +4,12 @@ import { createClient } from "@/lib/supabase/server"
 import {
   createDeficiencySchema,
   resolveDeficiencySchema,
+  updateDeficiencySchema,
+  reportIssueSchema,
   type CreateDeficiencyInput,
   type ResolveDeficiencyInput,
+  type UpdateDeficiencyInput,
+  type ReportIssueInput,
 } from "@/lib/validations/deficiency"
 import { createNotification } from "@/actions/notifications"
 
@@ -145,4 +149,127 @@ export async function resolveDeficiency(
   }
 
   return { success: true }
+}
+
+export async function updateDeficiency(
+  input: UpdateDeficiencyInput
+): Promise<ActionResult> {
+  const parsed = updateDeficiencySchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const { data: existing } = await ctx.supabase
+    .from("deficiencies")
+    .select("id, status, assigned_to, description")
+    .eq("id", parsed.data.deficiencyId)
+    .single()
+
+  if (!existing) return { success: false, error: "Deficiency not found" }
+
+  const updateData: Record<string, unknown> = {}
+
+  if (parsed.data.status !== undefined) {
+    updateData.status = parsed.data.status
+    if (parsed.data.status === "resolved") {
+      updateData.resolved_at = new Date().toISOString()
+      updateData.resolved_by = ctx.user.id
+    }
+  }
+  if (parsed.data.assignedTo !== undefined) {
+    updateData.assigned_to = parsed.data.assignedTo
+  }
+  if (parsed.data.severity !== undefined) {
+    updateData.severity = parsed.data.severity
+  }
+  if (parsed.data.note !== undefined) {
+    updateData.resolution_note = parsed.data.note
+  }
+
+  const { error } = await ctx.supabase
+    .from("deficiencies")
+    .update(updateData)
+    .eq("id", parsed.data.deficiencyId)
+
+  if (error) return { success: false, error: "Failed to update deficiency" }
+
+  // Notify if reassigned to a different janitor
+  if (
+    parsed.data.assignedTo &&
+    parsed.data.assignedTo !== existing.assigned_to
+  ) {
+    const desc = existing.description.length > 80
+      ? existing.description.slice(0, 80) + "..."
+      : existing.description
+    await createNotification(ctx.supabase, {
+      orgId: ctx.orgId,
+      userId: parsed.data.assignedTo,
+      type: "deficiency_assigned",
+      title: "Deficiency assigned to you",
+      body: desc,
+    })
+  }
+
+  return { success: true }
+}
+
+export async function reportIssue(
+  input: ReportIssueInput
+): Promise<ActionResultWithId> {
+  const parsed = reportIssueSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAuthContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Verify room exists and belongs to user's org
+  const { data: room } = await ctx.supabase
+    .from("rooms")
+    .select("id, name, floor_id")
+    .eq("id", parsed.data.roomId)
+    .single()
+
+  if (!room) return { success: false, error: "Room not found" }
+
+  // Find the most recent active room_task for this room (if any)
+  const { data: recentTask } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, cleaning_activities!inner(status)")
+    .eq("room_id", parsed.data.roomId)
+    .eq("cleaning_activities.status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const roomTaskId = recentTask?.id ?? null
+
+  // If no active task, we still allow creating the deficiency
+  // but we need a room_task_id since the FK is NOT NULL
+  if (!roomTaskId) {
+    return {
+      success: false,
+      error: "No active cleaning task for this room. Ask a supervisor to report this issue.",
+    }
+  }
+
+  const { data: deficiency, error } = await ctx.supabase
+    .from("deficiencies")
+    .insert({
+      room_task_id: roomTaskId,
+      org_id: ctx.orgId,
+      reported_by: ctx.user.id,
+      description: parsed.data.description,
+      severity: parsed.data.severity,
+    })
+    .select("id")
+    .single()
+
+  if (error) return { success: false, error: "Failed to report issue" }
+
+  return { success: true, id: deficiency.id }
 }

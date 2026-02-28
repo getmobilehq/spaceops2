@@ -1298,7 +1298,168 @@ async function testNotifications() {
 }
 
 // =========================================================
-// 17. ACTIVITY TEMPLATES & DELETE ACTIVITY
+// 17. DEFICIENCY MANAGEMENT (SPRINT 15)
+// =========================================================
+async function testDeficiencyManagement() {
+  console.log("\n🔧 DEFICIENCY MANAGEMENT");
+  const { sb: supSb, user: supUser } = await authedClient("supervisor");
+  const { sb: janSb, user: janUser } = await authedClient("janitor");
+  const orgId = supUser.app_metadata.org_id;
+
+  // Find an existing deficiency or create one via a room task
+  let testDefId;
+  try {
+    // Get a room task to create a deficiency against
+    const { data: tasks } = await supSb
+      .from("room_tasks")
+      .select("id")
+      .limit(1)
+      .single();
+    if (!tasks) throw new Error("No room tasks found");
+
+    const { data: def, error } = await supSb
+      .from("deficiencies")
+      .insert({
+        room_task_id: tasks.id,
+        org_id: orgId,
+        reported_by: supUser.id,
+        assigned_to: janUser.id,
+        description: "Test deficiency for management",
+        severity: "medium",
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    testDefId = def.id;
+    pass("Create test deficiency for management");
+  } catch (e) {
+    fail("Create test deficiency for management", e.message);
+    return;
+  }
+
+  // Supervisor updates status to in_progress
+  try {
+    const { error } = await supSb
+      .from("deficiencies")
+      .update({ status: "in_progress" })
+      .eq("id", testDefId);
+    if (error) throw error;
+
+    const { data } = await supSb
+      .from("deficiencies")
+      .select("status")
+      .eq("id", testDefId)
+      .single();
+    if (data?.status !== "in_progress") throw new Error("Status not updated");
+    pass("Update deficiency status (in_progress)");
+  } catch (e) {
+    fail("Update deficiency status", e.message);
+  }
+
+  // Supervisor reassigns to a different janitor (or same, just test the update)
+  try {
+    const { error } = await supSb
+      .from("deficiencies")
+      .update({ assigned_to: janUser.id, severity: "high" })
+      .eq("id", testDefId);
+    if (error) throw error;
+
+    const { data } = await supSb
+      .from("deficiencies")
+      .select("severity, assigned_to")
+      .eq("id", testDefId)
+      .single();
+    if (data?.severity !== "high") throw new Error("Severity not updated");
+    pass("Update deficiency severity and assignment");
+  } catch (e) {
+    fail("Update deficiency severity and assignment", e.message);
+  }
+
+  // Supervisor resolves the deficiency with note
+  try {
+    const { error } = await supSb
+      .from("deficiencies")
+      .update({
+        status: "resolved",
+        resolved_at: new Date().toISOString(),
+        resolved_by: supUser.id,
+        resolution_note: "Fixed by supervisor",
+      })
+      .eq("id", testDefId);
+    if (error) throw error;
+
+    const { data } = await supSb
+      .from("deficiencies")
+      .select("status, resolution_note, resolved_by")
+      .eq("id", testDefId)
+      .single();
+    if (data?.status !== "resolved") throw new Error("Not resolved");
+    if (data?.resolution_note !== "Fixed by supervisor")
+      throw new Error("Note not saved");
+    pass("Resolve deficiency with note");
+  } catch (e) {
+    fail("Resolve deficiency with note", e.message);
+  }
+
+  // Get deficiency by ID (detail query)
+  try {
+    const { data, error } = await supSb
+      .from("deficiencies")
+      .select(
+        "*, room_tasks(id, rooms(name)), reporter:users!deficiencies_reported_by_fkey(first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(first_name, last_name)"
+      )
+      .eq("id", testDefId)
+      .single();
+    if (error) throw error;
+    if (!data.reporter) throw new Error("Reporter not joined");
+    pass("Get deficiency by ID with joins");
+  } catch (e) {
+    fail("Get deficiency by ID with joins", e.message);
+  }
+
+  // Report issue (QR scan flow) - needs active room task
+  try {
+    // Find a room task with an active activity
+    const { data: activeTasks } = await supSb
+      .from("room_tasks")
+      .select("id, room_id, cleaning_activities!inner(status)")
+      .eq("cleaning_activities.status", "active")
+      .limit(1);
+
+    if (activeTasks && activeTasks.length > 0) {
+      // Janitor reports issue via QR scan (links to existing room task)
+      const { data: issue, error } = await janSb
+        .from("deficiencies")
+        .insert({
+          room_task_id: activeTasks[0].id,
+          org_id: orgId,
+          reported_by: janUser.id,
+          description: "QR scan reported issue",
+          severity: "low",
+        })
+        .select("id")
+        .single();
+
+      // Clean up regardless
+      if (issue) {
+        await admin.from("deficiencies").delete().eq("id", issue.id);
+      }
+
+      if (error) throw error;
+      pass("Report issue (QR scan flow)");
+    } else {
+      pass("Report issue (QR scan flow) - skipped, no active tasks");
+    }
+  } catch (e) {
+    fail("Report issue (QR scan flow)", e.message);
+  }
+
+  // Cleanup
+  await admin.from("deficiencies").delete().eq("id", testDefId);
+}
+
+// =========================================================
+// 18. ACTIVITY TEMPLATES & DELETE ACTIVITY
 // =========================================================
 let testTemplateId;
 
@@ -1622,6 +1783,7 @@ async function main() {
   await testReports();
   await testDashboards();
   await testNotifications();
+  await testDeficiencyManagement();
   await testActivityTemplates();
   await cleanup();
 

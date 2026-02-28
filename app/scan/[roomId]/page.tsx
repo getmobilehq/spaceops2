@@ -56,6 +56,7 @@ export default async function ScanPage({
   } = await supabase.auth.getUser()
 
   const roomInfo = {
+    id: room.id,
     name: room.name,
     typeName: (room.room_types as { name: string } | null)?.name || "Unknown",
     floorName: floor?.floor_name || "Unknown Floor",

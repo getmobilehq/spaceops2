@@ -45,6 +45,25 @@ export async function getMyDeficiencies(
 }
 
 /**
+ * Get a single deficiency by ID with full details.
+ */
+export async function getDeficiencyById(
+  supabase: SupabaseClient<Database>,
+  deficiencyId: string
+) {
+  const { data, error } = await supabase
+    .from("deficiencies")
+    .select(
+      "*, room_tasks(id, rooms(name, room_types(name)), cleaning_activities(id, name, scheduled_date)), reporter:users!deficiencies_reported_by_fkey(id, first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(id, first_name, last_name), resolver:users!deficiencies_resolved_by_fkey(first_name, last_name)"
+    )
+    .eq("id", deficiencyId)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
  * Get deficiencies for a specific room task.
  */
 export async function getTaskDeficiencies(

@@ -94,46 +94,51 @@ export function DeficiencyList({
           const StatusIcon = sc.icon
 
           return (
-            <Card key={d.id}>
-              <CardContent className="py-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <StatusIcon className="h-4 w-4 shrink-0" />
-                      <p className="text-sm font-medium truncate">
-                        {d.description}
-                      </p>
+            <Link
+              key={d.id}
+              href={`/${orgSlug}/supervisor/deficiencies/${d.id}`}
+            >
+              <Card className="hover:border-brand/40 transition-colors cursor-pointer">
+                <CardContent className="py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <StatusIcon className="h-4 w-4 shrink-0" />
+                        <p className="text-sm font-medium truncate">
+                          {d.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>
+                          {d.room_tasks?.rooms?.name || "Unknown Room"}
+                        </span>
+                        <span>·</span>
+                        <span>
+                          {d.room_tasks?.cleaning_activities?.name || "Unknown Activity"}
+                        </span>
+                        <span>·</span>
+                        <span>
+                          {new Date(d.created_at).toLocaleDateString("en-GB")}
+                        </span>
+                      </div>
+                      {d.assignee && (
+                        <p className="text-xs text-muted-foreground">
+                          Assigned to {d.assignee.first_name} {d.assignee.last_name}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>
-                        {d.room_tasks?.rooms?.name || "Unknown Room"}
-                      </span>
-                      <span>·</span>
-                      <span>
-                        {d.room_tasks?.cleaning_activities?.name || "Unknown Activity"}
-                      </span>
-                      <span>·</span>
-                      <span>
-                        {new Date(d.created_at).toLocaleDateString("en-GB")}
-                      </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className={sev.className}>
+                        {sev.label}
+                      </Badge>
+                      <Badge variant="outline" className={sc.className}>
+                        {sc.label}
+                      </Badge>
                     </div>
-                    {d.assignee && (
-                      <p className="text-xs text-muted-foreground">
-                        Assigned to {d.assignee.first_name} {d.assignee.last_name}
-                      </p>
-                    )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline" className={sev.className}>
-                      {sev.label}
-                    </Badge>
-                    <Badge variant="outline" className={sc.className}>
-                      {sc.label}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           )
         })
       )}
