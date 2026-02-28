@@ -13,6 +13,13 @@ VALUES (
 );
 
 -- ============================================
+-- 1b. Ensure default room types and checklists are seeded
+--     (triggers may not fire if migrations were run before the org existed)
+-- ============================================
+SELECT seed_default_room_types('a0000000-0000-0000-0000-000000000001');
+SELECT seed_default_checklists('a0000000-0000-0000-0000-000000000001');
+
+-- ============================================
 -- 2. Create auth users
 -- ============================================
 
