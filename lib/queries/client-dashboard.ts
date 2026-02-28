@@ -77,6 +77,25 @@ export async function getClientRecentActivities(
 }
 
 /**
+ * Get deficiencies visible to client (open + in_progress).
+ */
+export async function getClientDeficiencies(
+  supabase: SupabaseClient<Database>
+) {
+  const { data, error } = await supabase
+    .from("deficiencies")
+    .select(
+      "id, description, severity, status, created_at, room_tasks(rooms(name), cleaning_activities(name, scheduled_date, floors(buildings(name))))"
+    )
+    .in("status", ["open", "in_progress", "resolved"])
+    .order("created_at", { ascending: false })
+    .limit(50)
+
+  if (error) throw error
+  return data
+}
+
+/**
  * Get aggregate dashboard stats for a client org.
  */
 export async function getClientDashboardStats(

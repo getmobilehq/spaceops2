@@ -84,6 +84,28 @@ export async function getOrgJanitors(supabase: SupabaseClient<Database>) {
   return data
 }
 
+/**
+ * Get janitor's completed tasks (history).
+ */
+export async function getJanitorTaskHistory(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  limit = 50
+) {
+  const { data, error } = await supabase
+    .from("room_tasks")
+    .select(
+      "id, status, started_at, completed_at, rooms(name, room_types(name)), cleaning_activities!inner(name, scheduled_date, floors(floor_name, buildings(name)))"
+    )
+    .eq("assigned_to", userId)
+    .in("status", ["done", "inspected_pass", "inspected_fail"])
+    .order("completed_at", { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+  return data
+}
+
 export async function getSupervisorBuildings(
   supabase: SupabaseClient<Database>,
   userId: string

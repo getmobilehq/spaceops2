@@ -39,9 +39,12 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
   ],
   janitor: [
     { label: "Today", href: "today", icon: CalendarDays, enabled: true },
+    { label: "History", href: "history", icon: ClipboardCheck, enabled: true },
     { label: "Deficiencies", href: "deficiencies", icon: AlertTriangle, enabled: true },
   ],
   client: [
     { label: "Overview", href: "overview", icon: Eye, enabled: true },
+    { label: "Activities", href: "activities", icon: CalendarCheck, enabled: true },
+    { label: "Deficiencies", href: "deficiencies", icon: AlertTriangle, enabled: true },
   ],
 }
