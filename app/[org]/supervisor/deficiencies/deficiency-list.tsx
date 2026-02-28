@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 
 interface Deficiency {
   id: string
@@ -55,6 +56,7 @@ export function DeficiencyList({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  useRealtimeRefresh("deficiencies")
 
   return (
     <div className="space-y-4">

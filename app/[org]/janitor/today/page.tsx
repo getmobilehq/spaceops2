@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { getJanitorTodayTasks } from "@/lib/queries/activities"
 import { Clock, MapPin, ChevronRight } from "lucide-react"
+import { RealtimeListener } from "@/components/shared/RealtimeListener"
 
 export const metadata = {
   title: "Today - SpaceOps",
@@ -66,6 +67,7 @@ export default async function JanitorTodayPage({
 
   return (
     <div className="space-y-4">
+      <RealtimeListener table="room_tasks" />
       <div>
         <h1 className="text-xl font-bold text-brand">Today</h1>
         <p className="text-muted-foreground text-sm">

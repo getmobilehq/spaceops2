@@ -36,6 +36,7 @@ import {
   deleteActivity,
 } from "@/actions/activities"
 import { saveActivityAsTemplate } from "@/actions/activity-templates"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -98,6 +99,7 @@ export function ActivityDetail({
 }) {
   const router = useRouter()
   const { toast } = useToast()
+  useRealtimeRefresh("room_tasks")
   const [isPublishing, setIsPublishing] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)

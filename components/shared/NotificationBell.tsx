@@ -30,6 +30,7 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const fetchNotifications = useCallback(async () => {
     const supabase = createClient()
@@ -37,6 +38,8 @@ export function NotificationBell() {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) return
+
+    setUserId(user.id)
 
     const { data } = await supabase
       .from("notifications")
@@ -53,11 +56,35 @@ export function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications()
-
-    // Poll every 30 seconds for new notifications
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
   }, [fetchNotifications])
+
+  // Realtime subscription for new notifications
+  useEffect(() => {
+    if (!userId) return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`notifications-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newNotif = payload.new as Notification
+          setNotifications((prev) => [newNotif, ...prev].slice(0, 15))
+          setUnreadCount((c) => c + 1)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId])
 
   async function handleClick(n: Notification) {
     if (!n.is_read) {
