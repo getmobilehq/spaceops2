@@ -121,7 +121,14 @@ export function InspectionView({
             ? "Inspection passed"
             : "Inspection failed",
       })
-      router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
+      if (result === "inspected_fail") {
+        // Redirect to add deficiencies for this failed task
+        router.push(
+          `/${orgSlug}/supervisor/deficiencies/new?taskId=${task.id}&activityId=${activityId}`
+        )
+      } else {
+        router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
+      }
       router.refresh()
     } else {
       toast({

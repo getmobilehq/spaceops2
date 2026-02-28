@@ -29,7 +29,7 @@ export async function getActivityById(
   const { data, error } = await supabase
     .from("cleaning_activities")
     .select(
-      "*, floors(floor_name, buildings(name)), room_tasks(*, rooms(name, room_types(name)), users:assigned_to(id, first_name, last_name))"
+      "*, floors(floor_name, buildings(name)), room_tasks(*, rooms(name, room_types(name)), users!room_tasks_assigned_to_fkey(id, first_name, last_name))"
     )
     .eq("id", activityId)
     .single()

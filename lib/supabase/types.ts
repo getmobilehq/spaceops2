@@ -595,6 +595,9 @@ export type Database = {
           status: "unassigned" | "not_started" | "in_progress" | "done" | "inspected_pass" | "inspected_fail" | "has_issues"
           started_at: string | null
           completed_at: string | null
+          inspected_by: string | null
+          inspected_at: string | null
+          inspection_note: string | null
           created_at: string
           updated_at: string
         }
@@ -607,6 +610,9 @@ export type Database = {
           status?: "unassigned" | "not_started" | "in_progress" | "done" | "inspected_pass" | "inspected_fail" | "has_issues"
           started_at?: string | null
           completed_at?: string | null
+          inspected_by?: string | null
+          inspected_at?: string | null
+          inspection_note?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -619,6 +625,9 @@ export type Database = {
           status?: "unassigned" | "not_started" | "in_progress" | "done" | "inspected_pass" | "inspected_fail" | "has_issues"
           started_at?: string | null
           completed_at?: string | null
+          inspected_by?: string | null
+          inspected_at?: string | null
+          inspection_note?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -649,6 +658,100 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_tasks_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      deficiencies: {
+        Row: {
+          id: string
+          room_task_id: string
+          org_id: string
+          reported_by: string
+          assigned_to: string | null
+          description: string
+          severity: string
+          status: "open" | "in_progress" | "resolved"
+          photo_url: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resolution_note: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          room_task_id: string
+          org_id: string
+          reported_by: string
+          assigned_to?: string | null
+          description: string
+          severity?: string
+          status?: "open" | "in_progress" | "resolved"
+          photo_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_note?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          room_task_id?: string
+          org_id?: string
+          reported_by?: string
+          assigned_to?: string | null
+          description?: string
+          severity?: string
+          status?: "open" | "in_progress" | "resolved"
+          photo_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_note?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deficiencies_room_task_id_fkey"
+            columns: ["room_task_id"]
+            isOneToOne: false
+            referencedRelation: "room_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deficiencies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deficiencies_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deficiencies_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deficiencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]
