@@ -1,11 +1,36 @@
 import { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
 
+export interface ReportFilters {
+  dateFrom?: string // YYYY-MM-DD
+  dateTo?: string // YYYY-MM-DD
+  buildingId?: string // UUID
+}
+
 /**
  * Summary stats for the reports page header.
  */
-export async function getReportSummary(supabase: SupabaseClient<Database>) {
-  const { data: tasks } = await supabase.from("room_tasks").select("status")
+export async function getReportSummary(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let taskQuery = supabase
+    .from("room_tasks")
+    .select(
+      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
+    )
+
+  if (filters?.dateFrom) {
+    taskQuery = taskQuery.gte("cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    taskQuery = taskQuery.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    taskQuery = taskQuery.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+
+  const { data: tasks } = await taskQuery
 
   const all = tasks || []
   const total = all.length
@@ -15,9 +40,21 @@ export async function getReportSummary(supabase: SupabaseClient<Database>) {
   const done = all.filter((t) => t.status === "done").length
   const inProgress = all.filter((t) => t.status === "in_progress").length
 
-  const { count: totalActivities } = await supabase
+  let activityQuery = supabase
     .from("cleaning_activities")
-    .select("id", { count: "exact", head: true })
+    .select("id, scheduled_date, floors!inner(building_id)", { count: "exact", head: true })
+
+  if (filters?.dateFrom) {
+    activityQuery = activityQuery.gte("scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    activityQuery = activityQuery.lte("scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    activityQuery = activityQuery.eq("floors.building_id", filters.buildingId)
+  }
+
+  const { count: totalActivities } = await activityQuery
 
   const { count: openDeficiencies } = await supabase
     .from("deficiencies")
@@ -40,14 +77,28 @@ export async function getReportSummary(supabase: SupabaseClient<Database>) {
 /**
  * Pass rates grouped by building.
  */
-export async function getPassRatesByBuilding(supabase: SupabaseClient<Database>) {
-  const { data, error } = await supabase
+export async function getPassRatesByBuilding(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
     .from("room_tasks")
     .select(
-      "status, rooms!inner(floors!inner(buildings!inner(id, name)))"
+      "status, rooms!inner(floors!inner(buildings!inner(id, name))), cleaning_activities!inner(scheduled_date)"
     )
     .in("status", ["inspected_pass", "inspected_fail"])
 
+  if (filters?.dateFrom) {
+    query = query.gte("cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("rooms.floors.buildings.id", filters.buildingId)
+  }
+
+  const { data, error } = await query
   if (error) throw error
 
   const map = new Map<string, { name: string; passed: number; failed: number }>()
@@ -74,15 +125,29 @@ export async function getPassRatesByBuilding(supabase: SupabaseClient<Database>)
 /**
  * Pass rates grouped by janitor.
  */
-export async function getPassRatesByJanitor(supabase: SupabaseClient<Database>) {
-  const { data, error } = await supabase
+export async function getPassRatesByJanitor(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
     .from("room_tasks")
     .select(
-      "status, assigned_to, users!room_tasks_assigned_to_fkey(first_name, last_name)"
+      "status, assigned_to, users!room_tasks_assigned_to_fkey(first_name, last_name), cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
     )
     .in("status", ["inspected_pass", "inspected_fail"])
     .not("assigned_to", "is", null)
 
+  if (filters?.dateFrom) {
+    query = query.gte("cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+
+  const { data, error } = await query
   if (error) throw error
 
   const map = new Map<string, { name: string; passed: number; failed: number }>()
@@ -112,20 +177,29 @@ export async function getPassRatesByJanitor(supabase: SupabaseClient<Database>) 
  */
 export async function getActivityTrend(
   supabase: SupabaseClient<Database>,
-  days = 30
+  days = 30,
+  filters?: ReportFilters
 ) {
   const since = new Date()
   since.setDate(since.getDate() - days)
-  const sinceStr = since.toISOString().split("T")[0]
+  const sinceStr = filters?.dateFrom || since.toISOString().split("T")[0]
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("room_tasks")
     .select(
-      "status, cleaning_activities!inner(scheduled_date)"
+      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
     )
     .in("status", ["inspected_pass", "inspected_fail", "done"])
     .gte("cleaning_activities.scheduled_date", sinceStr)
 
+  if (filters?.dateTo) {
+    query = query.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+
+  const { data, error } = await query
   if (error) throw error
 
   const map = new Map<string, { date: string; passed: number; failed: number; done: number }>()
@@ -148,16 +222,28 @@ export async function getActivityTrend(
  */
 export async function getActivityHistory(
   supabase: SupabaseClient<Database>,
-  limit = 20
+  limit = 20,
+  filters?: ReportFilters
 ) {
-  const { data, error } = await supabase
+  let query = supabase
     .from("cleaning_activities")
     .select(
-      "id, name, status, scheduled_date, floors(floor_name, buildings(name)), room_tasks(status)"
+      "id, name, status, scheduled_date, floors!inner(floor_name, building_id, buildings!inner(name)), room_tasks(status)"
     )
     .order("scheduled_date", { ascending: false })
     .limit(limit)
 
+  if (filters?.dateFrom) {
+    query = query.gte("scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("floors.buildings.id", filters.buildingId)
+  }
+
+  const { data, error } = await query
   if (error) throw error
 
   return (data || []).map((a) => {

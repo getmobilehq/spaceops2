@@ -7,7 +7,9 @@ import {
   getActivityTrend,
   getActivityHistory,
   getDeficiencyBreakdown,
+  type ReportFilters,
 } from "@/lib/queries/reports"
+import { getOrgBuildings } from "@/lib/queries/buildings"
 import { ReportsDashboard } from "./reports-dashboard"
 
 export const metadata = {
@@ -16,8 +18,10 @@ export const metadata = {
 
 export default async function ReportsPage({
   params,
+  searchParams,
 }: {
   params: { org: string }
+  searchParams: { dateFrom?: string; dateTo?: string; buildingId?: string }
 }) {
   const supabase = createClient()
   const {
@@ -29,15 +33,24 @@ export default async function ReportsPage({
   const role = user.app_metadata?.role as string | undefined
   if (role !== "admin") return notFound()
 
-  const [summary, byBuilding, byJanitor, trend, history, deficiencies] =
+  const filters: ReportFilters = {
+    dateFrom: searchParams.dateFrom || undefined,
+    dateTo: searchParams.dateTo || undefined,
+    buildingId: searchParams.buildingId || undefined,
+  }
+
+  const [summary, byBuilding, byJanitor, trend, history, deficiencies, buildings] =
     await Promise.all([
-      getReportSummary(supabase),
-      getPassRatesByBuilding(supabase),
-      getPassRatesByJanitor(supabase),
-      getActivityTrend(supabase, 30),
-      getActivityHistory(supabase, 20),
+      getReportSummary(supabase, filters),
+      getPassRatesByBuilding(supabase, filters),
+      getPassRatesByJanitor(supabase, filters),
+      getActivityTrend(supabase, 30, filters),
+      getActivityHistory(supabase, 50, filters),
       getDeficiencyBreakdown(supabase),
+      getOrgBuildings(supabase),
     ])
+
+  const buildingOptions = buildings.map((b) => ({ id: b.id, name: b.name }))
 
   return (
     <ReportsDashboard
@@ -48,6 +61,8 @@ export default async function ReportsPage({
       history={history}
       deficiencies={deficiencies}
       orgSlug={params.org}
+      buildings={buildingOptions}
+      filters={filters}
     />
   )
 }

@@ -1,5 +1,7 @@
 "use client"
 
+import { useRouter, usePathname } from "next/navigation"
+import { useState } from "react"
 import {
   Card,
   CardContent,
@@ -7,17 +9,29 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
-  BarChart3,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
   CalendarCheck,
   ClipboardCheck,
   TrendingUp,
+  Download,
+  Filter,
 } from "lucide-react"
 import { TrendChart } from "./trend-chart"
 import { PassRateBar } from "./pass-rate-bar"
+import type { ReportFilters } from "@/lib/queries/reports"
 
 interface Summary {
   totalTasks: number
@@ -74,11 +88,57 @@ interface DeficiencyBreakdown {
   byStatus: { open: number; in_progress: number; resolved: number }
 }
 
+interface Building {
+  id: string
+  name: string
+}
+
 const statusBadge: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "border-gray-200 bg-gray-50 text-gray-700" },
   active: { label: "Active", className: "border-green-200 bg-green-50 text-green-700" },
   closed: { label: "Closed", className: "border-blue-200 bg-blue-50 text-blue-700" },
   cancelled: { label: "Cancelled", className: "border-red-200 bg-red-50 text-red-700" },
+}
+
+function exportCsv(history: ActivityRow[]) {
+  const headers = [
+    "Activity",
+    "Building",
+    "Floor",
+    "Date",
+    "Status",
+    "Total Rooms",
+    "Completed",
+    "Passed",
+    "Failed",
+    "Pass Rate",
+  ]
+  const rows = history.map((a) => [
+    a.name,
+    a.buildingName,
+    a.floorName,
+    a.scheduledDate,
+    a.status,
+    a.totalRooms,
+    a.completedRooms,
+    a.passedRooms,
+    a.failedRooms,
+    a.passRate !== null ? `${a.passRate}%` : "N/A",
+  ])
+
+  const csv = [headers, ...rows]
+    .map((row) =>
+      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+    )
+    .join("\n")
+
+  const blob = new Blob([csv], { type: "text/csv" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `spacops-report-${new Date().toISOString().split("T")[0]}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export function ReportsDashboard({
@@ -89,6 +149,8 @@ export function ReportsDashboard({
   history,
   deficiencies,
   orgSlug,
+  buildings,
+  filters,
 }: {
   summary: Summary
   byBuilding: ByBuilding[]
@@ -97,15 +159,111 @@ export function ReportsDashboard({
   history: ActivityRow[]
   deficiencies: DeficiencyBreakdown
   orgSlug: string
+  buildings: Building[]
+  filters: ReportFilters
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [dateFrom, setDateFrom] = useState(filters.dateFrom || "")
+  const [dateTo, setDateTo] = useState(filters.dateTo || "")
+  const [buildingId, setBuildingId] = useState(filters.buildingId || "all")
+
+  function applyFilters() {
+    const params = new URLSearchParams()
+    if (dateFrom) params.set("dateFrom", dateFrom)
+    if (dateTo) params.set("dateTo", dateTo)
+    if (buildingId && buildingId !== "all") params.set("buildingId", buildingId)
+    const qs = params.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
+  }
+
+  function clearFilters() {
+    setDateFrom("")
+    setDateTo("")
+    setBuildingId("all")
+    router.push(pathname)
+  }
+
+  const hasFilters = filters.dateFrom || filters.dateTo || filters.buildingId
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand">Reports & Analytics</h1>
-        <p className="text-muted-foreground">
-          Performance metrics and inspection insights
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-brand">Reports & Analytics</h1>
+          <p className="text-muted-foreground">
+            Performance metrics and inspection insights
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportCsv(history)}
+          disabled={history.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
+
+      {/* Filter bar */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-end gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              Filters
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">From</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateFrom(e.target.value)}
+                className="h-8 w-40 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">To</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateTo(e.target.value)}
+                className="h-8 w-40 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Building</Label>
+              <Select value={buildingId} onValueChange={setBuildingId}>
+                <SelectTrigger className="h-8 w-48 text-sm">
+                  <SelectValue placeholder="All buildings" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All buildings</SelectItem>
+                  {buildings.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button size="sm" className="h-8" onClick={applyFilters}>
+              Apply
+            </Button>
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8"
+                onClick={clearFilters}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -171,7 +329,9 @@ export function ReportsDashboard({
       {trend.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Inspection Trend (Last 30 Days)</CardTitle>
+            <CardTitle className="text-lg">
+              Inspection Trend {hasFilters ? "(Filtered)" : "(Last 30 Days)"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <TrendChart data={trend} />
@@ -291,8 +451,13 @@ export function ReportsDashboard({
 
       {/* Activity history table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Activity History</CardTitle>
+          {history.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {history.length} activities
+            </span>
+          )}
         </CardHeader>
         <CardContent>
           {history.length === 0 ? (
