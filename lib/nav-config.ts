@@ -28,7 +28,7 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: "Users", href: "users", icon: Users, enabled: true },
     { label: "Checklists", href: "checklists", icon: ClipboardCheck, enabled: true },
     { label: "Settings", href: "settings", icon: Settings, enabled: true },
-    { label: "Reports", href: "reports", icon: BarChart3, enabled: false },
+    { label: "Reports", href: "reports", icon: BarChart3, enabled: true },
   ],
   supervisor: [
     { label: "Dashboard", href: "dashboard", icon: LayoutDashboard, enabled: true },
