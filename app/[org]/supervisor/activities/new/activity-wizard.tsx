@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,10 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { createActivity, assignRoomTasks, publishActivity } from "@/actions/activities"
+import { saveActivityAsTemplate } from "@/actions/activity-templates"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronLeft, ChevronRight, Check } from "lucide-react"
+import { ChevronLeft, ChevronRight, Check, BookTemplate } from "lucide-react"
 
 interface BuildingOption {
   id: string
@@ -54,14 +62,25 @@ interface Assignment {
 
 const STEPS = ["Select Floor", "Schedule", "Assign Rooms", "Review"]
 
+interface InitialValues {
+  floorId: string
+  buildingId: string
+  windowStart: string
+  windowEnd: string
+  notes: string
+  defaultAssignments: { room_id: string; assigned_to: string }[]
+}
+
 export function ActivityWizard({
   buildings,
   janitors,
   orgSlug,
+  initialValues,
 }: {
   buildings: BuildingOption[]
   janitors: JanitorOption[]
   orgSlug: string
+  initialValues?: InitialValues
 }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -86,6 +105,53 @@ export function ActivityWizard({
   // Step 3: Assignments
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loadingRooms, setLoadingRooms] = useState(false)
+
+  // Template pre-fill
+  useEffect(() => {
+    if (!initialValues) return
+
+    async function prefill() {
+      const iv = initialValues!
+      setBuildingId(iv.buildingId)
+      setWindowStart(iv.windowStart)
+      setWindowEnd(iv.windowEnd)
+      setNotes(iv.notes)
+
+      // Load floors for the building
+      const supabase = createClient()
+      const { data: floorData } = await supabase
+        .from("floors")
+        .select("id, floor_name, floor_number")
+        .eq("building_id", iv.buildingId)
+        .order("floor_number", { ascending: true })
+
+      setFloors(floorData || [])
+      setFloorId(iv.floorId)
+
+      // Load rooms for the floor
+      const { data: roomData } = await supabase
+        .from("rooms")
+        .select("id, name, room_types(name)")
+        .eq("floor_id", iv.floorId)
+        .eq("is_active", true)
+        .order("name", { ascending: true })
+
+      const assignmentMap = new Map(
+        iv.defaultAssignments.map((a) => [a.room_id, a.assigned_to])
+      )
+
+      setAssignments(
+        (roomData || []).map((r: RoomOption) => ({
+          roomId: r.id,
+          roomName: r.name,
+          roomType: r.room_types?.name || "Unknown",
+          assignedTo: assignmentMap.get(r.id) || null,
+        }))
+      )
+    }
+
+    prefill()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleBuildingChange(id: string) {
     setBuildingId(id)
@@ -140,6 +206,11 @@ export function ActivityWizard({
     )
   }
 
+  const [createdActivityId, setCreatedActivityId] = useState<string | null>(null)
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+  const [templateName, setTemplateName] = useState("")
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+
   async function handleSubmit(publish: boolean) {
     setIsSubmitting(true)
 
@@ -159,6 +230,7 @@ export function ActivityWizard({
     }
 
     const activityId = result.id
+    setCreatedActivityId(activityId)
 
     // Assign rooms
     const withAssignees = assignments.filter((a) => a.assignedTo)
@@ -197,6 +269,22 @@ export function ActivityWizard({
     router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
   }
 
+  async function handleSaveAsTemplate() {
+    if (!createdActivityId || !templateName) return
+    setIsSavingTemplate(true)
+    const result = await saveActivityAsTemplate({
+      activityId: createdActivityId,
+      name: templateName,
+    })
+    if (result.success) {
+      toast({ title: "Template saved" })
+      setShowSaveTemplate(false)
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsSavingTemplate(false)
+  }
+
   function canAdvance() {
     if (step === 0) return !!floorId
     if (step === 1) return !!name && !!scheduledDate && !!windowStart && !!windowEnd
@@ -218,6 +306,7 @@ export function ActivityWizard({
   )
 
   return (
+    <>
     <Card>
       {/* Step indicator */}
       <CardHeader>
@@ -504,5 +593,37 @@ export function ActivityWizard({
         </div>
       </CardContent>
     </Card>
+
+    <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Save as Template</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label>Template Name</Label>
+          <Input
+            placeholder="e.g. Evening Clean — Floor 2"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowSaveTemplate(false)}
+            disabled={isSavingTemplate}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveAsTemplate}
+            disabled={!templateName || isSavingTemplate}
+          >
+            {isSavingTemplate ? "Saving..." : "Save Template"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }

@@ -756,6 +756,70 @@ export type Database = {
           }
         ]
       }
+      activity_templates: {
+        Row: {
+          id: string
+          org_id: string
+          created_by: string
+          name: string
+          floor_id: string
+          window_start: string
+          window_end: string
+          notes: string | null
+          default_assignments: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          created_by: string
+          name: string
+          floor_id: string
+          window_start?: string
+          window_end?: string
+          notes?: string | null
+          default_assignments?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          created_by?: string
+          name?: string
+          floor_id?: string
+          window_start?: string
+          window_end?: string
+          notes?: string | null
+          default_assignments?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_templates_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       task_item_responses: {
         Row: {
           id: string

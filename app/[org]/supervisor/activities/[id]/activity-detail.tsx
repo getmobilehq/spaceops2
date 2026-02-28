@@ -33,13 +33,19 @@ import {
   cancelActivity,
   closeActivity,
   assignRoomTasks,
+  deleteActivity,
 } from "@/actions/activities"
+import { saveActivityAsTemplate } from "@/actions/activity-templates"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Calendar,
   Clock,
   MapPin,
   ChevronLeft,
   ClipboardCheck,
+  BookTemplate,
+  Trash2,
 } from "lucide-react"
 
 interface RoomTask {
@@ -98,6 +104,11 @@ export function ActivityDetail({
   const [isClosing, setIsClosing] = useState(false)
   const [isSavingAssignments, setIsSavingAssignments] = useState(false)
   const [localTasks, setLocalTasks] = useState(activity.room_tasks)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+  const [templateName, setTemplateName] = useState("")
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
 
   const isDraft = activity.status === "draft"
   const isActive = activity.status === "active"
@@ -168,6 +179,36 @@ export function ActivityDetail({
     setIsSavingAssignments(false)
   }
 
+  async function handleDelete() {
+    setIsDeleting(true)
+    const result = await deleteActivity({ activityId: activity.id })
+    if (result.success) {
+      toast({ title: "Activity deleted" })
+      router.push(`/${orgSlug}/supervisor/activities`)
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsDeleting(false)
+    setConfirmDelete(false)
+  }
+
+  async function handleSaveAsTemplate() {
+    if (!templateName) return
+    setIsSavingTemplate(true)
+    const result = await saveActivityAsTemplate({
+      activityId: activity.id,
+      name: templateName,
+    })
+    if (result.success) {
+      toast({ title: "Template saved" })
+      setShowSaveTemplate(false)
+      setTemplateName("")
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsSavingTemplate(false)
+  }
+
   const hasAssignmentChanges = localTasks.some(
     (t) =>
       t.assigned_to !==
@@ -215,6 +256,14 @@ export function ActivityDetail({
               )}
             </div>
             <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowSaveTemplate(true)}
+              >
+                <BookTemplate className="mr-1 h-3.5 w-3.5" />
+                Save as Template
+              </Button>
               {isDraft && (
                 <Button
                   size="sm"
@@ -241,6 +290,15 @@ export function ActivityDetail({
                   onClick={() => setConfirmCancel(true)}
                 >
                   Cancel
+                </Button>
+              )}
+              {isDraft && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>
@@ -358,6 +416,66 @@ export function ActivityDetail({
               disabled={isCancelling}
             >
               {isCancelling ? "Cancelling..." : "Cancel Activity"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Activity</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this draft activity? All room tasks will be removed. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDelete(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Activity"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save as Template */}
+      <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save as Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Template Name</Label>
+            <Input
+              placeholder="e.g. Evening Clean — Floor 2"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveTemplate(false)}
+              disabled={isSavingTemplate}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveAsTemplate}
+              disabled={!templateName || isSavingTemplate}
+            >
+              {isSavingTemplate ? "Saving..." : "Save Template"}
             </Button>
           </DialogFooter>
         </DialogContent>

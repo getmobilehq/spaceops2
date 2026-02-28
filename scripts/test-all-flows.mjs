@@ -1060,11 +1060,284 @@ async function testReports() {
 }
 
 // =========================================================
+// 15. ACTIVITY TEMPLATES & DELETE ACTIVITY
+// =========================================================
+let testTemplateId;
+
+async function testActivityTemplates() {
+  console.log("\n📋 ACTIVITY TEMPLATES & DELETE ACTIVITY");
+  const { sb, user } = await authedClient("supervisor");
+  const orgId = user.app_metadata.org_id;
+
+  // Get a floor for the template
+  let templateFloorId;
+  try {
+    const { data } = await sb
+      .from("floors")
+      .select("id")
+      .limit(1)
+      .single();
+    templateFloorId = data?.id;
+    if (!templateFloorId) throw new Error("No floor found");
+    pass("Floor found for template test");
+  } catch (e) {
+    fail("Floor found for template test", e.message);
+    return;
+  }
+
+  // Get a janitor for default assignments
+  let janitorId;
+  try {
+    const { data } = await sb
+      .from("users")
+      .select("id")
+      .eq("role", "janitor")
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+    janitorId = data?.id;
+  } catch (e) {
+    // No janitor, skip assignments
+  }
+
+  // Get rooms for default assignments
+  let rooms = [];
+  try {
+    const { data } = await sb
+      .from("rooms")
+      .select("id")
+      .eq("floor_id", templateFloorId)
+      .eq("is_active", true)
+      .limit(2);
+    rooms = data || [];
+  } catch (e) {
+    // No rooms
+  }
+
+  const defaultAssignments = janitorId && rooms.length > 0
+    ? rooms.map((r) => ({ room_id: r.id, assigned_to: janitorId }))
+    : [];
+
+  // Create template
+  try {
+    const { data, error } = await sb
+      .from("activity_templates")
+      .insert({
+        org_id: orgId,
+        created_by: user.id,
+        name: "Test Evening Clean Template",
+        floor_id: templateFloorId,
+        window_start: "18:00",
+        window_end: "22:00",
+        notes: "Automated test template",
+        default_assignments: defaultAssignments,
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    testTemplateId = data.id;
+    pass("Create activity template");
+  } catch (e) {
+    fail("Create activity template", e.message);
+  }
+
+  if (!testTemplateId) return;
+
+  // List templates
+  try {
+    const { data, error } = await sb
+      .from("activity_templates")
+      .select("*, floors(floor_name, buildings(name))")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const found = data.find((t) => t.id === testTemplateId);
+    if (!found) throw new Error("Template not in list");
+    pass(`List templates (${data.length} found)`);
+  } catch (e) {
+    fail("List templates", e.message);
+  }
+
+  // Read template by ID
+  try {
+    const { data, error } = await sb
+      .from("activity_templates")
+      .select("*, floors(floor_name, buildings(name))")
+      .eq("id", testTemplateId)
+      .single();
+    if (error) throw error;
+    if (data.name !== "Test Evening Clean Template") throw new Error("Name mismatch");
+    if (data.window_start !== "18:00:00") throw new Error(`window_start: ${data.window_start}`);
+    pass("Read template by ID");
+  } catch (e) {
+    fail("Read template by ID", e.message);
+  }
+
+  // Update template
+  try {
+    const { error } = await sb
+      .from("activity_templates")
+      .update({ name: "Updated Evening Template", notes: "Updated notes" })
+      .eq("id", testTemplateId);
+    if (error) throw error;
+
+    const { data } = await sb
+      .from("activity_templates")
+      .select("name, notes")
+      .eq("id", testTemplateId)
+      .single();
+    if (data?.name !== "Updated Evening Template") throw new Error("Name not updated");
+    pass("Update template");
+  } catch (e) {
+    fail("Update template", e.message);
+  }
+
+  // Verify default_assignments stored correctly
+  try {
+    const { data, error } = await sb
+      .from("activity_templates")
+      .select("default_assignments")
+      .eq("id", testTemplateId)
+      .single();
+    if (error) throw error;
+    const stored = data?.default_assignments;
+    if (!Array.isArray(stored)) throw new Error("Not an array");
+    if (stored.length !== defaultAssignments.length)
+      throw new Error(`Expected ${defaultAssignments.length}, got ${stored.length}`);
+    pass(`Default assignments stored (${stored.length} entries)`);
+  } catch (e) {
+    fail("Default assignments stored", e.message);
+  }
+
+  // Test "Save Activity as Template" (create from existing activity)
+  if (testActivityId) {
+    try {
+      const { data: activity } = await sb
+        .from("cleaning_activities")
+        .select("floor_id, window_start, window_end, notes")
+        .eq("id", testActivityId)
+        .single();
+
+      if (!activity) throw new Error("Activity not found");
+
+      const { data: savedTemplate, error } = await sb
+        .from("activity_templates")
+        .insert({
+          org_id: orgId,
+          created_by: user.id,
+          name: "From Activity Template",
+          floor_id: activity.floor_id,
+          window_start: activity.window_start,
+          window_end: activity.window_end,
+          notes: activity.notes,
+          default_assignments: [],
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      pass("Save activity as template");
+
+      // Cleanup this template
+      await admin.from("activity_templates").delete().eq("id", savedTemplate.id);
+    } catch (e) {
+      fail("Save activity as template", e.message);
+    }
+  }
+
+  // Test Delete Draft Activity
+  try {
+    // Create a throwaway draft activity
+    const today = new Date().toISOString().split("T")[0];
+    const { data: draftActivity, error: createErr } = await sb
+      .from("cleaning_activities")
+      .insert({
+        org_id: orgId,
+        floor_id: templateFloorId,
+        created_by: user.id,
+        name: "Throwaway Draft for Delete Test",
+        scheduled_date: today,
+        window_start: "09:00",
+        window_end: "10:00",
+      })
+      .select("id")
+      .single();
+    if (createErr) throw createErr;
+
+    // Delete it
+    const { error: delErr } = await sb
+      .from("cleaning_activities")
+      .delete()
+      .eq("id", draftActivity.id)
+      .eq("status", "draft");
+    if (delErr) throw delErr;
+
+    // Verify deleted
+    const { data: check } = await admin
+      .from("cleaning_activities")
+      .select("id")
+      .eq("id", draftActivity.id)
+      .maybeSingle();
+    if (check) throw new Error("Draft not deleted");
+    pass("Delete draft activity");
+  } catch (e) {
+    fail("Delete draft activity", e.message);
+  }
+
+  // Delete template
+  try {
+    const { error } = await sb
+      .from("activity_templates")
+      .delete()
+      .eq("id", testTemplateId);
+    if (error) throw error;
+
+    const { data: check } = await admin
+      .from("activity_templates")
+      .select("id")
+      .eq("id", testTemplateId)
+      .maybeSingle();
+    if (check) throw new Error("Template not deleted");
+    testTemplateId = null;
+    pass("Delete template");
+  } catch (e) {
+    fail("Delete template", e.message);
+  }
+
+  // RLS: Client cannot create templates
+  try {
+    const { sb: clientSb, user: clientUser } = await authedClient("client");
+    const { error } = await clientSb
+      .from("activity_templates")
+      .insert({
+        org_id: orgId,
+        created_by: clientUser.id,
+        name: "Should Fail",
+        floor_id: templateFloorId,
+        window_start: "08:00",
+        window_end: "17:00",
+      })
+      .select("id")
+      .single();
+
+    if (!error) {
+      // Clean up if it somehow succeeded
+      fail("RLS blocks client template creation", "Insert should have failed");
+    } else {
+      pass("RLS blocks client template creation");
+    }
+  } catch (e) {
+    pass("RLS blocks client template creation");
+  }
+}
+
+// =========================================================
 // CLEANUP
 // =========================================================
 async function cleanup() {
   console.log("\n🧹 CLEANUP");
   try {
+    if (testTemplateId) {
+      await admin.from("activity_templates").delete().eq("id", testTemplateId);
+    }
     if (testDeficiencyId) {
       await admin.from("deficiencies").delete().eq("id", testDeficiencyId);
     }
@@ -1109,6 +1382,7 @@ async function main() {
   await testRLS();
   await testPassInspection();
   await testReports();
+  await testActivityTemplates();
   await cleanup();
 
   // Summary

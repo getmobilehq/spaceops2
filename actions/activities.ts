@@ -10,6 +10,7 @@ import {
   closeActivitySchema,
   updateRoomTaskStatusSchema,
   inspectRoomTaskSchema,
+  deleteActivitySchema,
   type CreateActivityInput,
   type UpdateActivityInput,
   type AssignRoomTasksInput,
@@ -18,6 +19,7 @@ import {
   type CloseActivityInput,
   type UpdateRoomTaskStatusInput,
   type InspectRoomTaskInput,
+  type DeleteActivityInput,
 } from "@/lib/validations/activity"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -117,26 +119,42 @@ export async function updateActivity(
   const ctx = await getSupervisorContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Only allow editing draft activities
   const { data: existing } = await ctx.supabase
     .from("cleaning_activities")
     .select("status")
     .eq("id", parsed.data.activityId)
     .single()
 
-  if (!existing || existing.status !== "draft") {
-    return { success: false, error: "Can only edit draft activities" }
+  if (!existing) {
+    return { success: false, error: "Activity not found" }
+  }
+
+  const isDraft = existing.status === "draft"
+  const isActive = existing.status === "active"
+
+  if (!isDraft && !isActive) {
+    return { success: false, error: "Cannot edit closed or cancelled activities" }
   }
 
   const updateData: Record<string, unknown> = {}
   if (parsed.data.name !== undefined) updateData.name = parsed.data.name
-  if (parsed.data.scheduledDate !== undefined)
-    updateData.scheduled_date = parsed.data.scheduledDate
-  if (parsed.data.windowStart !== undefined)
-    updateData.window_start = parsed.data.windowStart
-  if (parsed.data.windowEnd !== undefined)
-    updateData.window_end = parsed.data.windowEnd
   if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes
+
+  // Only drafts can change schedule fields
+  if (isDraft) {
+    if (parsed.data.scheduledDate !== undefined)
+      updateData.scheduled_date = parsed.data.scheduledDate
+    if (parsed.data.windowStart !== undefined)
+      updateData.window_start = parsed.data.windowStart
+    if (parsed.data.windowEnd !== undefined)
+      updateData.window_end = parsed.data.windowEnd
+  } else if (
+    parsed.data.scheduledDate !== undefined ||
+    parsed.data.windowStart !== undefined ||
+    parsed.data.windowEnd !== undefined
+  ) {
+    return { success: false, error: "Cannot change schedule on active activities" }
+  }
 
   const { error } = await ctx.supabase
     .from("cleaning_activities")
@@ -316,5 +334,43 @@ export async function inspectRoomTask(
     .eq("id", parsed.data.taskId)
 
   if (error) return { success: false, error: "Failed to inspect task" }
+  return { success: true }
+}
+
+export async function deleteActivity(
+  input: DeleteActivityInput
+): Promise<ActionResult> {
+  const parsed = deleteActivitySchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Only allow deleting draft activities
+  const { data: existing } = await ctx.supabase
+    .from("cleaning_activities")
+    .select("status")
+    .eq("id", parsed.data.activityId)
+    .single()
+
+  if (!existing) return { success: false, error: "Activity not found" }
+  if (existing.status !== "draft") {
+    return { success: false, error: "Only draft activities can be deleted" }
+  }
+
+  // Delete room tasks first (cascade should handle this, but be explicit)
+  await ctx.supabase
+    .from("room_tasks")
+    .delete()
+    .eq("activity_id", parsed.data.activityId)
+
+  const { error } = await ctx.supabase
+    .from("cleaning_activities")
+    .delete()
+    .eq("id", parsed.data.activityId)
+
+  if (error) return { success: false, error: "Failed to delete activity" }
   return { success: true }
 }
