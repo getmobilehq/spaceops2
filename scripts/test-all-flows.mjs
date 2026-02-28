@@ -1060,7 +1060,138 @@ async function testReports() {
 }
 
 // =========================================================
-// 15. ACTIVITY TEMPLATES & DELETE ACTIVITY
+// 15. ADMIN & SUPERVISOR DASHBOARD QUERIES
+// =========================================================
+async function testDashboards() {
+  console.log("\n📊 DASHBOARD QUERIES");
+
+  // Admin dashboard stats
+  const { sb: adminSb } = await authedClient("admin");
+  try {
+    // Active buildings
+    const { count: buildingCount, error: bErr } = await adminSb
+      .from("buildings")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active");
+    if (bErr) throw bErr;
+    pass(`Admin KPI: active buildings (${buildingCount})`);
+  } catch (e) {
+    fail("Admin KPI: active buildings", e.message);
+  }
+
+  try {
+    // Open deficiencies
+    const { count, error } = await adminSb
+      .from("deficiencies")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["open", "in_progress"]);
+    if (error) throw error;
+    pass(`Admin KPI: open deficiencies (${count})`);
+  } catch (e) {
+    fail("Admin KPI: open deficiencies", e.message);
+  }
+
+  try {
+    // Activities this week
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    const weekStartStr = weekStart.toISOString().split("T")[0];
+    const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const weekEndStr = weekEnd.toISOString().split("T")[0];
+
+    const { count, error } = await adminSb
+      .from("cleaning_activities")
+      .select("id", { count: "exact", head: true })
+      .gte("scheduled_date", weekStartStr)
+      .lte("scheduled_date", weekEndStr);
+    if (error) throw error;
+    pass(`Admin KPI: activities this week (${count})`);
+  } catch (e) {
+    fail("Admin KPI: activities this week", e.message);
+  }
+
+  try {
+    // Avg pass rate
+    const { data, error } = await adminSb
+      .from("room_tasks")
+      .select("status")
+      .in("status", ["inspected_pass", "inspected_fail"]);
+    if (error) throw error;
+    const passed = (data || []).filter((t) => t.status === "inspected_pass").length;
+    const total = (data || []).length;
+    const rate = total > 0 ? Math.round((passed / total) * 100) : null;
+    pass(`Admin KPI: avg pass rate (${rate ?? "N/A"}%)`);
+  } catch (e) {
+    fail("Admin KPI: avg pass rate", e.message);
+  }
+
+  try {
+    // Recent activity feed
+    const { data: activities, error: aErr } = await adminSb
+      .from("cleaning_activities")
+      .select("id, name, status, created_at, floors(floor_name, buildings(name))")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (aErr) throw aErr;
+
+    const { data: deficiencies, error: dErr } = await adminSb
+      .from("deficiencies")
+      .select("id, description, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (dErr) throw dErr;
+
+    const total = (activities || []).length + (deficiencies || []).length;
+    pass(`Admin recent activity feed (${total} events)`);
+  } catch (e) {
+    fail("Admin recent activity feed", e.message);
+  }
+
+  // Supervisor dashboard stats
+  const { sb: supSb } = await authedClient("supervisor");
+  try {
+    // Pending inspection
+    const { data, error } = await supSb
+      .from("room_tasks")
+      .select("id, cleaning_activities!inner(status)")
+      .eq("status", "done")
+      .eq("cleaning_activities.status", "active");
+    if (error) throw error;
+    pass(`Supervisor KPI: pending inspection (${(data || []).length})`);
+  } catch (e) {
+    fail("Supervisor KPI: pending inspection", e.message);
+  }
+
+  try {
+    // Open issues
+    const { count, error } = await supSb
+      .from("deficiencies")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["open", "in_progress"]);
+    if (error) throw error;
+    pass(`Supervisor KPI: open issues (${count})`);
+  } catch (e) {
+    fail("Supervisor KPI: open issues", e.message);
+  }
+
+  try {
+    // Today's activity details
+    const today = new Date().toISOString().split("T")[0];
+    const { data, error } = await supSb
+      .from("cleaning_activities")
+      .select("id, name, status, window_start, window_end, floors(floor_name, buildings(name)), room_tasks(id, status)")
+      .eq("scheduled_date", today)
+      .in("status", ["draft", "active"]);
+    if (error) throw error;
+    pass(`Supervisor today's activities (${(data || []).length} activities)`);
+  } catch (e) {
+    fail("Supervisor today's activities", e.message);
+  }
+}
+
+// =========================================================
+// 16. ACTIVITY TEMPLATES & DELETE ACTIVITY
 // =========================================================
 let testTemplateId;
 
@@ -1382,6 +1513,7 @@ async function main() {
   await testRLS();
   await testPassInspection();
   await testReports();
+  await testDashboards();
   await testActivityTemplates();
   await cleanup();
 
