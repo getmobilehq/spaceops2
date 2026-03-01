@@ -18,11 +18,11 @@ export async function getAdminDashboardStats(
 
   const [buildingsRes, deficienciesRes, activitiesRes, tasksRes] =
     await Promise.all([
-      // Active buildings count
+      // Active buildings count (active + setup, excludes inactive)
       supabase
         .from("buildings")
         .select("id", { count: "exact", head: true })
-        .eq("status", "active"),
+        .neq("status", "inactive"),
 
       // Open deficiencies count
       supabase
