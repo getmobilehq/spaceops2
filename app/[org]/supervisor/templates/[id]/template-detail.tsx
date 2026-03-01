@@ -59,10 +59,12 @@ interface TemplateData {
 export function TemplateDetail({
   template,
   janitors,
+  roomMap,
   orgSlug,
 }: {
   template: TemplateData
   janitors: JanitorOption[]
+  roomMap: Record<string, string>
   orgSlug: string
 }) {
   const router = useRouter()
@@ -188,8 +190,8 @@ export function TemplateDetail({
                 key={i}
                 className="flex items-center justify-between rounded-md border p-3 text-sm"
               >
-                <span className="font-mono text-xs text-muted-foreground">
-                  {a.room_id.slice(0, 8)}...
+                <span className="text-sm font-medium">
+                  {roomMap[a.room_id] || "Unknown room"}
                 </span>
                 <span>{janitorMap.get(a.assigned_to) || "Unknown janitor"}</span>
               </div>

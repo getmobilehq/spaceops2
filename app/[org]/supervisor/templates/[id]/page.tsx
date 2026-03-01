@@ -25,6 +25,22 @@ export default async function TemplateDetailPage({
 
   const janitors = await getOrgJanitors(supabase)
 
+  // Resolve room names for default_assignments
+  const assignments = Array.isArray(template.default_assignments)
+    ? (template.default_assignments as { room_id: string; assigned_to: string }[])
+    : []
+  const roomIds = assignments.map((a) => a.room_id)
+  const roomMap: Record<string, string> = {}
+  if (roomIds.length > 0) {
+    const { data: rooms } = await supabase
+      .from("rooms")
+      .select("id, name")
+      .in("id", roomIds)
+    for (const r of rooms || []) {
+      roomMap[r.id] = r.name
+    }
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <Breadcrumbs
@@ -36,6 +52,7 @@ export default async function TemplateDetailPage({
       <TemplateDetail
         template={template}
         janitors={janitors}
+        roomMap={roomMap}
         orgSlug={params.org}
       />
     </div>
