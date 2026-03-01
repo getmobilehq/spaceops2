@@ -106,6 +106,110 @@ export async function getJanitorTaskHistory(
   return data
 }
 
+/**
+ * Performance trend data for a janitor — weekly pass/fail counts.
+ */
+export async function getJanitorPerformanceTrend(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  weeks = 8
+) {
+  const since = new Date()
+  since.setDate(since.getDate() - weeks * 7)
+  const sinceStr = since.toISOString().split("T")[0]
+
+  const { data, error } = await supabase
+    .from("room_tasks")
+    .select(
+      "status, cleaning_activities!inner(scheduled_date)"
+    )
+    .eq("assigned_to", userId)
+    .in("status", ["inspected_pass", "inspected_fail", "done"])
+    .gte("cleaning_activities.scheduled_date", sinceStr)
+
+  if (error) throw error
+
+  // Group by ISO week
+  const weekMap = new Map<
+    string,
+    { week: string; passed: number; failed: number; done: number }
+  >()
+
+  for (const task of data || []) {
+    const dateStr = (task.cleaning_activities as any)?.scheduled_date
+    if (!dateStr) continue
+    const d = new Date(dateStr)
+    // Get Monday of the week
+    const day = d.getDay()
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - ((day + 6) % 7))
+    const weekKey = monday.toISOString().split("T")[0]
+
+    if (!weekMap.has(weekKey)) {
+      weekMap.set(weekKey, { week: weekKey, passed: 0, failed: 0, done: 0 })
+    }
+    const entry = weekMap.get(weekKey)!
+    if (task.status === "inspected_pass") entry.passed++
+    else if (task.status === "inspected_fail") entry.failed++
+    else if (task.status === "done") entry.done++
+  }
+
+  return Array.from(weekMap.values()).sort((a, b) =>
+    a.week.localeCompare(b.week)
+  )
+}
+
+/**
+ * Aggregate performance stats for a janitor.
+ */
+export async function getJanitorPerformanceStats(
+  supabase: SupabaseClient<Database>,
+  userId: string
+) {
+  const { data, error } = await supabase
+    .from("room_tasks")
+    .select("status, completed_at")
+    .eq("assigned_to", userId)
+    .in("status", ["done", "inspected_pass", "inspected_fail"])
+
+  if (error) throw error
+
+  const tasks = data || []
+  const total = tasks.length
+  const passed = tasks.filter((t) => t.status === "inspected_pass").length
+  const failed = tasks.filter((t) => t.status === "inspected_fail").length
+  const inspected = passed + failed
+  const passRate =
+    inspected > 0 ? Math.round((passed / inspected) * 100) : null
+
+  // Calculate current streak (consecutive passes)
+  const inspectedTasks = tasks
+    .filter(
+      (t) =>
+        t.status === "inspected_pass" || t.status === "inspected_fail"
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.completed_at || 0).getTime() -
+        new Date(a.completed_at || 0).getTime()
+    )
+
+  let streak = 0
+  for (const t of inspectedTasks) {
+    if (t.status === "inspected_pass") streak++
+    else break
+  }
+
+  return {
+    totalCompleted: total,
+    passed,
+    failed,
+    awaitingInspection: total - inspected,
+    passRate,
+    currentStreak: streak,
+  }
+}
+
 export async function getSupervisorBuildings(
   supabase: SupabaseClient<Database>,
   userId: string

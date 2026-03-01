@@ -1,16 +1,25 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
-import { getJanitorTaskHistory } from "@/lib/queries/activities"
+import {
+  getJanitorTaskHistory,
+  getJanitorPerformanceStats,
+  getJanitorPerformanceTrend,
+} from "@/lib/queries/activities"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import {
   CheckCircle2,
   XCircle,
   Clock,
   CalendarDays,
+  TrendingUp,
+  Flame,
+  BarChart3,
 } from "lucide-react"
 
 export const metadata = {
@@ -48,7 +57,11 @@ export default async function JanitorHistoryPage() {
   const role = user.app_metadata?.role as string | undefined
   if (role !== "janitor") return notFound()
 
-  const tasks = await getJanitorTaskHistory(supabase, user.id)
+  const [tasks, perfStats, perfTrend] = await Promise.all([
+    getJanitorTaskHistory(supabase, user.id),
+    getJanitorPerformanceStats(supabase, user.id),
+    getJanitorPerformanceTrend(supabase, user.id),
+  ])
 
   // Group by date
   const grouped = new Map<string, typeof tasks>()
@@ -66,6 +79,161 @@ export default async function JanitorHistoryPage() {
           Your completed tasks and inspection results
         </p>
       </div>
+
+      {/* Performance stats */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Pass Rate</p>
+            <p className="text-2xl font-bold">
+              {perfStats.passRate !== null ? (
+                <span
+                  className={
+                    perfStats.passRate >= 80
+                      ? "text-green-600"
+                      : perfStats.passRate >= 50
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                  }
+                >
+                  {perfStats.passRate}%
+                </span>
+              ) : (
+                <span className="text-muted-foreground">N/A</span>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Tasks Completed</p>
+            <p className="text-2xl font-bold">{perfStats.totalCompleted}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Inspections</p>
+            <p className="text-2xl font-bold">
+              <span className="text-green-600">{perfStats.passed}</span>
+              {" / "}
+              <span className="text-red-600">{perfStats.failed}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">passed / failed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-1">
+              <Flame className="h-4 w-4 text-orange-500" />
+              <p className="text-sm text-muted-foreground">Streak</p>
+            </div>
+            <p className="text-2xl font-bold">
+              {perfStats.currentStreak > 0 ? (
+                <span className="text-orange-500">
+                  {perfStats.currentStreak}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">0</span>
+              )}
+            </p>
+            <p className="text-xs text-muted-foreground">consecutive passes</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly trend */}
+      {perfTrend.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Weekly Performance (Last 8 Weeks)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {perfTrend.map((week) => {
+                const total = week.passed + week.failed
+                const passRate =
+                  total > 0 ? Math.round((week.passed / total) * 100) : null
+                const weekLabel = new Date(week.week).toLocaleDateString(
+                  "en-GB",
+                  { day: "numeric", month: "short" }
+                )
+                return (
+                  <div key={week.week} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground w-16">
+                        {weekLabel}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-600">
+                          {week.passed} passed
+                        </span>
+                        {week.failed > 0 && (
+                          <span className="text-red-600">
+                            {week.failed} failed
+                          </span>
+                        )}
+                        {week.done > 0 && (
+                          <span className="text-yellow-600">
+                            {week.done} awaiting
+                          </span>
+                        )}
+                        {passRate !== null && (
+                          <span
+                            className={`font-medium ${
+                              passRate >= 80
+                                ? "text-green-600"
+                                : passRate >= 50
+                                ? "text-yellow-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {passRate}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
+                      {total > 0 && (
+                        <>
+                          <div
+                            className="h-2 bg-green-500 transition-all"
+                            style={{
+                              width: `${
+                                (week.passed / (total + week.done)) * 100
+                              }%`,
+                            }}
+                          />
+                          <div
+                            className="h-2 bg-red-400 transition-all"
+                            style={{
+                              width: `${
+                                (week.failed / (total + week.done)) * 100
+                              }%`,
+                            }}
+                          />
+                        </>
+                      )}
+                      {week.done > 0 && (
+                        <div
+                          className="h-2 bg-yellow-400 transition-all"
+                          style={{
+                            width: `${
+                              (week.done / (total + week.done)) * 100
+                            }%`,
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {tasks.length === 0 ? (
         <Card>
