@@ -47,6 +47,7 @@ import {
   ClipboardCheck,
   BookTemplate,
   Trash2,
+  Map,
 } from "lucide-react"
 
 interface RoomTask {
@@ -66,6 +67,7 @@ interface ActivityData {
   window_start: string
   window_end: string
   notes: string | null
+  floor_id: string
   floors: {
     floor_name: string
     buildings: { name: string } | null
@@ -258,6 +260,12 @@ export function ActivityDetail({
               )}
             </div>
             <div className="flex gap-2">
+              <Link href={`/${orgSlug}/supervisor/floor-plan/${activity.floor_id}`}>
+                <Button size="sm" variant="outline">
+                  <Map className="mr-1 h-3.5 w-3.5" />
+                  Floor Plan
+                </Button>
+              </Link>
               <Button
                 size="sm"
                 variant="outline"

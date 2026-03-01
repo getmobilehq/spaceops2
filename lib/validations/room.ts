@@ -23,6 +23,14 @@ export const deleteRoomSchema = z.object({
 
 export type DeleteRoomInput = z.infer<typeof deleteRoomSchema>
 
+export const updateRoomPinSchema = z.object({
+  roomId: z.string().uuid(),
+  pinX: z.number().min(0).max(100).nullable(),
+  pinY: z.number().min(0).max(100).nullable(),
+})
+
+export type UpdateRoomPinInput = z.infer<typeof updateRoomPinSchema>
+
 export const createRoomTypeSchema = z.object({
   name: z.string().min(1, "Type name is required").max(50),
 })

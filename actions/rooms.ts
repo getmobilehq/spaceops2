@@ -8,10 +8,12 @@ import {
   updateRoomSchema,
   deleteRoomSchema,
   createRoomTypeSchema,
+  updateRoomPinSchema,
   type CreateRoomInput,
   type UpdateRoomInput,
   type DeleteRoomInput,
   type CreateRoomTypeInput,
+  type UpdateRoomPinInput,
 } from "@/lib/validations/room"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -217,4 +219,27 @@ export async function createCustomRoomType(
 
   if (error) return { success: false, error: "Failed to create room type" }
   return { success: true, id: data.id }
+}
+
+export async function updateRoomPin(
+  input: UpdateRoomPinInput
+): Promise<ActionResult> {
+  const parsed = updateRoomPinSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const { error } = await ctx.supabase
+    .from("rooms")
+    .update({
+      pin_x: parsed.data.pinX,
+      pin_y: parsed.data.pinY,
+    })
+    .eq("id", parsed.data.roomId)
+
+  if (error) return { success: false, error: "Failed to update room position" }
+  return { success: true }
 }
