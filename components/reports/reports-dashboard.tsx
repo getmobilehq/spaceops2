@@ -26,7 +26,6 @@ import {
   CalendarCheck,
   ClipboardCheck,
   TrendingUp,
-  TrendingDown,
   Download,
   Filter,
   ArrowUp,
@@ -192,7 +191,8 @@ export function ReportsDashboard({
   trend,
   history,
   deficiencies,
-  orgSlug,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  orgSlug: _orgSlug,
   buildings,
   filters,
 }: {

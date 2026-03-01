@@ -127,8 +127,6 @@ export async function getRecentActivity(
 export async function getSupervisorDashboardStats(
   supabase: SupabaseClient<Database>
 ) {
-  const today = new Date().toISOString().split("T")[0]
-
   const [pendingRes, issuesRes] = await Promise.all([
     // Rooms pending inspection: tasks with status "done" in today's active activities
     supabase

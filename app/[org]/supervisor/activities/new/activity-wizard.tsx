@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createActivity, assignRoomTasks, publishActivity } from "@/actions/activities"
 import { saveActivityAsTemplate } from "@/actions/activity-templates"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronLeft, ChevronRight, Check, BookTemplate } from "lucide-react"
+import { ChevronLeft, ChevronRight, Check } from "lucide-react"
 
 interface BuildingOption {
   id: string

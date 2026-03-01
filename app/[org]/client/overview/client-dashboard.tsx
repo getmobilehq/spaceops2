@@ -69,6 +69,7 @@ export function ClientDashboard({
   activities,
   stats,
   sla,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   orgSlug,
 }: {
   buildings: Building[]

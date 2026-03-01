@@ -50,7 +50,6 @@ export default async function ClientActivitiesPage() {
         <div className="space-y-3">
           {activities.map((a) => {
             const sb = statusBadge[a.status] || statusBadge.active
-            const inspected = a.passedRooms + a.failedRooms
             const progressPct =
               a.totalRooms > 0
                 ? Math.round((a.completedRooms / a.totalRooms) * 100)

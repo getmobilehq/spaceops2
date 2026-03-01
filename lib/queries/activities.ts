@@ -136,7 +136,7 @@ export async function getJanitorPerformanceTrend(
   >()
 
   for (const task of data || []) {
-    const dateStr = (task.cleaning_activities as any)?.scheduled_date
+    const dateStr = (task.cleaning_activities as { scheduled_date?: string } | null)?.scheduled_date
     if (!dateStr) continue
     const d = new Date(dateStr)
     // Get Monday of the week

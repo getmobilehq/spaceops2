@@ -17,7 +17,6 @@ import {
   XCircle,
   Clock,
   CalendarDays,
-  TrendingUp,
   Flame,
   BarChart3,
 } from "lucide-react"
@@ -66,7 +65,7 @@ export default async function JanitorHistoryPage() {
   // Group by date
   const grouped = new Map<string, typeof tasks>()
   for (const task of tasks) {
-    const date = (task.cleaning_activities as any)?.scheduled_date || "Unknown"
+    const date = (task.cleaning_activities as { scheduled_date?: string; name?: string; floors?: { buildings?: { name?: string } } } | null)?.scheduled_date || "Unknown"
     if (!grouped.has(date)) grouped.set(date, [])
     grouped.get(date)!.push(task)
   }
@@ -261,13 +260,13 @@ export default async function JanitorHistoryPage() {
               const sc = statusConfig[task.status] || statusConfig.done
               const StatusIcon = sc.icon
               const roomName =
-                (task.rooms as any)?.name || "Unknown Room"
+                (task.rooms as { name?: string; room_types?: { name?: string } } | null)?.name || "Unknown Room"
               const roomType =
-                (task.rooms as any)?.room_types?.name || ""
+                (task.rooms as { name?: string; room_types?: { name?: string } } | null)?.room_types?.name || ""
               const activityName =
-                (task.cleaning_activities as any)?.name || "Unknown Activity"
+                (task.cleaning_activities as { scheduled_date?: string; name?: string; floors?: { buildings?: { name?: string } } } | null)?.name || "Unknown Activity"
               const buildingName =
-                (task.cleaning_activities as any)?.floors?.buildings?.name || ""
+                (task.cleaning_activities as { scheduled_date?: string; name?: string; floors?: { buildings?: { name?: string } } } | null)?.floors?.buildings?.name || ""
 
               return (
                 <Card key={task.id}>

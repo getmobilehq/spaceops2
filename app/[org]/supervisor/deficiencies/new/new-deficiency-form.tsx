@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -37,7 +36,8 @@ interface DeficiencyEntry {
 export function NewDeficiencyForm({
   taskId,
   activityId,
-  roomName,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  roomName: _roomName,
   janitors,
   orgSlug,
 }: {

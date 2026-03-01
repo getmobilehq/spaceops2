@@ -55,10 +55,12 @@ export default async function ClientDeficienciesPage() {
           </h2>
           {open.map((d) => {
             const sc = statusConfig[d.status] || statusConfig.open
-            const sev = severityConfig[d.severity] || severityConfig.medium
             const StatusIcon = sc.icon
-            const roomName = (d.room_tasks as any)?.rooms?.name || "Unknown Room"
-            const buildingName = (d.room_tasks as any)?.cleaning_activities?.floors?.buildings?.name || ""
+            const sevConfig = severityConfig[d.severity] || severityConfig.medium
+            const roomTasks = d.room_tasks as Record<string, unknown> | null
+            const roomName = (roomTasks?.rooms as Record<string, unknown>)?.name as string || "Unknown Room"
+            const buildingName = ((roomTasks?.cleaning_activities as Record<string, unknown>)?.floors as Record<string, unknown>)?.buildings as Record<string, unknown> | undefined
+            const buildingNameStr = (buildingName?.name as string) || ""
 
             return (
               <Card key={d.id}>
@@ -72,12 +74,12 @@ export default async function ClientDeficienciesPage() {
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {roomName}{buildingName ? ` · ${buildingName}` : ""} · {new Date(d.created_at).toLocaleDateString("en-GB")}
+                        {roomName}{buildingNameStr ? ` · ${buildingNameStr}` : ""} · {new Date(d.created_at).toLocaleDateString("en-GB")}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant="outline" className={sev.className}>
-                        {sev.label}
+                      <Badge variant="outline" className={sevConfig.className}>
+                        {sevConfig.label}
                       </Badge>
                       <Badge variant="outline" className={sc.className}>
                         {sc.label}
@@ -98,9 +100,9 @@ export default async function ClientDeficienciesPage() {
           </h2>
           {resolved.map((d) => {
             const sc = statusConfig[d.status] || statusConfig.resolved
-            const sev = severityConfig[d.severity] || severityConfig.medium
             const StatusIcon = sc.icon
-            const roomName = (d.room_tasks as any)?.rooms?.name || "Unknown Room"
+            const roomTasks = d.room_tasks as Record<string, unknown> | null
+            const roomName = (roomTasks?.rooms as Record<string, unknown>)?.name as string || "Unknown Room"
 
             return (
               <Card key={d.id} className="opacity-70">

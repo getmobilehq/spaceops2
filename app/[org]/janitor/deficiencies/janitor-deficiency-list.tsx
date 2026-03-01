@@ -41,6 +41,7 @@ const severityConfig: Record<string, { label: string; className: string }> = {
 
 export function JanitorDeficiencyList({
   deficiencies,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   orgSlug,
 }: {
   deficiencies: Deficiency[]

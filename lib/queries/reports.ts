@@ -139,7 +139,7 @@ export async function getPassRatesByBuilding(
   const map = new Map<string, { name: string; passed: number; failed: number }>()
 
   for (const task of data || []) {
-    const building = (task.rooms as any)?.floors?.buildings
+    const building = (task.rooms as { floors?: { buildings?: { id: string; name: string } } } | null)?.floors?.buildings
     if (!building) continue
     const key = building.id
     if (!map.has(key)) map.set(key, { name: building.name, passed: 0, failed: 0 })
@@ -240,7 +240,7 @@ export async function getActivityTrend(
   const map = new Map<string, { date: string; passed: number; failed: number; done: number }>()
 
   for (const task of data || []) {
-    const date = (task.cleaning_activities as any)?.scheduled_date
+    const date = (task.cleaning_activities as { scheduled_date?: string } | null)?.scheduled_date
     if (!date) continue
     if (!map.has(date)) map.set(date, { date, passed: 0, failed: 0, done: 0 })
     const entry = map.get(date)!
@@ -297,8 +297,8 @@ export async function getActivityHistory(
       status: a.status,
       scheduledDate: a.scheduled_date,
       buildingName:
-        (a.floors as any)?.buildings?.name || "Unknown",
-      floorName: (a.floors as any)?.floor_name || "Unknown",
+        (a.floors as { floor_name?: string; buildings?: { name?: string } } | null)?.buildings?.name || "Unknown",
+      floorName: (a.floors as { floor_name?: string } | null)?.floor_name || "Unknown",
       totalRooms: total,
       completedRooms: done,
       passedRooms: passed,

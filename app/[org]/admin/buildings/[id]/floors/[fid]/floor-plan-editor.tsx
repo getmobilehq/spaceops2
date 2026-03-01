@@ -9,8 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { MapPin, Save, RotateCcw } from "lucide-react"
+import { MapPin, Save } from "lucide-react"
 import { updateRoomPin } from "@/actions/rooms"
 
 interface Room {
@@ -20,8 +19,6 @@ interface Room {
   pin_y: number | null
   room_types: { name: string } | null
 }
-
-const PIN_SIZE = 28
 
 export function FloorPlanEditor({
   rooms,

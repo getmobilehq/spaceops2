@@ -46,7 +46,7 @@ export default async function FloorDetailPage({
   }
 
   // Prepare rooms for editor
-  const editorRooms = rooms.map((r: any) => ({
+  const editorRooms = rooms.map((r: (typeof rooms)[number]) => ({
     id: r.id,
     name: r.name,
     pin_x: r.pin_x,
