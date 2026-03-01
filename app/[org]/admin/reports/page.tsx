@@ -7,6 +7,7 @@ import {
   getActivityTrend,
   getActivityHistory,
   getDeficiencyBreakdown,
+  getPreviousPeriodFilters,
   type ReportFilters,
 } from "@/lib/queries/reports"
 import { getOrgBuildings } from "@/lib/queries/buildings"
@@ -39,9 +40,12 @@ export default async function ReportsPage({
     buildingId: searchParams.buildingId || undefined,
   }
 
-  const [summary, byBuilding, byJanitor, trend, history, deficiencies, buildings] =
+  const prevFilters = getPreviousPeriodFilters(filters)
+
+  const [summary, prevSummary, byBuilding, byJanitor, trend, history, deficiencies, buildings] =
     await Promise.all([
       getReportSummary(supabase, filters),
+      getReportSummary(supabase, prevFilters),
       getPassRatesByBuilding(supabase, filters),
       getPassRatesByJanitor(supabase, filters),
       getActivityTrend(supabase, 30, filters),
@@ -55,6 +59,7 @@ export default async function ReportsPage({
   return (
     <ReportsDashboard
       summary={summary}
+      previousSummary={prevSummary}
       byBuilding={byBuilding}
       byJanitor={byJanitor}
       trend={trend}

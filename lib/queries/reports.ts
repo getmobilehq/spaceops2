@@ -75,6 +75,41 @@ export async function getReportSummary(
 }
 
 /**
+ * Calculate the previous period filters for comparison.
+ * If dateFrom/dateTo set, mirror the same duration backwards.
+ * Otherwise, compare last 30 days vs the 30 days before that.
+ */
+export function getPreviousPeriodFilters(
+  filters?: ReportFilters
+): ReportFilters {
+  if (filters?.dateFrom && filters?.dateTo) {
+    const from = new Date(filters.dateFrom)
+    const to = new Date(filters.dateTo)
+    const durationMs = to.getTime() - from.getTime()
+    const prevTo = new Date(from.getTime() - 1) // day before current from
+    const prevFrom = new Date(prevTo.getTime() - durationMs)
+    return {
+      dateFrom: prevFrom.toISOString().split("T")[0],
+      dateTo: prevTo.toISOString().split("T")[0],
+      buildingId: filters.buildingId,
+    }
+  }
+
+  // Default: last 30 days vs 30 days before that
+  const now = new Date()
+  const thirtyAgo = new Date(now)
+  thirtyAgo.setDate(now.getDate() - 30)
+  const sixtyAgo = new Date(now)
+  sixtyAgo.setDate(now.getDate() - 60)
+
+  return {
+    dateFrom: sixtyAgo.toISOString().split("T")[0],
+    dateTo: thirtyAgo.toISOString().split("T")[0],
+    buildingId: filters?.buildingId,
+  }
+}
+
+/**
  * Pass rates grouped by building.
  */
 export async function getPassRatesByBuilding(

@@ -26,8 +26,12 @@ import {
   CalendarCheck,
   ClipboardCheck,
   TrendingUp,
+  TrendingDown,
   Download,
   Filter,
+  ArrowUp,
+  ArrowDown,
+  Minus,
 } from "lucide-react"
 import { TrendChart } from "./trend-chart"
 import { PassRateBar } from "./pass-rate-bar"
@@ -141,8 +145,48 @@ function exportCsv(history: ActivityRow[]) {
   URL.revokeObjectURL(url)
 }
 
+function DeltaBadge({
+  current,
+  previous,
+  suffix = "",
+  invertColor = false,
+}: {
+  current: number
+  previous: number
+  suffix?: string
+  invertColor?: boolean
+}) {
+  const delta = current - previous
+  if (delta === 0 || (previous === 0 && current === 0)) {
+    return (
+      <span className="inline-flex items-center text-xs text-muted-foreground">
+        <Minus className="h-3 w-3 mr-0.5" />
+        no change
+      </span>
+    )
+  }
+  const isUp = delta > 0
+  const isGood = invertColor ? !isUp : isUp
+  return (
+    <span
+      className={`inline-flex items-center text-xs font-medium ${
+        isGood ? "text-green-600" : "text-red-600"
+      }`}
+    >
+      {isUp ? (
+        <ArrowUp className="h-3 w-3 mr-0.5" />
+      ) : (
+        <ArrowDown className="h-3 w-3 mr-0.5" />
+      )}
+      {Math.abs(delta)}
+      {suffix} vs prev period
+    </span>
+  )
+}
+
 export function ReportsDashboard({
   summary,
+  previousSummary,
   byBuilding,
   byJanitor,
   trend,
@@ -153,6 +197,7 @@ export function ReportsDashboard({
   filters,
 }: {
   summary: Summary
+  previousSummary?: Summary
   byBuilding: ByBuilding[]
   byJanitor: ByJanitor[]
   trend: TrendPoint[]
@@ -275,6 +320,15 @@ export function ReportsDashboard({
                 <p className="text-2xl font-bold">
                   {summary.passRate !== null ? `${summary.passRate}%` : "N/A"}
                 </p>
+                {previousSummary &&
+                  summary.passRate !== null &&
+                  previousSummary.passRate !== null && (
+                    <DeltaBadge
+                      current={summary.passRate}
+                      previous={previousSummary.passRate}
+                      suffix="%"
+                    />
+                  )}
               </div>
               <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -287,6 +341,12 @@ export function ReportsDashboard({
               <div>
                 <p className="text-sm text-muted-foreground">Total Activities</p>
                 <p className="text-2xl font-bold">{summary.totalActivities}</p>
+                {previousSummary && (
+                  <DeltaBadge
+                    current={summary.totalActivities}
+                    previous={previousSummary.totalActivities}
+                  />
+                )}
               </div>
               <CalendarCheck className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -304,6 +364,13 @@ export function ReportsDashboard({
                   <span className="text-red-600">{summary.failedTasks}</span>
                 </p>
                 <p className="text-xs text-muted-foreground">passed / failed</p>
+                {previousSummary && (
+                  <DeltaBadge
+                    current={summary.passedTasks}
+                    previous={previousSummary.passedTasks}
+                    suffix=" passed"
+                  />
+                )}
               </div>
               <ClipboardCheck className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -318,6 +385,13 @@ export function ReportsDashboard({
                 <p className="text-2xl font-bold text-red-600">
                   {summary.openDeficiencies}
                 </p>
+                {previousSummary && (
+                  <DeltaBadge
+                    current={summary.openDeficiencies}
+                    previous={previousSummary.openDeficiencies}
+                    invertColor
+                  />
+                )}
               </div>
               <AlertTriangle className="h-8 w-8 text-red-200" />
             </div>
