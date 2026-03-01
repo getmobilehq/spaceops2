@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Building2, Layers, DoorOpen, AlertTriangle, CheckCircle2 } from "lucide-react"
-import { reportIssue } from "@/actions/deficiencies"
+import { Building2, Layers, DoorOpen, AlertTriangle, CheckCircle2, Camera, X } from "lucide-react"
+import { reportIssueWithPhoto } from "@/actions/deficiencies"
 
 interface RoomInfo {
   id: string
@@ -40,18 +40,38 @@ export function RoomInfoCard({
   const [showForm, setShowForm] = useState(false)
   const [description, setDescription] = useState("")
   const [severity, setSeverity] = useState("medium")
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhoto(file)
+    const reader = new FileReader()
+    reader.onload = () => setPhotoPreview(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  function removePhoto() {
+    setPhoto(null)
+    setPhotoPreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
   async function handleSubmit() {
     setSubmitting(true)
     setError("")
-    const result = await reportIssue({
-      roomId: room.id,
-      description,
-      severity: severity as "low" | "medium" | "high",
-    })
+    const formData = new FormData()
+    formData.append("roomId", room.id)
+    formData.append("description", description)
+    formData.append("severity", severity)
+    if (photo) formData.append("photo", photo)
+
+    const result = await reportIssueWithPhoto(formData)
     setSubmitting(false)
     if (!result.success) {
       setError(result.error)
@@ -139,6 +159,45 @@ export function RoomInfoCard({
                   <SelectItem value="high">High</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Photo (optional)</Label>
+              {photoPreview ? (
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="h-24 w-24 rounded-md object-cover border"
+                  />
+                  <button
+                    type="button"
+                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                    onClick={removePhoto}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-1" />
+                  Add Photo
+                </Button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-2">

@@ -273,3 +273,93 @@ export async function reportIssue(
 
   return { success: true, id: deficiency.id }
 }
+
+export async function reportIssueWithPhoto(
+  formData: FormData
+): Promise<ActionResultWithId> {
+  const roomId = formData.get("roomId") as string | null
+  const description = formData.get("description") as string | null
+  const severity = formData.get("severity") as string | null
+  const photo = formData.get("photo") as File | null
+
+  if (!roomId || !description || !severity) {
+    return { success: false, error: "Missing required fields" }
+  }
+
+  const parsed = reportIssueSchema.safeParse({ roomId, description, severity })
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAuthContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const { data: room } = await ctx.supabase
+    .from("rooms")
+    .select("id, name, floor_id")
+    .eq("id", parsed.data.roomId)
+    .single()
+
+  if (!room) return { success: false, error: "Room not found" }
+
+  const { data: recentTask } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, cleaning_activities!inner(status)")
+    .eq("room_id", parsed.data.roomId)
+    .eq("cleaning_activities.status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!recentTask) {
+    return {
+      success: false,
+      error: "No active cleaning task for this room. Ask a supervisor to report this issue.",
+    }
+  }
+
+  // Upload photo if provided
+  let photoUrl: string | null = null
+  if (photo && photo.size > 0) {
+    const MAX_SIZE = 5 * 1024 * 1024
+    if (photo.size > MAX_SIZE) {
+      return { success: false, error: "Photo must be smaller than 5MB" }
+    }
+    const ALLOWED = ["image/jpeg", "image/png", "image/webp"]
+    if (!ALLOWED.includes(photo.type)) {
+      return { success: false, error: "Photo must be JPEG, PNG, or WebP" }
+    }
+
+    const ext = photo.name.split(".").pop() || "jpg"
+    const filePath = `${ctx.orgId}/deficiencies/${crypto.randomUUID()}.${ext}`
+    const { error: uploadError } = await ctx.supabase.storage
+      .from("cleaning-photos")
+      .upload(filePath, photo, { contentType: photo.type })
+
+    if (uploadError) {
+      return { success: false, error: "Failed to upload photo" }
+    }
+
+    const { data: urlData } = ctx.supabase.storage
+      .from("cleaning-photos")
+      .getPublicUrl(filePath)
+    photoUrl = urlData.publicUrl
+  }
+
+  const { data: deficiency, error } = await ctx.supabase
+    .from("deficiencies")
+    .insert({
+      room_task_id: recentTask.id,
+      org_id: ctx.orgId,
+      reported_by: ctx.user.id,
+      description: parsed.data.description,
+      severity: parsed.data.severity,
+      photo_url: photoUrl,
+    })
+    .select("id")
+    .single()
+
+  if (error) return { success: false, error: "Failed to report issue" }
+
+  return { success: true, id: deficiency.id }
+}
