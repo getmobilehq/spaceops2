@@ -4,6 +4,7 @@ import {
   getClientBuildings,
   getClientRecentActivities,
   getClientDashboardStats,
+  getClientSLAMetrics,
 } from "@/lib/queries/client-dashboard"
 import { ClientDashboard } from "./client-dashboard"
 
@@ -23,10 +24,11 @@ export default async function ClientOverviewPage({
 
   if (!user) return notFound()
 
-  const [buildings, activities, stats] = await Promise.all([
+  const [buildings, activities, stats, sla] = await Promise.all([
     getClientBuildings(supabase),
     getClientRecentActivities(supabase),
     getClientDashboardStats(supabase),
+    getClientSLAMetrics(supabase),
   ])
 
   return (
@@ -34,6 +36,7 @@ export default async function ClientOverviewPage({
       buildings={buildings}
       activities={activities}
       stats={stats}
+      sla={sla}
       orgSlug={params.org}
     />
   )

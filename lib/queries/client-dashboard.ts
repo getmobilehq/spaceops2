@@ -96,6 +96,113 @@ export async function getClientDeficiencies(
 }
 
 /**
+ * SLA metrics for client dashboard.
+ * Calculated from existing data — no additional DB columns needed.
+ */
+export async function getClientSLAMetrics(
+  supabase: SupabaseClient<Database>
+) {
+  const SLA_PASS_RATE_TARGET = 90 // % target
+  const SLA_RESOLUTION_HOURS = { high: 24, medium: 48, low: 168 } // 7 days for low
+
+  // Get closed activities with task stats for completion rate
+  const { data: activities } = await supabase
+    .from("cleaning_activities")
+    .select("id, status, scheduled_date, room_tasks(id, status)")
+    .eq("status", "closed")
+    .order("scheduled_date", { ascending: false })
+    .limit(50)
+
+  const closedActivities = activities || []
+  let activitiesMeetingPassRate = 0
+  let activitiesWithInspections = 0
+  let totalCompletionRate = 0
+  let activitiesWithRooms = 0
+
+  for (const a of closedActivities) {
+    const tasks = (a.room_tasks as { id: string; status: string }[]) || []
+    const total = tasks.length
+    if (total === 0) continue
+
+    const passed = tasks.filter((t) => t.status === "inspected_pass").length
+    const failed = tasks.filter((t) => t.status === "inspected_fail").length
+    const inspected = passed + failed
+    const completed = tasks.filter(
+      (t) =>
+        t.status === "done" ||
+        t.status === "inspected_pass" ||
+        t.status === "inspected_fail"
+    ).length
+
+    activitiesWithRooms++
+    totalCompletionRate += (completed / total) * 100
+
+    if (inspected > 0) {
+      activitiesWithInspections++
+      const passRate = (passed / inspected) * 100
+      if (passRate >= SLA_PASS_RATE_TARGET) activitiesMeetingPassRate++
+    }
+  }
+
+  const passRateCompliance =
+    activitiesWithInspections > 0
+      ? Math.round((activitiesMeetingPassRate / activitiesWithInspections) * 100)
+      : null
+  const avgCompletionRate =
+    activitiesWithRooms > 0
+      ? Math.round(totalCompletionRate / activitiesWithRooms)
+      : null
+
+  // Deficiency resolution metrics
+  const { data: deficiencies } = await supabase
+    .from("deficiencies")
+    .select("severity, status, created_at, resolved_at")
+    .order("created_at", { ascending: false })
+    .limit(100)
+
+  let onTrack = 0
+  let atRisk = 0
+  let breached = 0
+  let totalResolutionHours = 0
+  let resolvedCount = 0
+
+  const now = Date.now()
+  for (const d of deficiencies || []) {
+    const slaHours =
+      SLA_RESOLUTION_HOURS[d.severity as keyof typeof SLA_RESOLUTION_HOURS] ||
+      SLA_RESOLUTION_HOURS.medium
+    const createdAt = new Date(d.created_at).getTime()
+
+    if (d.status === "resolved" && d.resolved_at) {
+      const resolvedAt = new Date(d.resolved_at).getTime()
+      const hoursToResolve = (resolvedAt - createdAt) / (1000 * 60 * 60)
+      totalResolutionHours += hoursToResolve
+      resolvedCount++
+      if (hoursToResolve <= slaHours) onTrack++
+      else breached++
+    } else {
+      // Open deficiency — check if SLA is at risk or breached
+      const hoursElapsed = (now - createdAt) / (1000 * 60 * 60)
+      if (hoursElapsed > slaHours) breached++
+      else if (hoursElapsed > slaHours * 0.75) atRisk++
+      else onTrack++
+    }
+  }
+
+  const avgResolutionHours =
+    resolvedCount > 0 ? Math.round(totalResolutionHours / resolvedCount) : null
+
+  return {
+    passRateTarget: SLA_PASS_RATE_TARGET,
+    passRateCompliance,
+    avgCompletionRate,
+    avgResolutionHours,
+    deficiencySLA: { onTrack, atRisk, breached },
+    totalActivitiesAnalysed: closedActivities.length,
+  }
+}
+
+/**
  * Get aggregate dashboard stats for a client org.
  */
 export async function getClientDashboardStats(

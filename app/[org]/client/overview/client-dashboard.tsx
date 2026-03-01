@@ -16,6 +16,9 @@ import {
   BarChart3,
   Layers,
   DoorOpen,
+  ShieldCheck,
+  Clock,
+  Target,
 } from "lucide-react"
 
 interface Building {
@@ -52,15 +55,26 @@ interface Stats {
   openDeficiencies: number
 }
 
+interface SLAMetrics {
+  passRateTarget: number
+  passRateCompliance: number | null
+  avgCompletionRate: number | null
+  avgResolutionHours: number | null
+  deficiencySLA: { onTrack: number; atRisk: number; breached: number }
+  totalActivitiesAnalysed: number
+}
+
 export function ClientDashboard({
   buildings,
   activities,
   stats,
+  sla,
   orgSlug,
 }: {
   buildings: Building[]
   activities: Activity[]
   stats: Stats
+  sla: SLAMetrics
   orgSlug: string
 }) {
   return (
@@ -130,6 +144,136 @@ export function ClientDashboard({
           </CardContent>
         </Card>
       </div>
+
+      {/* SLA Tracking */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Service Level Agreement
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {/* Pass Rate Compliance */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Target className="h-4 w-4 text-muted-foreground" />
+                Pass Rate Compliance
+              </div>
+              <div className="text-2xl font-bold">
+                {sla.passRateCompliance !== null ? (
+                  <span
+                    className={
+                      sla.passRateCompliance >= 80
+                        ? "text-green-600"
+                        : sla.passRateCompliance >= 50
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {sla.passRateCompliance}%
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">N/A</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Activities meeting {sla.passRateTarget}% pass rate target
+              </p>
+            </div>
+
+            {/* Avg Completion Rate */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                Avg Completion Rate
+              </div>
+              <div className="text-2xl font-bold">
+                {sla.avgCompletionRate !== null ? (
+                  <span
+                    className={
+                      sla.avgCompletionRate >= 95
+                        ? "text-green-600"
+                        : sla.avgCompletionRate >= 80
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {sla.avgCompletionRate}%
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">N/A</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Rooms cleaned per activity
+              </p>
+            </div>
+
+            {/* Avg Resolution Time */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                Avg Resolution Time
+              </div>
+              <div className="text-2xl font-bold">
+                {sla.avgResolutionHours !== null ? (
+                  <span
+                    className={
+                      sla.avgResolutionHours <= 24
+                        ? "text-green-600"
+                        : sla.avgResolutionHours <= 48
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {sla.avgResolutionHours}h
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">N/A</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Deficiency resolution time
+              </p>
+            </div>
+          </div>
+
+          {/* Deficiency SLA status */}
+          {(sla.deficiencySLA.onTrack > 0 ||
+            sla.deficiencySLA.atRisk > 0 ||
+            sla.deficiencySLA.breached > 0) && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-sm font-medium mb-2">Deficiency SLA Status</p>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-3 w-3 rounded-full bg-green-500" />
+                  <span className="text-sm">
+                    {sla.deficiencySLA.onTrack} on track
+                  </span>
+                </div>
+                {sla.deficiencySLA.atRisk > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                    <span className="text-sm">
+                      {sla.deficiencySLA.atRisk} at risk
+                    </span>
+                  </div>
+                )}
+                {sla.deficiencySLA.breached > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-red-500" />
+                    <span className="text-sm">
+                      {sla.deficiencySLA.breached} breached
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Buildings */}
       <Card>
