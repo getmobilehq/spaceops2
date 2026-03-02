@@ -6,6 +6,8 @@ import { notFound } from "next/navigation"
 import { FloorSetupForm } from "./floor-setup-form"
 import { RoomManager } from "./room-manager"
 import { FloorPlanEditor } from "./floor-plan-editor"
+import { VectorisationPanel } from "./vectorisation-panel"
+import type { ExtractionResult } from "@/lib/validations/vectorisation"
 
 export const metadata = {
   title: "Floor Setup - SpaceOps",
@@ -37,13 +39,36 @@ export default async function FloorDetailPage({
 
   // Get floor plan URL if uploaded
   let floorPlanUrl: string | null = null
-  const plan = floor.vectorised_plans as { original_path: string } | null
+  const plan = floor.vectorised_plans as {
+    original_path: string
+    extraction_status?: string
+    extraction_error?: string | null
+    extracted_data?: Record<string, unknown> | null
+  } | null
   if (plan?.original_path) {
     const { data: urlData } = await supabase.storage
       .from("floor-plans")
       .createSignedUrl(plan.original_path, 3600)
     floorPlanUrl = urlData?.signedUrl || null
   }
+
+  // Prepare vectorisation data
+  const extractionStatus = plan?.extraction_status || "pending"
+  const extractionError = plan?.extraction_error || null
+  const extractedData = (plan?.extracted_data as ExtractionResult | null) || null
+
+  // Prepare existing rooms for matching
+  const existingRoomsForMatch = rooms.map((r: (typeof rooms)[number]) => ({
+    id: r.id,
+    name: r.name,
+    roomTypeName: (r.room_types as { name: string } | null)?.name || "Unknown",
+  }))
+
+  // Prepare room types for the review UI
+  const roomTypeOptions = roomTypes.map((rt: (typeof roomTypes)[number]) => ({
+    id: rt.id,
+    name: rt.name,
+  }))
 
   // Prepare rooms for editor
   const editorRooms = rooms.map((r: (typeof rooms)[number]) => ({
@@ -67,6 +92,17 @@ export default async function FloorDetailPage({
         buildingId={params.id}
         orgSlug={params.org}
       />
+      {floorPlanUrl && floor.plan_status !== "confirmed" && (
+        <VectorisationPanel
+          floorId={params.fid}
+          floorPlanUrl={floorPlanUrl}
+          extractionStatus={extractionStatus}
+          extractionError={extractionError}
+          extractedData={extractedData}
+          existingRooms={existingRoomsForMatch}
+          roomTypes={roomTypeOptions}
+        />
+      )}
       <RoomManager
         rooms={rooms}
         roomTypes={roomTypes}

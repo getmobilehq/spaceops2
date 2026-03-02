@@ -248,6 +248,10 @@ export type Database = {
           org_id: string
           original_path: string
           svg_path: string | null
+          extracted_data: Record<string, unknown> | null
+          extraction_status: string
+          extraction_error: string | null
+          extracted_at: string | null
           created_at: string
         }
         Insert: {
@@ -256,6 +260,10 @@ export type Database = {
           org_id: string
           original_path: string
           svg_path?: string | null
+          extracted_data?: Record<string, unknown> | null
+          extraction_status?: string
+          extraction_error?: string | null
+          extracted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -264,6 +272,10 @@ export type Database = {
           org_id?: string
           original_path?: string
           svg_path?: string | null
+          extracted_data?: Record<string, unknown> | null
+          extraction_status?: string
+          extraction_error?: string | null
+          extracted_at?: string | null
           created_at?: string
         }
         Relationships: [

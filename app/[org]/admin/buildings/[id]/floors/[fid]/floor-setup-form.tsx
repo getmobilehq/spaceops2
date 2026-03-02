@@ -105,26 +105,36 @@ export function FloorSetupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3">
-            {["Upload", "Uploaded", "Confirmed"].map((label, i) => {
-              const stepStatus =
-                i === 0
-                  ? "completed"
-                  : floor.plan_status === "none"
-                    ? "upcoming"
-                    : i === 1 && (floor.plan_status === "uploaded" || floor.plan_status === "vectorised")
+          <div className="flex items-center gap-3 flex-wrap">
+            {["Upload", "Vectorise", "Review", "Confirmed"].map((label, i) => {
+              const status = floor.plan_status
+              let stepStatus: "completed" | "current" | "upcoming"
+
+              if (i === 0) {
+                stepStatus = status !== "none" ? "completed" : "current"
+              } else if (i === 1) {
+                stepStatus =
+                  status === "vectorised" || status === "confirmed"
+                    ? "completed"
+                    : status === "uploaded"
                       ? "current"
-                      : i === 1 && floor.plan_status === "confirmed"
-                        ? "completed"
-                        : i === 2 && floor.plan_status === "confirmed"
-                          ? "completed"
-                          : "upcoming"
+                      : "upcoming"
+              } else if (i === 2) {
+                stepStatus =
+                  status === "confirmed"
+                    ? "completed"
+                    : status === "vectorised"
+                      ? "current"
+                      : "upcoming"
+              } else {
+                stepStatus = status === "confirmed" ? "completed" : "upcoming"
+              }
 
               return (
                 <div key={label} className="flex items-center gap-2">
                   {i > 0 && (
                     <div
-                      className={`h-px w-8 ${
+                      className={`h-px w-6 ${
                         stepStatus !== "upcoming" ? "bg-brand" : "bg-muted"
                       }`}
                     />
@@ -171,11 +181,18 @@ export function FloorSetupForm({
           )}
 
           {floor.plan_status === "uploaded" && (
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+              <p className="text-sm text-blue-800">
+                Floor plan uploaded. Use the AI Room Detection panel below to
+                automatically identify rooms, then review and confirm.
+              </p>
+            </div>
+          )}
+
+          {floor.plan_status === "vectorised" && (
             <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
               <p className="text-sm text-amber-800">
-                Floor plan is uploaded. In a future sprint, vectorisation will
-                happen automatically. For now, confirm the plan manually when
-                ready.
+                Rooms detected. Review the results below, then confirm to apply.
               </p>
             </div>
           )}
