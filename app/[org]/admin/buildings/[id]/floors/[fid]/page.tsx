@@ -92,7 +92,7 @@ export default async function FloorDetailPage({
         buildingId={params.id}
         orgSlug={params.org}
       />
-      {floorPlanUrl && floor.plan_status !== "confirmed" && (
+      {floorPlanUrl && (
         <VectorisationPanel
           floorId={params.fid}
           floorPlanUrl={floorPlanUrl}
@@ -101,6 +101,7 @@ export default async function FloorDetailPage({
           extractedData={extractedData}
           existingRooms={existingRoomsForMatch}
           roomTypes={roomTypeOptions}
+          isConfirmed={floor.plan_status === "confirmed"}
         />
       )}
       <RoomManager

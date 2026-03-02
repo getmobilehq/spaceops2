@@ -40,6 +40,7 @@ interface VectorisationPanelProps {
   extractedData: ExtractionResult | null
   existingRooms: ExistingRoom[]
   roomTypes: RoomType[]
+  isConfirmed?: boolean
 }
 
 export function VectorisationPanel({
@@ -50,6 +51,7 @@ export function VectorisationPanel({
   extractedData: initialData,
   existingRooms,
   roomTypes,
+  isConfirmed = false,
 }: VectorisationPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -316,6 +318,29 @@ export function VectorisationPanel({
   }
 
   if (!floorPlanUrl) return null
+
+  // Confirmed — show read-only block map
+  if (isConfirmed && extractedData && extractedData.rooms.length > 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Floor Plan Layout</CardTitle>
+          <CardDescription>
+            {extractedData.totalDetected} rooms detected &middot; Confirmed
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SpatialBlockMap
+            floorPlanUrl={floorPlanUrl}
+            rooms={extractedData.rooms}
+            selectedRoomId={null}
+            matchedRoomIds={new Set()}
+            onSelectRoom={() => {}}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
 
   // Not yet extracted — show trigger button
   if (

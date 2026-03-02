@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { uploadFloorPlan, confirmFloorPlan } from "@/actions/buildings"
+import { uploadFloorPlan } from "@/actions/buildings"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -40,8 +40,6 @@ export function FloorSetupForm({
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [isConfirming, setIsConfirming] = useState(false)
-
   const plan = floor.vectorised_plans
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -72,26 +70,6 @@ export function FloorSetupForm({
     setIsUploading(false)
     // Reset input so the same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = ""
-  }
-
-  async function handleConfirm() {
-    setIsConfirming(true)
-    const result = await confirmFloorPlan(floor.id)
-
-    if (result.success) {
-      toast({
-        title: "Floor plan confirmed",
-        description: "The floor plan has been marked as confirmed.",
-      })
-      router.refresh()
-    } else {
-      toast({
-        title: "Error",
-        description: result.error,
-        variant: "destructive",
-      })
-    }
-    setIsConfirming(false)
   }
 
   return (
@@ -225,17 +203,6 @@ export function FloorSetupForm({
                   ? "Upload Floor Plan"
                   : "Re-upload"}
             </Button>
-
-            {(floor.plan_status === "uploaded" ||
-              floor.plan_status === "vectorised") && (
-              <Button
-                onClick={handleConfirm}
-                disabled={isConfirming}
-              >
-                <Check className="mr-2 h-4 w-4" />
-                {isConfirming ? "Confirming..." : "Confirm Floor Plan"}
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
