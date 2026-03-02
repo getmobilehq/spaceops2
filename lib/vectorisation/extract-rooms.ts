@@ -44,43 +44,25 @@ export async function extractRoomsFromFloorPlan(
   const arrayBuffer = await fileData.arrayBuffer()
   const base64Data = Buffer.from(arrayBuffer).toString("base64")
 
-  // 3. Determine media type from file extension
+  // 3. Determine media type and content block type from file extension
   const ext = storagePath.split(".").pop()?.toLowerCase() || "png"
-  const mediaTypeMap: Record<string, "image/jpeg" | "image/png" | "image/webp" | "image/gif"> = {
+  const isPdf = ext === "pdf"
+
+  const imageMediaTypeMap: Record<string, "image/jpeg" | "image/png" | "image/webp" | "image/gif"> = {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     png: "image/png",
     webp: "image/webp",
   }
-  const mediaType = mediaTypeMap[ext]
-  if (!mediaType) {
+
+  if (!isPdf && !imageMediaTypeMap[ext]) {
     throw new Error(
-      `Unsupported image format: .${ext}. Please upload a JPEG, PNG, or WebP image.`
+      `Unsupported format: .${ext}. Please upload a JPEG, PNG, WebP, or PDF file.`
     )
   }
 
-  // 4. Call Claude Vision
-  const client = getClaudeClient()
-
-  const response = await client.messages.create({
-    model: EXTRACTION_MODEL,
-    max_tokens: 4096,
-    system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: mediaType,
-              data: base64Data,
-            },
-          },
-          {
-            type: "text",
-            text: `Analyze this floor plan image and identify all rooms and spaces.
+  // 4. Build the content block — PDF uses "document" type, images use "image" type
+  const userPrompt = `Analyze this floor plan and identify all rooms and spaces.
 
 Return your response as a JSON object with this exact structure:
 {
@@ -99,14 +81,45 @@ Return your response as a JSON object with this exact structure:
   "layoutSummary": "L-shaped office floor with a central corridor..."
 }
 
-Return ONLY the JSON object, no markdown formatting or extra text.`,
-          },
+Return ONLY the JSON object, no markdown formatting or extra text.`
+
+  const fileContentBlock = isPdf
+    ? {
+        type: "document" as const,
+        source: {
+          type: "base64" as const,
+          media_type: "application/pdf" as const,
+          data: base64Data,
+        },
+      }
+    : {
+        type: "image" as const,
+        source: {
+          type: "base64" as const,
+          media_type: imageMediaTypeMap[ext],
+          data: base64Data,
+        },
+      }
+
+  // 5. Call Claude Vision
+  const client = getClaudeClient()
+
+  const response = await client.messages.create({
+    model: EXTRACTION_MODEL,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: [
+          fileContentBlock,
+          { type: "text", text: userPrompt },
         ],
       },
     ],
   })
 
-  // 5. Parse response
+  // 6. Parse response
   const textBlock = response.content.find((b) => b.type === "text")
   if (!textBlock || textBlock.type !== "text") {
     throw new Error("Claude returned no text response")
@@ -127,7 +140,7 @@ Return ONLY the JSON object, no markdown formatting or extra text.`,
     )
   }
 
-  // 6. Add tempIds and validate with Zod
+  // 7. Add tempIds and validate with Zod
   const rawObj = parsed as Record<string, unknown>
   const rawRooms = rawObj.rooms as Array<Record<string, unknown>>
 
