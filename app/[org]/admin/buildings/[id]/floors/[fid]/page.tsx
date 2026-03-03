@@ -5,7 +5,6 @@ import { getOrgTemplates } from "@/lib/queries/checklists"
 import { notFound } from "next/navigation"
 import { FloorSetupForm } from "./floor-setup-form"
 import { RoomManager } from "./room-manager"
-import { FloorPlanEditor } from "./floor-plan-editor"
 import { VectorisationPanel } from "./vectorisation-panel"
 import type { ExtractionResult } from "@/lib/validations/vectorisation"
 
@@ -70,15 +69,6 @@ export default async function FloorDetailPage({
     name: rt.name,
   }))
 
-  // Prepare rooms for editor
-  const editorRooms = rooms.map((r: (typeof rooms)[number]) => ({
-    id: r.id,
-    name: r.name,
-    pin_x: r.pin_x,
-    pin_y: r.pin_y,
-    room_types: r.room_types,
-  }))
-
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
@@ -111,10 +101,6 @@ export default async function FloorDetailPage({
         floorId={params.fid}
         orgSlug={params.org}
         buildingId={params.id}
-      />
-      <FloorPlanEditor
-        rooms={editorRooms}
-        floorPlanUrl={floorPlanUrl}
       />
     </div>
   )
