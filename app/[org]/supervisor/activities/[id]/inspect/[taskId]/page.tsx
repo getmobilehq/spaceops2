@@ -76,6 +76,7 @@ export default async function InspectTaskPage({
         responses={responses}
         orgSlug={params.org}
         activityId={params.id}
+        isScannedIn={!!task.inspection_scan_at}
       />
     </div>
   )

@@ -72,6 +72,7 @@ export default async function TaskDetailPage({
         checklist={checklist}
         existingResponses={responses}
         orgSlug={params.org}
+        isCheckedIn={!!task.checked_in_at}
       />
     </div>
   )

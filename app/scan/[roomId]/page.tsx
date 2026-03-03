@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RoomInfoCard } from "./room-info-card"
+import { checkInToTask } from "@/actions/task-responses"
+import { scanForInspection } from "@/actions/activities"
 
 export const metadata = {
   title: "Room Scan - SpaceOps",
@@ -112,7 +114,7 @@ export default async function ScanPage({
     )
   }
 
-  // Janitor → redirect to active task for this room if one exists today
+  // Janitor → check in via QR and redirect to active task
   if (role === "janitor" && orgSlug) {
     const today = new Date().toISOString().split("T")[0]
     const { data: activeTask } = await supabase
@@ -127,7 +129,19 @@ export default async function ScanPage({
       .maybeSingle()
 
     if (activeTask) {
+      // Record QR check-in (proof of physical presence)
+      await checkInToTask({ roomTaskId: activeTask.id, roomId: params.roomId })
       redirect(`/${orgSlug}/janitor/task/${activeTask.id}`)
+    }
+  }
+
+  // Supervisor → scan for inspection and redirect
+  if ((role === "supervisor" || role === "admin") && orgSlug) {
+    const result = await scanForInspection({ roomId: params.roomId })
+    if (result.success) {
+      redirect(
+        `/${orgSlug}/supervisor/activities/${result.activityId}/inspect/${result.taskId}`
+      )
     }
   }
 

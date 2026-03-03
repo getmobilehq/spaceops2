@@ -117,6 +117,15 @@ export function RoomInfoCard({
           </div>
         )}
 
+        {role === "supervisor" && (
+          <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+            <p className="text-sm text-blue-800">
+              No rooms awaiting inspection for today. Tasks must be marked as
+              done by a janitor before they can be inspected.
+            </p>
+          </div>
+        )}
+
         {role === "client" && (
           <div className="rounded-md border border-muted p-3">
             <p className="text-sm text-muted-foreground">

@@ -8,6 +8,10 @@ import {
   type UpsertItemResponseInput,
   type CompleteRoomTaskInput,
 } from "@/lib/validations/task-response"
+import {
+  checkInToTaskSchema,
+  type CheckInToTaskInput,
+} from "@/lib/validations/activity"
 
 type ActionResult = { success: true } | { success: false; error: string }
 type ActionResultWithData<T> =
@@ -30,6 +34,52 @@ async function getJanitorContext() {
   return { user, orgId, supabase }
 }
 
+export async function checkInToTask(
+  input: CheckInToTaskInput
+): Promise<ActionResult> {
+  const parsed = checkInToTaskSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getJanitorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const { data: task } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, room_id, assigned_to, status, checked_in_at, cleaning_activities!inner(status, scheduled_date)")
+    .eq("id", parsed.data.roomTaskId)
+    .eq("room_id", parsed.data.roomId)
+    .single()
+
+  if (!task || task.assigned_to !== ctx.user.id) {
+    return { success: false, error: "Task not assigned to you" }
+  }
+
+  const activity = task.cleaning_activities as { status: string; scheduled_date: string }
+  const today = new Date().toISOString().split("T")[0]
+  if (activity.status !== "active" || activity.scheduled_date !== today) {
+    return { success: false, error: "No active task for today" }
+  }
+
+  if (task.status !== "not_started" && task.status !== "in_progress") {
+    return { success: false, error: "Task is not in a workable state" }
+  }
+
+  // Idempotent: if already checked in, return success
+  if (task.checked_in_at) {
+    return { success: true }
+  }
+
+  const { error } = await ctx.supabase
+    .from("room_tasks")
+    .update({ checked_in_at: new Date().toISOString() })
+    .eq("id", parsed.data.roomTaskId)
+
+  if (error) return { success: false, error: "Failed to check in" }
+  return { success: true }
+}
+
 export async function upsertItemResponse(
   input: UpsertItemResponseInput
 ): Promise<ActionResult> {
@@ -44,12 +94,16 @@ export async function upsertItemResponse(
   // Verify task is assigned to this janitor and in a workable state
   const { data: task } = await ctx.supabase
     .from("room_tasks")
-    .select("id, assigned_to, status")
+    .select("id, assigned_to, status, checked_in_at")
     .eq("id", parsed.data.roomTaskId)
     .single()
 
   if (!task || task.assigned_to !== ctx.user.id) {
     return { success: false, error: "Task not assigned to you" }
+  }
+
+  if (!task.checked_in_at) {
+    return { success: false, error: "You must scan the room QR code before starting" }
   }
 
   if (task.status !== "in_progress" && task.status !== "not_started") {
@@ -108,15 +162,19 @@ export async function uploadItemPhoto(
   const ctx = await getJanitorContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Verify task ownership
+  // Verify task ownership and QR check-in
   const { data: task } = await ctx.supabase
     .from("room_tasks")
-    .select("assigned_to, status")
+    .select("assigned_to, status, checked_in_at")
     .eq("id", roomTaskId)
     .single()
 
   if (!task || task.assigned_to !== ctx.user.id) {
     return { success: false, error: "Task not assigned to you" }
+  }
+
+  if (!task.checked_in_at) {
+    return { success: false, error: "You must scan the room QR code before uploading photos" }
   }
 
   const ext = file.name.split(".").pop() || "jpg"
@@ -161,12 +219,16 @@ export async function completeRoomTask(
   // Verify task ownership and status
   const { data: task } = await ctx.supabase
     .from("room_tasks")
-    .select("id, room_id, assigned_to, status")
+    .select("id, room_id, assigned_to, status, checked_in_at")
     .eq("id", parsed.data.roomTaskId)
     .single()
 
   if (!task || task.assigned_to !== ctx.user.id) {
     return { success: false, error: "Task not assigned to you" }
+  }
+
+  if (!task.checked_in_at) {
+    return { success: false, error: "You must scan the room QR code before completing" }
   }
 
   if (task.status !== "in_progress") {

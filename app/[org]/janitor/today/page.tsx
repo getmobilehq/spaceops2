@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getJanitorTodayTasks } from "@/lib/queries/activities"
-import { Clock, MapPin, ChevronRight } from "lucide-react"
+import { Clock, MapPin, ChevronRight, QrCode } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
 
 export const metadata = {
@@ -107,6 +107,9 @@ export default async function JanitorTodayPage({
               {group.tasks.map((task) => {
                 const statusConf =
                   taskStatusConfig[task.status] || taskStatusConfig.not_started
+                const needsCheckIn =
+                  !task.checked_in_at &&
+                  (task.status === "not_started" || task.status === "in_progress")
                 return (
                   <Link
                     key={task.id}
@@ -122,6 +125,15 @@ export default async function JanitorTodayPage({
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {needsCheckIn && (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-50 text-amber-700 text-[10px] px-1.5 gap-1"
+                        >
+                          <QrCode className="h-3 w-3" />
+                          Scan to Start
+                        </Badge>
+                      )}
                       <Badge variant="outline" className={statusConf.className}>
                         {statusConf.label}
                       </Badge>

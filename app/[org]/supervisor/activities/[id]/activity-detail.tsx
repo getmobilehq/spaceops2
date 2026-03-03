@@ -55,6 +55,7 @@ interface RoomTask {
   room_id: string
   assigned_to: string | null
   status: string
+  checked_in_at: string | null
   rooms: { name: string; room_types: { name: string } | null } | null
   users: { id: string; first_name: string; last_name: string } | null
 }
@@ -382,6 +383,14 @@ export function ActivityDetail({
                         ? `${task.users.first_name} ${task.users.last_name}`
                         : "Unassigned"}
                     </span>
+                  )}
+                  {isActive && task.checked_in_at && task.status !== "not_started" && (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] border-green-200 bg-green-50 text-green-700"
+                    >
+                      Checked In
+                    </Badge>
                   )}
                   {isActive && task.status === "done" && (
                     <Link

@@ -11,6 +11,7 @@ import {
   updateRoomTaskStatusSchema,
   inspectRoomTaskSchema,
   deleteActivitySchema,
+  scanForInspectionSchema,
   type CreateActivityInput,
   type UpdateActivityInput,
   type AssignRoomTasksInput,
@@ -20,6 +21,7 @@ import {
   type UpdateRoomTaskStatusInput,
   type InspectRoomTaskInput,
   type DeleteActivityInput,
+  type ScanForInspectionInput,
 } from "@/lib/validations/activity"
 import { createNotification } from "@/actions/notifications"
 
@@ -325,6 +327,53 @@ export async function updateRoomTaskStatus(
   return { success: true }
 }
 
+type ScanForInspectionResult =
+  | { success: true; taskId: string; activityId: string }
+  | { success: false; error: string }
+
+export async function scanForInspection(
+  input: ScanForInspectionInput
+): Promise<ScanForInspectionResult> {
+  const parsed = scanForInspectionSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const today = new Date().toISOString().split("T")[0]
+
+  // Find inspectable task: status="done", in an active activity scheduled today
+  const { data: tasks } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, activity_id, cleaning_activities!inner(status, scheduled_date)")
+    .eq("room_id", parsed.data.roomId)
+    .eq("status", "done")
+    .eq("cleaning_activities.status", "active")
+    .eq("cleaning_activities.scheduled_date", today)
+    .limit(1)
+
+  const task = tasks?.[0]
+  if (!task) {
+    return { success: false, error: "No inspectable tasks found for this room today" }
+  }
+
+  // Record inspection scan timestamp
+  const { error } = await ctx.supabase
+    .from("room_tasks")
+    .update({ inspection_scan_at: new Date().toISOString() })
+    .eq("id", task.id)
+
+  if (error) return { success: false, error: "Failed to record scan" }
+
+  return {
+    success: true,
+    taskId: task.id,
+    activityId: task.activity_id,
+  }
+}
+
 export async function inspectRoomTask(
   input: InspectRoomTaskInput
 ): Promise<ActionResult> {
@@ -339,13 +388,16 @@ export async function inspectRoomTask(
   // Verify task exists and is in "done" status (ready for inspection)
   const { data: task } = await ctx.supabase
     .from("room_tasks")
-    .select("id, status, assigned_to, rooms(name)")
+    .select("id, status, assigned_to, inspection_scan_at, rooms(name)")
     .eq("id", parsed.data.taskId)
     .single()
 
   if (!task) return { success: false, error: "Task not found" }
   if (task.status !== "done") {
     return { success: false, error: "Only completed tasks can be inspected" }
+  }
+  if (!task.inspection_scan_at) {
+    return { success: false, error: "You must scan the room QR code before inspecting" }
   }
 
   const { error } = await ctx.supabase

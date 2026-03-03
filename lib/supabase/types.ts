@@ -610,6 +610,8 @@ export type Database = {
           inspected_by: string | null
           inspected_at: string | null
           inspection_note: string | null
+          checked_in_at: string | null
+          inspection_scan_at: string | null
           created_at: string
           updated_at: string
         }
@@ -625,6 +627,8 @@ export type Database = {
           inspected_by?: string | null
           inspected_at?: string | null
           inspection_note?: string | null
+          checked_in_at?: string | null
+          inspection_scan_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -640,6 +644,8 @@ export type Database = {
           inspected_by?: string | null
           inspected_at?: string | null
           inspection_note?: string | null
+          checked_in_at?: string | null
+          inspection_scan_at?: string | null
           created_at?: string
           updated_at?: string
         }

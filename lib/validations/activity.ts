@@ -55,6 +55,15 @@ export const inspectRoomTaskSchema = z.object({
   note: z.string().max(500).optional(),
 })
 
+export const checkInToTaskSchema = z.object({
+  roomTaskId: z.string().uuid(),
+  roomId: z.string().uuid(),
+})
+
+export const scanForInspectionSchema = z.object({
+  roomId: z.string().uuid(),
+})
+
 export type CreateActivityInput = z.infer<typeof createActivitySchema>
 export type UpdateActivityInput = z.infer<typeof updateActivitySchema>
 export type AssignRoomTasksInput = z.infer<typeof assignRoomTasksSchema>
@@ -64,3 +73,5 @@ export type CloseActivityInput = z.infer<typeof closeActivitySchema>
 export type UpdateRoomTaskStatusInput = z.infer<typeof updateRoomTaskStatusSchema>
 export type DeleteActivityInput = z.infer<typeof deleteActivitySchema>
 export type InspectRoomTaskInput = z.infer<typeof inspectRoomTaskSchema>
+export type CheckInToTaskInput = z.infer<typeof checkInToTaskSchema>
+export type ScanForInspectionInput = z.infer<typeof scanForInspectionSchema>

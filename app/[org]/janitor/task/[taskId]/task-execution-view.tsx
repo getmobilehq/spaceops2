@@ -28,6 +28,7 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
+  QrCode,
 } from "lucide-react"
 
 interface TaskData {
@@ -80,11 +81,13 @@ export function TaskExecutionView({
   checklist,
   existingResponses,
   orgSlug,
+  isCheckedIn,
 }: {
   task: TaskData
   checklist: ChecklistData | null
   existingResponses: ResponseData[]
   orgSlug: string
+  isCheckedIn: boolean
 }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -275,69 +278,91 @@ export function TaskExecutionView({
         </CardContent>
       </Card>
 
-      {/* Progress bar */}
-      {totalCount > 0 && (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Progress</span>
-            <span>
-              {completedCount}/{totalCount} items
-            </span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-muted">
-            <div
-              className="h-2 rounded-full bg-brand transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Checklist */}
-      {checklist ? (
-        <div className="space-y-2">
-          {items.map((item) => (
-            <ChecklistItemRow
-              key={item.id}
-              item={item}
-              response={responses.get(item.id) || null}
-              roomTaskId={task.id}
-              isReadOnly={isReadOnly}
-              onResponseChange={handleResponseChange}
-            />
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="py-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              No checklist available for this room type. You can mark this room
-              as done directly.
-            </p>
+      {/* QR Check-In Gate */}
+      {!isCheckedIn && !isReadOnly && (
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="py-8 text-center space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+              <QrCode className="h-8 w-8 text-amber-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-amber-900">Scan QR Code to Start</h3>
+              <p className="text-sm text-amber-700 max-w-xs mx-auto">
+                Go to the room and scan the QR code on the wall to begin
+                your cleaning checklist.
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Action buttons */}
-      {!isReadOnly && (
-        <div className="flex gap-3 pb-4">
-          <Button
-            variant="outline"
-            className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
-            onClick={() => setShowIssueDialog(true)}
-            disabled={isSubmitting}
-          >
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Flag Issue
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleMarkDone}
-            disabled={isSubmitting || !canMarkDone}
-          >
-            {isSubmitting ? "Saving..." : "Mark Done"}
-          </Button>
-        </div>
+      {(isCheckedIn || isReadOnly) && (
+        <>
+          {/* Progress bar */}
+          {totalCount > 0 && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Progress</span>
+                <span>
+                  {completedCount}/{totalCount} items
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted">
+                <div
+                  className="h-2 rounded-full bg-brand transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Checklist */}
+          {checklist ? (
+            <div className="space-y-2">
+              {items.map((item) => (
+                <ChecklistItemRow
+                  key={item.id}
+                  item={item}
+                  response={responses.get(item.id) || null}
+                  roomTaskId={task.id}
+                  isReadOnly={isReadOnly}
+                  onResponseChange={handleResponseChange}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No checklist available for this room type. You can mark this room
+                  as done directly.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action buttons */}
+          {!isReadOnly && (
+            <div className="flex gap-3 pb-4">
+              <Button
+                variant="outline"
+                className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                onClick={() => setShowIssueDialog(true)}
+                disabled={isSubmitting}
+              >
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Flag Issue
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleMarkDone}
+                disabled={isSubmitting || !canMarkDone}
+              >
+                {isSubmitting ? "Saving..." : "Mark Done"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Issue dialog */}
