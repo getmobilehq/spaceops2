@@ -381,7 +381,7 @@ export function ReportsDashboard({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Open Deficiencies</p>
+                <p className="text-sm text-muted-foreground">Open Issues</p>
                 <p className="text-2xl font-bold text-red-600">
                   {summary.openDeficiencies}
                 </p>
@@ -468,7 +468,7 @@ export function ReportsDashboard({
       {deficiencies.total > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Deficiency Breakdown</CardTitle>
+            <CardTitle className="text-lg">Issue Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">

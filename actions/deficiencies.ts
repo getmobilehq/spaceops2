@@ -318,9 +318,13 @@ export async function reportIssueWithPhoto(
     }
   }
 
-  // Upload photo if provided
+  // Photo is required
+  if (!photo || photo.size === 0) {
+    return { success: false, error: "A photo is required when reporting an issue" }
+  }
+
   let photoUrl: string | null = null
-  if (photo && photo.size > 0) {
+  if (photo.size > 0) {
     const MAX_SIZE = 5 * 1024 * 1024
     if (photo.size > MAX_SIZE) {
       return { success: false, error: "Photo must be smaller than 5MB" }
@@ -360,6 +364,101 @@ export async function reportIssueWithPhoto(
     .single()
 
   if (error) return { success: false, error: "Failed to report issue" }
+
+  return { success: true, id: deficiency.id }
+}
+
+export async function createDeficiencyWithPhoto(
+  formData: FormData
+): Promise<ActionResultWithId> {
+  const roomTaskId = formData.get("roomTaskId") as string | null
+  const description = formData.get("description") as string | null
+  const severity = formData.get("severity") as string | null
+  const assignedTo = formData.get("assignedTo") as string | null
+  const photo = formData.get("photo") as File | null
+
+  if (!roomTaskId || !description || !severity) {
+    return { success: false, error: "Missing required fields" }
+  }
+
+  if (!photo || photo.size === 0) {
+    return { success: false, error: "A photo is required when reporting an issue" }
+  }
+
+  const parsed = createDeficiencySchema.safeParse({
+    roomTaskId,
+    description,
+    severity,
+    assignedTo: assignedTo || null,
+  })
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Verify the room task exists
+  const { data: task } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, status")
+    .eq("id", parsed.data.roomTaskId)
+    .single()
+
+  if (!task) return { success: false, error: "Task not found" }
+
+  // Upload photo
+  const MAX_SIZE = 5 * 1024 * 1024
+  if (photo.size > MAX_SIZE) {
+    return { success: false, error: "Photo must be smaller than 5MB" }
+  }
+  const ALLOWED = ["image/jpeg", "image/png", "image/webp"]
+  if (!ALLOWED.includes(photo.type)) {
+    return { success: false, error: "Photo must be JPEG, PNG, or WebP" }
+  }
+
+  const ext = photo.name.split(".").pop() || "jpg"
+  const filePath = `${ctx.orgId}/deficiencies/${crypto.randomUUID()}.${ext}`
+  const { error: uploadError } = await ctx.supabase.storage
+    .from("cleaning-photos")
+    .upload(filePath, photo, { contentType: photo.type })
+
+  if (uploadError) {
+    return { success: false, error: "Failed to upload photo" }
+  }
+
+  const { data: urlData } = ctx.supabase.storage
+    .from("cleaning-photos")
+    .getPublicUrl(filePath)
+
+  const { data: deficiency, error } = await ctx.supabase
+    .from("deficiencies")
+    .insert({
+      room_task_id: parsed.data.roomTaskId,
+      org_id: ctx.orgId,
+      reported_by: ctx.user.id,
+      assigned_to: parsed.data.assignedTo ?? null,
+      description: parsed.data.description,
+      severity: parsed.data.severity,
+      photo_url: urlData.publicUrl,
+    })
+    .select("id")
+    .single()
+
+  if (error) return { success: false, error: "Failed to create issue" }
+
+  // Notify assigned janitor
+  if (parsed.data.assignedTo) {
+    await createNotification(ctx.supabase, {
+      orgId: ctx.orgId,
+      userId: parsed.data.assignedTo,
+      type: "deficiency_assigned",
+      title: "Issue assigned to you",
+      body: parsed.data.description.length > 80
+        ? parsed.data.description.slice(0, 80) + "..."
+        : parsed.data.description,
+    })
+  }
 
   return { success: true, id: deficiency.id }
 }

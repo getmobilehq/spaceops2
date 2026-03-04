@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { JanitorDeficiencyList } from "./janitor-deficiency-list"
 
 export const metadata = {
-  title: "My Deficiencies - SpaceOps",
+  title: "My Issues - SpaceOps",
 }
 
 export default async function JanitorDeficienciesPage({
@@ -27,7 +27,7 @@ export default async function JanitorDeficienciesPage({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-brand">My Deficiencies</h1>
+        <h1 className="text-xl font-bold text-brand">My Issues</h1>
         <p className="text-sm text-muted-foreground">
           Issues that need your attention
         </p>

@@ -84,7 +84,7 @@ export default async function SupervisorDashboardPage({
             </div>
           </CardContent>
         </Card>
-        <Link href={`/${params.org}/supervisor/deficiencies`}>
+        <Link href={`/${params.org}/supervisor/issues`}>
           <Card className="hover:bg-muted transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">

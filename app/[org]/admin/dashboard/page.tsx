@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Open Deficiencies</p>
+                <p className="text-sm text-muted-foreground">Open Issues</p>
                 <p className={`text-3xl font-bold ${stats.openDeficiencies > 0 ? "text-red-600" : "text-brand"}`}>
                   {stats.openDeficiencies}
                 </p>
@@ -134,7 +134,7 @@ export default async function AdminDashboardPage() {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium uppercase text-muted-foreground">
-                          {event.type === "activity" ? "Activity" : "Deficiency"}
+                          {event.type === "activity" ? "Activity" : "Issue"}
                         </span>
                         {svb && (
                           <Badge variant="outline" className={svb.className}>

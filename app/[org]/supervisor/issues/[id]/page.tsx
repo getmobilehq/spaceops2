@@ -6,7 +6,7 @@ import { DeficiencyDetail } from "./deficiency-detail"
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs"
 
 export const metadata = {
-  title: "Deficiency Detail - SpaceOps",
+  title: "Issue Detail - SpaceOps",
 }
 
 export default async function DeficiencyDetailPage({
@@ -40,8 +40,8 @@ export default async function DeficiencyDetailPage({
       <Breadcrumbs
         items={[
           {
-            label: "Deficiencies",
-            href: `/${params.org}/supervisor/deficiencies`,
+            label: "Issues",
+            href: `/${params.org}/supervisor/issues`,
           },
           { label: deficiency.description.slice(0, 40) },
         ]}

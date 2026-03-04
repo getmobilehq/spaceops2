@@ -63,7 +63,7 @@ export function JanitorDeficiencyList({
     })
 
     if (result.success) {
-      toast({ title: "Deficiency resolved" })
+      toast({ title: "Issue resolved" })
       setResolveDialog(null)
       setResolutionNote("")
       router.refresh()
@@ -83,7 +83,7 @@ export function JanitorDeficiencyList({
         <CardContent className="py-8 text-center">
           <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-green-500" />
           <p className="text-sm text-muted-foreground">
-            No open deficiencies. Great work!
+            No open issues. Great work!
           </p>
         </CardContent>
       </Card>
@@ -147,7 +147,7 @@ export function JanitorDeficiencyList({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Resolve Deficiency</DialogTitle>
+            <DialogTitle>Resolve Issue</DialogTitle>
             <DialogDescription>
               Add an optional note about how you resolved this issue.
             </DialogDescription>

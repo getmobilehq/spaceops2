@@ -80,12 +80,12 @@ export function DeficiencyList({
         ))}
       </div>
 
-      {/* Deficiency cards */}
+      {/* Issue cards */}
       {deficiencies.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              No deficiencies found.
+              No issues found.
             </p>
           </CardContent>
         </Card>
@@ -98,7 +98,7 @@ export function DeficiencyList({
           return (
             <Link
               key={d.id}
-              href={`/${orgSlug}/supervisor/deficiencies/${d.id}`}
+              href={`/${orgSlug}/supervisor/issues/${d.id}`}
             >
               <Card className="hover:border-brand/40 transition-colors cursor-pointer">
                 <CardContent className="py-4">

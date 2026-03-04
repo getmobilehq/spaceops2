@@ -6,7 +6,7 @@ import { NewDeficiencyForm } from "./new-deficiency-form"
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs"
 
 export const metadata = {
-  title: "Report Deficiency - SpaceOps",
+  title: "Report Issue - SpaceOps",
 }
 
 export default async function NewDeficiencyPage({
@@ -27,7 +27,7 @@ export default async function NewDeficiencyPage({
   if (role !== "admin" && role !== "supervisor") return notFound()
 
   if (!searchParams.taskId) {
-    return redirect(`/${params.org}/supervisor/deficiencies`)
+    return redirect(`/${params.org}/supervisor/issues`)
   }
 
   let task
@@ -47,14 +47,14 @@ export default async function NewDeficiencyPage({
       <Breadcrumbs
         items={[
           {
-            label: "Deficiencies",
-            href: `/${params.org}/supervisor/deficiencies`,
+            label: "Issues",
+            href: `/${params.org}/supervisor/issues`,
           },
           { label: `Report: ${roomName}` },
         ]}
       />
       <div>
-        <h1 className="text-2xl font-bold text-brand">Report Deficiencies</h1>
+        <h1 className="text-2xl font-bold text-brand">Report Issues</h1>
         <p className="text-muted-foreground">
           Add issues found during inspection of {roomName}
         </p>

@@ -9,7 +9,7 @@ import {
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
 
 export const metadata = {
-  title: "Deficiencies - SpaceOps",
+  title: "Issues - SpaceOps",
 }
 
 const statusConfig: Record<string, { label: string; className: string; icon: typeof AlertTriangle }> = {
@@ -42,7 +42,7 @@ export default async function ClientDeficienciesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Deficiencies</h1>
+        <h1 className="text-2xl font-bold text-brand">Issues</h1>
         <p className="text-muted-foreground">
           Issues found during inspections
         </p>
@@ -135,7 +135,7 @@ export default async function ClientDeficienciesPage() {
           <CardContent className="py-8 text-center">
             <CheckCircle2 className="h-8 w-8 mx-auto text-green-500 mb-2" />
             <p className="text-sm text-muted-foreground">
-              No deficiencies found. Everything looks good!
+              No issues found. Everything looks good!
             </p>
           </CardContent>
         </Card>

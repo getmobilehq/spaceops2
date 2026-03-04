@@ -170,7 +170,7 @@ export function RoomInfoCard({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Photo (optional)</Label>
+              <Label>Photo (required)</Label>
               {photoPreview ? (
                 <div className="relative inline-block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -212,7 +212,7 @@ export function RoomInfoCard({
             <div className="flex gap-2">
               <Button
                 onClick={handleSubmit}
-                disabled={!description.trim() || submitting}
+                disabled={!description.trim() || !photo || submitting}
                 className="flex-1"
                 size="sm"
               >

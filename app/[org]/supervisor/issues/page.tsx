@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { DeficiencyList } from "./deficiency-list"
 
 export const metadata = {
-  title: "Deficiencies - SpaceOps",
+  title: "Issues - SpaceOps",
 }
 
 export default async function DeficienciesPage({
@@ -30,7 +30,7 @@ export default async function DeficienciesPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Deficiencies</h1>
+        <h1 className="text-2xl font-bold text-brand">Issues</h1>
         <p className="text-muted-foreground">
           Track and manage inspection issues
         </p>

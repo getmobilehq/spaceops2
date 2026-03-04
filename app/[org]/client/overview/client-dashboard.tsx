@@ -236,7 +236,7 @@ export function ClientDashboard({
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Deficiency resolution time
+                Issue resolution time
               </p>
             </div>
           </div>
@@ -246,7 +246,7 @@ export function ClientDashboard({
             sla.deficiencySLA.atRisk > 0 ||
             sla.deficiencySLA.breached > 0) && (
             <div className="mt-4 pt-4 border-t">
-              <p className="text-sm font-medium mb-2">Deficiency SLA Status</p>
+              <p className="text-sm font-medium mb-2">Issue SLA Status</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-3 w-3 rounded-full bg-green-500" />

@@ -125,9 +125,9 @@ export function InspectionView({
             : "Inspection failed",
       })
       if (result === "inspected_fail") {
-        // Redirect to add deficiencies for this failed task
+        // Redirect to report issues for this failed task
         router.push(
-          `/${orgSlug}/supervisor/deficiencies/new?taskId=${task.id}&activityId=${activityId}`
+          `/${orgSlug}/supervisor/issues/new?taskId=${task.id}&activityId=${activityId}`
         )
       } else {
         router.push(`/${orgSlug}/supervisor/activities/${activityId}`)

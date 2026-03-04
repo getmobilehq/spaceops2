@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { createDeficiency } from "@/actions/deficiencies"
-import { Plus, Trash2, AlertTriangle } from "lucide-react"
+import { createDeficiencyWithPhoto } from "@/actions/deficiencies"
+import { Plus, Trash2, AlertTriangle, Camera, X } from "lucide-react"
 
 interface JanitorOption {
   id: string
@@ -31,6 +31,8 @@ interface DeficiencyEntry {
   description: string
   severity: "low" | "medium" | "high"
   assignedTo: string | null
+  photo: File | null
+  photoPreview: string | null
 }
 
 export function NewDeficiencyForm({
@@ -50,12 +52,15 @@ export function NewDeficiencyForm({
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
   const [entries, setEntries] = useState<DeficiencyEntry[]>([
     {
       id: crypto.randomUUID(),
       description: "",
       severity: "medium",
       assignedTo: null,
+      photo: null,
+      photoPreview: null,
     },
   ])
 
@@ -67,6 +72,8 @@ export function NewDeficiencyForm({
         description: "",
         severity: "medium",
         assignedTo: null,
+        photo: null,
+        photoPreview: null,
       },
     ])
   }
@@ -74,11 +81,12 @@ export function NewDeficiencyForm({
   function removeEntry(id: string) {
     if (entries.length <= 1) return
     setEntries((prev) => prev.filter((e) => e.id !== id))
+    fileInputRefs.current.delete(id)
   }
 
   function updateEntry(
     id: string,
-    field: keyof DeficiencyEntry,
+    field: "description" | "severity" | "assignedTo",
     value: string | null
   ) {
     setEntries((prev) =>
@@ -86,13 +94,48 @@ export function NewDeficiencyForm({
     )
   }
 
+  function handlePhotoChange(entryId: string, file: File) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      setEntries((prev) =>
+        prev.map((e) =>
+          e.id === entryId
+            ? { ...e, photo: file, photoPreview: reader.result as string }
+            : e
+        )
+      )
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function removePhoto(entryId: string) {
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === entryId ? { ...e, photo: null, photoPreview: null } : e
+      )
+    )
+    const input = fileInputRefs.current.get(entryId)
+    if (input) input.value = ""
+  }
+
   async function handleSubmit() {
-    // Validate
-    const valid = entries.every((e) => e.description.trim().length > 0)
-    if (!valid) {
+    // Validate descriptions
+    const hasDescriptions = entries.every((e) => e.description.trim().length > 0)
+    if (!hasDescriptions) {
       toast({
         title: "Error",
-        description: "All deficiencies must have a description",
+        description: "All issues must have a description",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validate photos
+    const hasPhotos = entries.every((e) => e.photo !== null)
+    if (!hasPhotos) {
+      toast({
+        title: "Error",
+        description: "All issues must have a photo",
         variant: "destructive",
       })
       return
@@ -101,31 +144,32 @@ export function NewDeficiencyForm({
     setIsSubmitting(true)
 
     const results = await Promise.all(
-      entries.map((e) =>
-        createDeficiency({
-          roomTaskId: taskId,
-          description: e.description.trim(),
-          severity: e.severity,
-          assignedTo: e.assignedTo,
-        })
-      )
+      entries.map((e) => {
+        const formData = new FormData()
+        formData.append("roomTaskId", taskId)
+        formData.append("description", e.description.trim())
+        formData.append("severity", e.severity)
+        if (e.assignedTo) formData.append("assignedTo", e.assignedTo)
+        if (e.photo) formData.append("photo", e.photo)
+        return createDeficiencyWithPhoto(formData)
+      })
     )
 
     const failed = results.filter((r) => !r.success)
     if (failed.length > 0) {
       toast({
         title: "Error",
-        description: `${failed.length} deficiencies failed to create`,
+        description: `${failed.length} issues failed to create`,
         variant: "destructive",
       })
     } else {
       toast({
-        title: `${entries.length} deficienc${entries.length === 1 ? "y" : "ies"} reported`,
+        title: `${entries.length} issue${entries.length === 1 ? "" : "s"} reported`,
       })
       if (activityId) {
         router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
       } else {
-        router.push(`/${orgSlug}/supervisor/deficiencies`)
+        router.push(`/${orgSlug}/supervisor/issues`)
       }
       router.refresh()
     }
@@ -136,7 +180,7 @@ export function NewDeficiencyForm({
     if (activityId) {
       router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
     } else {
-      router.push(`/${orgSlug}/supervisor/deficiencies`)
+      router.push(`/${orgSlug}/supervisor/issues`)
     }
   }
 
@@ -162,6 +206,57 @@ export function NewDeficiencyForm({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">
+                Photo (required)
+              </label>
+              <div className="mt-1">
+                {entry.photoPreview ? (
+                  <div className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={entry.photoPreview}
+                      alt="Issue photo"
+                      className="h-28 w-28 rounded-md object-cover border"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                      onClick={() => removePhoto(entry.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() =>
+                      fileInputRefs.current.get(entry.id)?.click()
+                    }
+                  >
+                    <Camera className="h-4 w-4 mr-1" />
+                    Take Photo
+                  </Button>
+                )}
+                <input
+                  ref={(el) => {
+                    if (el) fileInputRefs.current.set(entry.id, el)
+                  }}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handlePhotoChange(entry.id, file)
+                  }}
+                />
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-medium text-muted-foreground">
                 Description
