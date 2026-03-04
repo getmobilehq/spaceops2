@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { inspectRoomTask } from "@/actions/activities"
+import { inspectRoomTask, recordInspectionScan } from "@/actions/activities"
+import { QrScannerDialog } from "@/components/shared/QrScannerDialog"
 import {
   CheckCircle2,
   XCircle,
@@ -22,7 +23,6 @@ import {
   X,
   ImageIcon,
   StickyNote,
-  QrCode,
 } from "lucide-react"
 
 interface TaskData {
@@ -208,20 +208,17 @@ export function InspectionView({
 
       {/* QR Scan Gate */}
       {!isScannedIn && (
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardContent className="py-8 text-center space-y-4">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-              <QrCode className="h-8 w-8 text-blue-600" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-blue-900">Scan QR Code to Inspect</h3>
-              <p className="text-sm text-blue-700 max-w-xs mx-auto">
-                Go to the room and scan the QR code on the wall to verify
-                your presence before inspecting.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <QrScannerDialog
+          expectedRoomId={task.room_id}
+          onScanSuccess={async (roomId) => {
+            const result = await recordInspectionScan(task.id, roomId)
+            if (!result.success) throw new Error(result.error)
+            router.refresh()
+          }}
+          buttonLabel="Scan QR Code to Inspect"
+          description="Point your camera at the QR code on the room wall to verify your presence."
+          variant="blue"
+        />
       )}
 
       {isScannedIn && (

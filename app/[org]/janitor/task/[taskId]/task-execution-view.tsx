@@ -20,15 +20,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { completeRoomTask } from "@/actions/task-responses"
+import { completeRoomTask, checkInToTask } from "@/actions/task-responses"
 import { ChecklistItemRow } from "./checklist-item-row"
+import { QrScannerDialog } from "@/components/shared/QrScannerDialog"
 import {
   ChevronLeft,
   Building2,
   Clock,
   AlertTriangle,
   CheckCircle2,
-  QrCode,
 } from "lucide-react"
 
 interface TaskData {
@@ -280,20 +280,17 @@ export function TaskExecutionView({
 
       {/* QR Check-In Gate */}
       {!isCheckedIn && !isReadOnly && (
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="py-8 text-center space-y-4">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
-              <QrCode className="h-8 w-8 text-amber-600" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-amber-900">Scan QR Code to Start</h3>
-              <p className="text-sm text-amber-700 max-w-xs mx-auto">
-                Go to the room and scan the QR code on the wall to begin
-                your cleaning checklist.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <QrScannerDialog
+          expectedRoomId={task.room_id}
+          onScanSuccess={async (roomId) => {
+            const result = await checkInToTask({ roomTaskId: task.id, roomId })
+            if (!result.success) throw new Error(result.error)
+            router.refresh()
+          }}
+          buttonLabel="Scan QR Code to Start"
+          description="Point your camera at the QR code on the room wall to check in and begin cleaning."
+          variant="amber"
+        />
       )}
 
       {(isCheckedIn || isReadOnly) && (

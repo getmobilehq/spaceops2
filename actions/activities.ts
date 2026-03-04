@@ -327,6 +327,36 @@ export async function updateRoomTaskStatus(
   return { success: true }
 }
 
+export async function recordInspectionScan(
+  taskId: string,
+  roomId: string
+): Promise<ActionResult> {
+  const ctx = await getSupervisorContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Verify the task exists, belongs to the given room, and is in "done" status
+  const { data: task } = await ctx.supabase
+    .from("room_tasks")
+    .select("id, status, inspection_scan_at")
+    .eq("id", taskId)
+    .eq("room_id", roomId)
+    .single()
+
+  if (!task) return { success: false, error: "Task not found" }
+  if (task.status !== "done") {
+    return { success: false, error: "Only completed tasks can be inspected" }
+  }
+  if (task.inspection_scan_at) return { success: true } // Idempotent
+
+  const { error } = await ctx.supabase
+    .from("room_tasks")
+    .update({ inspection_scan_at: new Date().toISOString() })
+    .eq("id", taskId)
+
+  if (error) return { success: false, error: "Failed to record scan" }
+  return { success: true }
+}
+
 type ScanForInspectionResult =
   | { success: true; taskId: string; activityId: string }
   | { success: false; error: string }
