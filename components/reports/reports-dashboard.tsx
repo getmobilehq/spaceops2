@@ -31,9 +31,15 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
+  BarChart3,
+  LineChart,
 } from "lucide-react"
 import { TrendChart } from "./trend-chart"
 import { PassRateBar } from "./pass-rate-bar"
+import { StatCard } from "@/components/shared/StatCard"
+import { DonutChart } from "@/components/charts/donut-chart"
+import { AreaTrendChart } from "@/components/charts/area-trend-chart"
+import { ACTIVITY_STATUS } from "@/lib/status-styles"
 import type { ReportFilters } from "@/lib/queries/reports"
 
 interface Summary {
@@ -94,13 +100,6 @@ interface DeficiencyBreakdown {
 interface Building {
   id: string
   name: string
-}
-
-const statusBadge: Record<string, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "border-gray-200 bg-gray-50 text-gray-700" },
-  active: { label: "Active", className: "border-green-200 bg-green-50 text-green-700" },
-  closed: { label: "Closed", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  cancelled: { label: "Cancelled", className: "border-red-200 bg-red-50 text-red-700" },
 }
 
 function exportCsv(history: ActivityRow[]) {
@@ -169,7 +168,7 @@ function DeltaBadge({
   return (
     <span
       className={`inline-flex items-center text-xs font-medium ${
-        isGood ? "text-green-600" : "text-red-600"
+        isGood ? "text-success" : "text-destructive"
       }`}
     >
       {isUp ? (
@@ -212,6 +211,7 @@ export function ReportsDashboard({
   const [dateFrom, setDateFrom] = useState(filters.dateFrom || "")
   const [dateTo, setDateTo] = useState(filters.dateTo || "")
   const [buildingId, setBuildingId] = useState(filters.buildingId || "all")
+  const [chartMode, setChartMode] = useState<"bar" | "area">("bar")
 
   function applyFilters() {
     const params = new URLSearchParams()
@@ -235,7 +235,7 @@ export function ReportsDashboard({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-brand">Reports & Analytics</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Reports & Analytics</h1>
           <p className="text-muted-foreground">
             Performance metrics and inspection insights
           </p>
@@ -312,103 +312,125 @@ export function ReportsDashboard({
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Overall Pass Rate</p>
-                <p className="text-2xl font-bold">
-                  {summary.passRate !== null ? `${summary.passRate}%` : "N/A"}
-                </p>
-                {previousSummary &&
-                  summary.passRate !== null &&
-                  previousSummary.passRate !== null && (
-                    <DeltaBadge
-                      current={summary.passRate}
-                      previous={previousSummary.passRate}
-                      suffix="%"
-                    />
-                  )}
-              </div>
-              <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
+        <StatCard
+          title="Overall Pass Rate"
+          value={summary.passRate !== null ? `${summary.passRate}%` : "N/A"}
+          icon={TrendingUp}
+          iconClassName="bg-primary/10 text-primary"
+          animationDelay="0ms"
+          trend={
+            previousSummary && summary.passRate !== null && previousSummary.passRate !== null
+              ? {
+                  value: `${summary.passRate - previousSummary.passRate >= 0 ? "+" : ""}${summary.passRate - previousSummary.passRate}% vs prev`,
+                  positive: summary.passRate >= previousSummary.passRate,
+                }
+              : undefined
+          }
+        />
+        <StatCard
+          title="Total Activities"
+          value={summary.totalActivities}
+          icon={CalendarCheck}
+          iconClassName="bg-info/10 text-info"
+          animationDelay="100ms"
+          trend={
+            previousSummary
+              ? {
+                  value: `${summary.totalActivities - previousSummary.totalActivities >= 0 ? "+" : ""}${summary.totalActivities - previousSummary.totalActivities} vs prev`,
+                  positive: summary.totalActivities >= previousSummary.totalActivities,
+                }
+              : undefined
+          }
+        />
+        <Card className="animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+          <CardContent className="flex items-center justify-between p-5">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Inspections</p>
+              <p className="text-2xl font-bold">
+                <span className="text-success">{summary.passedTasks}</span>
+                {" / "}
+                <span className="text-destructive">{summary.failedTasks}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">passed / failed</p>
+              {previousSummary && (
+                <DeltaBadge
+                  current={summary.passedTasks}
+                  previous={previousSummary.passedTasks}
+                  suffix=" passed"
+                />
+              )}
+            </div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+              <ClipboardCheck className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Activities</p>
-                <p className="text-2xl font-bold">{summary.totalActivities}</p>
-                {previousSummary && (
-                  <DeltaBadge
-                    current={summary.totalActivities}
-                    previous={previousSummary.totalActivities}
-                  />
-                )}
-              </div>
-              <CalendarCheck className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Inspections</p>
-                <p className="text-2xl font-bold">
-                  <span className="text-green-600">{summary.passedTasks}</span>
-                  {" / "}
-                  <span className="text-red-600">{summary.failedTasks}</span>
-                </p>
-                <p className="text-xs text-muted-foreground">passed / failed</p>
-                {previousSummary && (
-                  <DeltaBadge
-                    current={summary.passedTasks}
-                    previous={previousSummary.passedTasks}
-                    suffix=" passed"
-                  />
-                )}
-              </div>
-              <ClipboardCheck className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Open Issues</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {summary.openDeficiencies}
-                </p>
-                {previousSummary && (
-                  <DeltaBadge
-                    current={summary.openDeficiencies}
-                    previous={previousSummary.openDeficiencies}
-                    invertColor
-                  />
-                )}
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-200" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Open Issues"
+          value={summary.openDeficiencies}
+          icon={AlertTriangle}
+          iconClassName="bg-destructive/10 text-destructive"
+          animationDelay="300ms"
+          trend={
+            previousSummary
+              ? {
+                  value: `${summary.openDeficiencies - previousSummary.openDeficiencies >= 0 ? "+" : ""}${summary.openDeficiencies - previousSummary.openDeficiencies} vs prev`,
+                  positive: summary.openDeficiencies <= previousSummary.openDeficiencies,
+                }
+              : undefined
+          }
+        />
       </div>
 
       {/* Trend chart */}
       {trend.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">
               Inspection Trend {hasFilters ? "(Filtered)" : "(Last 30 Days)"}
             </CardTitle>
+            <div className="flex items-center gap-1 rounded-md border p-0.5">
+              <button
+                onClick={() => setChartMode("bar")}
+                className={`rounded px-2 py-1 text-xs transition-colors ${
+                  chartMode === "bar"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setChartMode("area")}
+                className={`rounded px-2 py-1 text-xs transition-colors ${
+                  chartMode === "area"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <LineChart className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </CardHeader>
           <CardContent>
-            <TrendChart data={trend} />
+            {chartMode === "bar" ? (
+              <TrendChart data={trend} />
+            ) : (
+              <AreaTrendChart
+                data={trend.map((d) => {
+                  const total = d.passed + d.failed
+                  return {
+                    label: new Date(d.date).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                    }),
+                    value: total > 0 ? Math.round((d.passed / total) * 100) : 0,
+                  }
+                })}
+                valueSuffix="%"
+                color="hsl(var(--primary))"
+              />
+            )}
           </CardContent>
         </Card>
       )}
@@ -464,63 +486,42 @@ export function ReportsDashboard({
         </Card>
       </div>
 
-      {/* Deficiency breakdown */}
+      {/* Deficiency breakdown — donut charts */}
       {deficiencies.total > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Issue Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">
-                  By Severity
-                </p>
-                <div className="space-y-2">
-                  {(
-                    [
-                      { key: "high", label: "High", className: "border-red-200 bg-red-50 text-red-700" },
-                      { key: "medium", label: "Medium", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-                      { key: "low", label: "Low", className: "border-blue-200 bg-blue-50 text-blue-700" },
-                    ] as const
-                  ).map((s) => (
-                    <div key={s.key} className="flex items-center justify-between">
-                      <Badge variant="outline" className={s.className}>
-                        {s.label}
-                      </Badge>
-                      <span className="text-sm font-medium">
-                        {deficiencies.bySeverity[s.key]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">
-                  By Status
-                </p>
-                <div className="space-y-2">
-                  {(
-                    [
-                      { key: "open", label: "Open", className: "border-red-200 bg-red-50 text-red-700" },
-                      { key: "in_progress", label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-                      { key: "resolved", label: "Resolved", className: "border-green-200 bg-green-50 text-green-700" },
-                    ] as const
-                  ).map((s) => (
-                    <div key={s.key} className="flex items-center justify-between">
-                      <Badge variant="outline" className={s.className}>
-                        {s.label}
-                      </Badge>
-                      <span className="text-sm font-medium">
-                        {deficiencies.byStatus[s.key]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Issues by Severity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DonutChart
+                data={[
+                  { name: "High", value: deficiencies.bySeverity.high, color: "hsl(var(--destructive))" },
+                  { name: "Medium", value: deficiencies.bySeverity.medium, color: "hsl(var(--warning))" },
+                  { name: "Low", value: deficiencies.bySeverity.low, color: "hsl(var(--info))" },
+                ]}
+                centerLabel={deficiencies.total}
+                centerSubLabel="total"
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Issues by Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DonutChart
+                data={[
+                  { name: "Open", value: deficiencies.byStatus.open, color: "hsl(var(--destructive))" },
+                  { name: "In Progress", value: deficiencies.byStatus.in_progress, color: "hsl(var(--warning))" },
+                  { name: "Resolved", value: deficiencies.byStatus.resolved, color: "hsl(var(--success))" },
+                ]}
+                centerLabel={deficiencies.total}
+                centerSubLabel="total"
+              />
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Activity history table */}
@@ -547,17 +548,17 @@ export function ReportsDashboard({
                     <th className="pb-2 pr-4 font-medium">Status</th>
                     <th className="pb-2 pr-4 font-medium text-center">Rooms</th>
                     <th className="pb-2 pr-4 font-medium text-center">
-                      <CheckCircle2 className="inline h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="inline h-3.5 w-3.5 text-success" />
                     </th>
                     <th className="pb-2 pr-4 font-medium text-center">
-                      <XCircle className="inline h-3.5 w-3.5 text-red-600" />
+                      <XCircle className="inline h-3.5 w-3.5 text-destructive" />
                     </th>
                     <th className="pb-2 font-medium text-right">Pass Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((a) => {
-                    const sb = statusBadge[a.status] || statusBadge.draft
+                    const sb = ACTIVITY_STATUS[a.status] || ACTIVITY_STATUS.draft
                     return (
                       <tr key={a.id} className="border-b last:border-0">
                         <td className="py-2.5 pr-4 font-medium">{a.name}</td>
@@ -579,10 +580,10 @@ export function ReportsDashboard({
                         <td className="py-2.5 pr-4 text-center">
                           {a.completedRooms}/{a.totalRooms}
                         </td>
-                        <td className="py-2.5 pr-4 text-center text-green-600">
+                        <td className="py-2.5 pr-4 text-center text-success">
                           {a.passedRooms}
                         </td>
-                        <td className="py-2.5 pr-4 text-center text-red-600">
+                        <td className="py-2.5 pr-4 text-center text-destructive">
                           {a.failedRooms}
                         </td>
                         <td className="py-2.5 text-right font-medium">
@@ -590,10 +591,10 @@ export function ReportsDashboard({
                             <span
                               className={
                                 a.passRate >= 80
-                                  ? "text-green-600"
+                                  ? "text-success"
                                   : a.passRate >= 50
-                                  ? "text-yellow-600"
-                                  : "text-red-600"
+                                  ? "text-warning"
+                                  : "text-destructive"
                               }
                             >
                               {a.passRate}%

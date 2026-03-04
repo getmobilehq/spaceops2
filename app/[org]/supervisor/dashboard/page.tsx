@@ -19,6 +19,7 @@ import {
   getTodayActivityDetails,
 } from "@/lib/queries/dashboard"
 import { ActivityStatusBadge } from "@/components/shared/ActivityStatusBadge"
+import { StatCard } from "@/components/shared/StatCard"
 
 export const metadata = {
   title: "Supervisor Dashboard - SpaceOps",
@@ -45,7 +46,7 @@ export default async function SupervisorDashboardPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">
+        <h1 className="text-2xl font-semibold text-foreground">
           Supervisor Dashboard
         </h1>
         <p className="text-muted-foreground">
@@ -55,49 +56,39 @@ export default async function SupervisorDashboardPage({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link href={`/${params.org}/supervisor/activities`}>
-          <Card className="hover:bg-muted transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Today&apos;s Activities
-                  </p>
-                  <p className="text-3xl font-bold text-brand">{activeCount}</p>
-                </div>
-                <CalendarCheck className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Today's Activities"
+            value={activeCount}
+            icon={CalendarCheck}
+            iconClassName="bg-primary/10 text-primary"
+            className="hover:bg-muted/50 transition-colors"
+            animationDelay="0ms"
+          />
         </Link>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Pending Inspection
-                </p>
-                <p className={`text-3xl font-bold ${stats.pendingInspection > 0 ? "text-yellow-600" : "text-brand"}`}>
-                  {stats.pendingInspection}
-                </p>
-              </div>
-              <ClipboardCheck className={`h-8 w-8 ${stats.pendingInspection > 0 ? "text-yellow-200" : "text-muted-foreground/50"}`} />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Pending Inspection"
+          value={stats.pendingInspection}
+          icon={ClipboardCheck}
+          iconClassName={
+            stats.pendingInspection > 0
+              ? "bg-warning/10 text-warning"
+              : "bg-primary/10 text-primary"
+          }
+          animationDelay="100ms"
+        />
         <Link href={`/${params.org}/supervisor/issues`}>
-          <Card className="hover:bg-muted transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Open Issues</p>
-                  <p className={`text-3xl font-bold ${stats.openIssues > 0 ? "text-red-600" : "text-brand"}`}>
-                    {stats.openIssues}
-                  </p>
-                </div>
-                <AlertTriangle className={`h-8 w-8 ${stats.openIssues > 0 ? "text-red-200" : "text-muted-foreground/50"}`} />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Open Issues"
+            value={stats.openIssues}
+            icon={AlertTriangle}
+            iconClassName={
+              stats.openIssues > 0
+                ? "bg-destructive/10 text-destructive"
+                : "bg-primary/10 text-primary"
+            }
+            className="hover:bg-muted/50 transition-colors"
+            animationDelay="200ms"
+          />
         </Link>
       </div>
 
@@ -108,7 +99,7 @@ export default async function SupervisorDashboardPage({
             <CardTitle className="text-lg">Today&apos;s Activities</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {todayActivities.map((a) => {
+            {todayActivities.map((a, i) => {
               const progress =
                 a.totalRooms > 0
                   ? Math.round((a.completedRooms / a.totalRooms) * 100)
@@ -118,7 +109,8 @@ export default async function SupervisorDashboardPage({
                 <Link
                   key={a.id}
                   href={`/${params.org}/supervisor/activities/${a.id}`}
-                  className="block rounded-md border p-4 hover:bg-muted transition-colors"
+                  className="block rounded-md border p-4 hover:bg-muted/50 transition-colors animate-fade-in-up"
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -148,12 +140,12 @@ export default async function SupervisorDashboardPage({
                     <div className="mt-2">
                       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-1.5 bg-brand transition-all rounded-full"
+                          className="h-1.5 bg-primary transition-all rounded-full"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                       {a.pendingInspection > 0 && (
-                        <p className="text-xs text-yellow-600 mt-1">
+                        <p className="text-xs text-warning mt-1">
                           {a.pendingInspection} room{a.pendingInspection !== 1 ? "s" : ""} pending inspection
                         </p>
                       )}

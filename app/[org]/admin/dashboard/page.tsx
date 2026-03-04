@@ -16,25 +16,11 @@ import {
   getAdminDashboardStats,
   getRecentActivity,
 } from "@/lib/queries/dashboard"
+import { StatCard } from "@/components/shared/StatCard"
+import { ACTIVITY_STATUS, ISSUE_STATUS, ISSUE_SEVERITY } from "@/lib/status-styles"
 
 export const metadata = {
   title: "Admin Dashboard - SpaceOps",
-}
-
-const statusBadge: Record<string, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "border-gray-200 bg-gray-50 text-gray-700" },
-  active: { label: "Active", className: "border-green-200 bg-green-50 text-green-700" },
-  closed: { label: "Closed", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  cancelled: { label: "Cancelled", className: "border-red-200 bg-red-50 text-red-700" },
-  open: { label: "Open", className: "border-red-200 bg-red-50 text-red-700" },
-  in_progress: { label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  resolved: { label: "Resolved", className: "border-green-200 bg-green-50 text-green-700" },
-}
-
-const severityBadge: Record<string, { label: string; className: string }> = {
-  low: { label: "Low", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  medium: { label: "Medium", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  high: { label: "High", className: "border-red-200 bg-red-50 text-red-700" },
 }
 
 export default async function AdminDashboardPage() {
@@ -48,65 +34,45 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Admin Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Admin Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome, {user?.user_metadata?.first_name || user?.email}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Buildings</p>
-                <p className="text-3xl font-bold text-brand">
-                  {stats.activeBuildings}
-                </p>
-              </div>
-              <Building2 className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Open Issues</p>
-                <p className={`text-3xl font-bold ${stats.openDeficiencies > 0 ? "text-red-600" : "text-brand"}`}>
-                  {stats.openDeficiencies}
-                </p>
-              </div>
-              <AlertTriangle className={`h-8 w-8 ${stats.openDeficiencies > 0 ? "text-red-200" : "text-muted-foreground/50"}`} />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Activities This Week</p>
-                <p className="text-3xl font-bold text-brand">
-                  {stats.activitiesThisWeek}
-                </p>
-              </div>
-              <CalendarCheck className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Avg Pass Rate</p>
-                <p className="text-3xl font-bold text-brand">
-                  {stats.avgPassRate !== null ? `${stats.avgPassRate}%` : "N/A"}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Active Buildings"
+          value={stats.activeBuildings}
+          icon={Building2}
+          iconClassName="bg-primary/10 text-primary"
+          animationDelay="0ms"
+        />
+        <StatCard
+          title="Open Issues"
+          value={stats.openDeficiencies}
+          icon={AlertTriangle}
+          iconClassName={
+            stats.openDeficiencies > 0
+              ? "bg-destructive/10 text-destructive"
+              : "bg-primary/10 text-primary"
+          }
+          animationDelay="100ms"
+        />
+        <StatCard
+          title="Activities This Week"
+          value={stats.activitiesThisWeek}
+          icon={CalendarCheck}
+          iconClassName="bg-success/10 text-success"
+          animationDelay="200ms"
+        />
+        <StatCard
+          title="Avg Pass Rate"
+          value={stats.avgPassRate !== null ? `${stats.avgPassRate}%` : "N/A"}
+          icon={TrendingUp}
+          iconClassName="bg-info/10 text-info"
+          animationDelay="300ms"
+        />
       </div>
 
       <Card>
@@ -120,16 +86,18 @@ export default async function AdminDashboardPage() {
             </p>
           ) : (
             <div className="space-y-3">
-              {events.map((event) => {
-                const sb = statusBadge[event.status] || statusBadge.draft
+              {events.map((event, i) => {
+                const statusMap = event.type === "activity" ? ACTIVITY_STATUS : ISSUE_STATUS
+                const sb = statusMap[event.status] || ACTIVITY_STATUS.draft
                 const svb = event.severity
-                  ? severityBadge[event.severity]
+                  ? ISSUE_SEVERITY[event.severity]
                   : null
 
                 return (
                   <div
                     key={`${event.type}-${event.id}`}
-                    className="flex items-center justify-between rounded-md border p-3"
+                    className="flex items-center justify-between rounded-md border p-3 animate-fade-in-up"
+                    style={{ animationDelay: `${i * 100}ms` }}
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">

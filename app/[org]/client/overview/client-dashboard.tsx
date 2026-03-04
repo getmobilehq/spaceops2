@@ -20,6 +20,8 @@ import {
   Clock,
   Target,
 } from "lucide-react"
+import { StatCard } from "@/components/shared/StatCard"
+import { ACTIVITY_STATUS } from "@/lib/status-styles"
 
 interface Building {
   id: string
@@ -81,7 +83,7 @@ export function ClientDashboard({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Building Overview</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Building Overview</h1>
         <p className="text-muted-foreground">
           Your cleaning service dashboard
         </p>
@@ -89,61 +91,34 @@ export function ClientDashboard({
 
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Activities</p>
-                <p className="text-2xl font-bold">{stats.totalActivities}</p>
-              </div>
-              <CalendarCheck className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pass Rate</p>
-                <p className="text-2xl font-bold">
-                  {stats.overallPassRate !== null
-                    ? `${stats.overallPassRate}%`
-                    : "N/A"}
-                </p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Inspections Passed</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.passedTasks}
-                </p>
-              </div>
-              <CheckCircle2 className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Open Issues</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.openDeficiencies}
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-200" />
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Activities"
+          value={stats.totalActivities}
+          icon={CalendarCheck}
+          iconClassName="bg-primary/10 text-primary"
+          animationDelay="0ms"
+        />
+        <StatCard
+          title="Pass Rate"
+          value={stats.overallPassRate !== null ? `${stats.overallPassRate}%` : "N/A"}
+          icon={BarChart3}
+          iconClassName="bg-info/10 text-info"
+          animationDelay="100ms"
+        />
+        <StatCard
+          title="Inspections Passed"
+          value={stats.passedTasks}
+          icon={CheckCircle2}
+          iconClassName="bg-success/10 text-success"
+          animationDelay="200ms"
+        />
+        <StatCard
+          title="Open Issues"
+          value={stats.openDeficiencies}
+          icon={AlertTriangle}
+          iconClassName="bg-destructive/10 text-destructive"
+          animationDelay="300ms"
+        />
       </div>
 
       {/* SLA Tracking */}
@@ -167,10 +142,10 @@ export function ClientDashboard({
                   <span
                     className={
                       sla.passRateCompliance >= 80
-                        ? "text-green-600"
+                        ? "text-success"
                         : sla.passRateCompliance >= 50
-                        ? "text-yellow-600"
-                        : "text-red-600"
+                        ? "text-warning"
+                        : "text-destructive"
                     }
                   >
                     {sla.passRateCompliance}%
@@ -195,10 +170,10 @@ export function ClientDashboard({
                   <span
                     className={
                       sla.avgCompletionRate >= 95
-                        ? "text-green-600"
+                        ? "text-success"
                         : sla.avgCompletionRate >= 80
-                        ? "text-yellow-600"
-                        : "text-red-600"
+                        ? "text-warning"
+                        : "text-destructive"
                     }
                   >
                     {sla.avgCompletionRate}%
@@ -223,10 +198,10 @@ export function ClientDashboard({
                   <span
                     className={
                       sla.avgResolutionHours <= 24
-                        ? "text-green-600"
+                        ? "text-success"
                         : sla.avgResolutionHours <= 48
-                        ? "text-yellow-600"
-                        : "text-red-600"
+                        ? "text-warning"
+                        : "text-destructive"
                     }
                   >
                     {sla.avgResolutionHours}h
@@ -249,14 +224,14 @@ export function ClientDashboard({
               <p className="text-sm font-medium mb-2">Issue SLA Status</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
+                  <div className="h-3 w-3 rounded-full bg-success" />
                   <span className="text-sm">
                     {sla.deficiencySLA.onTrack} on track
                   </span>
                 </div>
                 {sla.deficiencySLA.atRisk > 0 && (
                   <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                    <div className="h-3 w-3 rounded-full bg-warning" />
                     <span className="text-sm">
                       {sla.deficiencySLA.atRisk} at risk
                     </span>
@@ -264,7 +239,7 @@ export function ClientDashboard({
                 )}
                 {sla.deficiencySLA.breached > 0 && (
                   <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full bg-red-500" />
+                    <div className="h-3 w-3 rounded-full bg-destructive" />
                     <span className="text-sm">
                       {sla.deficiencySLA.breached} breached
                     </span>
@@ -332,102 +307,102 @@ export function ClientDashboard({
             </p>
           ) : (
             <div className="space-y-3">
-              {activities.map((a) => (
-                <div
-                  key={a.id}
-                  className="rounded-md border p-3 space-y-2"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{a.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {a.buildingName} · {a.floorName} ·{" "}
-                        {new Date(a.scheduledDate).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </p>
+              {activities.map((a, i) => {
+                const config = ACTIVITY_STATUS[a.status] || ACTIVITY_STATUS.draft
+                return (
+                  <div
+                    key={a.id}
+                    className="rounded-md border p-3 space-y-2 animate-fade-in-up"
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{a.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {a.buildingName} · {a.floorName} ·{" "}
+                          {new Date(a.scheduledDate).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={config.className}>
+                        {config.label}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={
-                        a.status === "closed"
-                          ? "border-gray-200 bg-gray-50 text-gray-700"
-                          : "border-green-200 bg-green-50 text-green-700"
-                      }
-                    >
-                      {a.status === "closed" ? "Completed" : "Active"}
-                    </Badge>
-                  </div>
 
-                  {/* Progress bar */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>
-                        {a.completedRooms}/{a.totalRooms} rooms done
-                      </span>
-                      {a.passRate !== null && (
-                        <span
-                          className={
-                            a.passRate >= 80
-                              ? "text-green-600"
-                              : a.passRate >= 50
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {a.passRate}% pass rate
+                    {/* Progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>
+                          {a.completedRooms}/{a.totalRooms} rooms done
                         </span>
-                      )}
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
-                      {a.totalRooms > 0 && (
-                        <>
-                          <div
-                            className="h-2 bg-green-500 transition-all"
-                            style={{
-                              width: `${(a.passedRooms / a.totalRooms) * 100}%`,
-                            }}
-                          />
-                          <div
-                            className="h-2 bg-red-400 transition-all"
-                            style={{
-                              width: `${(a.failedRooms / a.totalRooms) * 100}%`,
-                            }}
-                          />
-                          <div
-                            className="h-2 bg-yellow-400 transition-all"
-                            style={{
-                              width: `${
-                                ((a.completedRooms - a.passedRooms - a.failedRooms) /
-                                  a.totalRooms) *
-                                100
-                              }%`,
-                            }}
-                          />
-                        </>
-                      )}
-                    </div>
-                    {(a.passedRooms > 0 || a.failedRooms > 0) && (
-                      <div className="flex items-center gap-3 text-xs">
-                        {a.passedRooms > 0 && (
-                          <span className="flex items-center gap-1 text-green-600">
-                            <CheckCircle2 className="h-3 w-3" />
-                            {a.passedRooms} passed
-                          </span>
-                        )}
-                        {a.failedRooms > 0 && (
-                          <span className="flex items-center gap-1 text-red-600">
-                            <XCircle className="h-3 w-3" />
-                            {a.failedRooms} failed
+                        {a.passRate !== null && (
+                          <span
+                            className={
+                              a.passRate >= 80
+                                ? "text-success"
+                                : a.passRate >= 50
+                                ? "text-warning"
+                                : "text-destructive"
+                            }
+                          >
+                            {a.passRate}% pass rate
                           </span>
                         )}
                       </div>
-                    )}
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
+                        {a.totalRooms > 0 && (
+                          <>
+                            <div
+                              className="h-2 bg-success animate-expand-width"
+                              style={{
+                                width: `${(a.passedRooms / a.totalRooms) * 100}%`,
+                                animationDelay: "0.2s",
+                              }}
+                            />
+                            <div
+                              className="h-2 bg-destructive animate-expand-width"
+                              style={{
+                                width: `${(a.failedRooms / a.totalRooms) * 100}%`,
+                                animationDelay: "0.4s",
+                              }}
+                            />
+                            <div
+                              className="h-2 bg-warning animate-expand-width"
+                              style={{
+                                width: `${
+                                  ((a.completedRooms - a.passedRooms - a.failedRooms) /
+                                    a.totalRooms) *
+                                  100
+                                }%`,
+                                animationDelay: "0.6s",
+                              }}
+                            />
+                          </>
+                        )}
+                      </div>
+                      {(a.passedRooms > 0 || a.failedRooms > 0) && (
+                        <div className="flex items-center gap-3 text-xs">
+                          {a.passedRooms > 0 && (
+                            <span className="flex items-center gap-1 text-success">
+                              <CheckCircle2 className="h-3 w-3" />
+                              {a.passedRooms} passed
+                            </span>
+                          )}
+                          {a.failedRooms > 0 && (
+                            <span className="flex items-center gap-1 text-destructive">
+                              <XCircle className="h-3 w-3" />
+                              {a.failedRooms} failed
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>

@@ -20,10 +20,10 @@ export function PassRateBar({
         <span
           className={`shrink-0 font-semibold ${
             passRate >= 80
-              ? "text-green-600"
+              ? "text-success"
               : passRate >= 50
-              ? "text-yellow-600"
-              : "text-red-600"
+              ? "text-warning"
+              : "text-destructive"
           }`}
         >
           {passRate}%
@@ -31,12 +31,18 @@ export function PassRateBar({
       </div>
       <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
         <div
-          className="h-2 bg-green-500 transition-all"
-          style={{ width: `${(passed / total) * 100}%` }}
+          className="h-2 bg-success animate-expand-width"
+          style={{
+            width: `${(passed / total) * 100}%`,
+            animationDelay: "0.2s",
+          }}
         />
         <div
-          className="h-2 bg-red-400 transition-all"
-          style={{ width: `${(failed / total) * 100}%` }}
+          className="h-2 bg-destructive animate-expand-width"
+          style={{
+            width: `${(failed / total) * 100}%`,
+            animationDelay: "0.4s",
+          }}
         />
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
