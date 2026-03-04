@@ -184,7 +184,7 @@ export function RoomBlock({
         </span>
 
         {isMatched && (
-          <span className="text-[10px] font-medium text-green-700 bg-green-100 px-1.5 py-0.5 rounded-sm">
+          <span className="text-[10px] font-medium text-success bg-success/10 px-1.5 py-0.5 rounded-sm">
             Matched
           </span>
         )}

@@ -177,7 +177,7 @@ export function BuildingWizard({
               <div
                 className={cn(
                   "h-px w-8",
-                  i <= step ? "bg-brand" : "bg-muted"
+                  i <= step ? "bg-primary" : "bg-muted"
                 )}
               />
             )}
@@ -185,9 +185,9 @@ export function BuildingWizard({
               className={cn(
                 "flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
                 i === step
-                  ? "bg-brand text-white"
+                  ? "bg-primary text-white"
                   : i < step
-                    ? "bg-brand/20 text-brand"
+                    ? "bg-primary/20 text-primary"
                     : "bg-muted text-muted-foreground"
               )}
             >

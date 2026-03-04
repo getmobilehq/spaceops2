@@ -130,7 +130,7 @@ export function ChecklistItemRow({
   return (
     <div
       className={`rounded-lg border p-3 space-y-2 transition-colors ${
-        isCompleted ? "bg-green-50/50 border-green-200" : "bg-white"
+        isCompleted ? "bg-success/10 border-success/30" : "bg-card"
       }`}
     >
       {/* Main row: checkbox + description */}
@@ -141,7 +141,7 @@ export function ChecklistItemRow({
           disabled={isReadOnly || isSaving}
           className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 transition-colors ${
             isCompleted
-              ? "border-green-500 bg-green-500 text-white"
+              ? "border-success bg-success text-white"
               : "border-gray-300 hover:border-brand"
           } ${isReadOnly ? "cursor-default" : "cursor-pointer"}`}
           aria-label={isCompleted ? "Uncheck item" : "Check item"}
@@ -165,8 +165,8 @@ export function ChecklistItemRow({
                 variant="outline"
                 className={`text-[10px] px-1.5 py-0 ${
                   hasPhoto
-                    ? "border-green-200 bg-green-50 text-green-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-success/30 bg-success/10 text-success dark:bg-success/20"
+                    : "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20"
                 }`}
               >
                 {hasPhoto ? "Photo added" : "Photo required"}
@@ -177,8 +177,8 @@ export function ChecklistItemRow({
                 variant="outline"
                 className={`text-[10px] px-1.5 py-0 ${
                   hasNote
-                    ? "border-green-200 bg-green-50 text-green-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-success/30 bg-success/10 text-success dark:bg-success/20"
+                    : "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20"
                 }`}
               >
                 {hasNote ? "Note added" : "Note required"}
@@ -204,7 +204,7 @@ export function ChecklistItemRow({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className={`h-8 w-8 ${hasPhoto ? "text-green-600" : "text-muted-foreground"}`}
+                  className={`h-8 w-8 ${hasPhoto ? "text-success" : "text-muted-foreground"}`}
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                 >
@@ -221,7 +221,7 @@ export function ChecklistItemRow({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={`h-8 w-8 ${hasNote ? "text-green-600" : "text-muted-foreground"}`}
+                className={`h-8 w-8 ${hasNote ? "text-success" : "text-muted-foreground"}`}
                 onClick={() => setShowNote(!showNote)}
               >
                 <StickyNote className="h-4 w-4" />

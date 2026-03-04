@@ -30,7 +30,7 @@ export default async function DeficienciesPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Issues</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Issues</h1>
         <p className="text-muted-foreground">
           Track and manage inspection issues
         </p>

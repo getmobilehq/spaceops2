@@ -35,7 +35,7 @@ export default async function BuildingDetailPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">{building.name}</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{building.name}</h1>
         <p className="text-muted-foreground">{building.address}</p>
       </div>
       <BuildingDetailForm

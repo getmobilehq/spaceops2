@@ -100,7 +100,7 @@ export function ChecklistLibrary({
                       {tpl.is_default && (
                         <Badge
                           variant="outline"
-                          className="border-green-200 bg-green-50 text-green-700"
+                          className="border-success/30 bg-success/10 text-success dark:bg-success/20"
                         >
                           Default
                         </Badge>

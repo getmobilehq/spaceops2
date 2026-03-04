@@ -9,9 +9,9 @@ export default function Error({
   reset: () => void
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-brand">
+        <h1 className="text-4xl font-bold text-primary">
           Something went wrong
         </h1>
         <p className="text-muted-foreground text-sm max-w-md">

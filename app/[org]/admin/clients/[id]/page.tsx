@@ -24,7 +24,7 @@ export default async function EditClientPage({
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Edit Client</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Edit Client</h1>
         <p className="text-muted-foreground">
           Update client details
         </p>

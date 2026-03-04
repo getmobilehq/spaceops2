@@ -84,7 +84,7 @@ export function RoomInfoCard({
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-brand">{room.name}</CardTitle>
+        <CardTitle className="text-primary">{room.name}</CardTitle>
         <div className="flex items-center justify-center gap-2 pt-1">
           <Badge variant="secondary">{room.typeName}</Badge>
           {!room.isActive && (
@@ -135,9 +135,9 @@ export function RoomInfoCard({
         )}
 
         {success ? (
-          <div className="rounded-md border border-green-200 bg-green-50 p-3 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <p className="text-sm text-green-800">
+          <div className="rounded-md border border-success/30 bg-success/10 p-3 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-success" />
+            <p className="text-sm text-success">
               Issue reported successfully.
             </p>
           </div>
@@ -181,7 +181,7 @@ export function RoomInfoCard({
                   />
                   <button
                     type="button"
-                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white text-xs"
                     onClick={removePhoto}
                   >
                     <X className="h-3 w-3" />
@@ -208,7 +208,7 @@ export function RoomInfoCard({
                 onChange={handlePhotoChange}
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-2">
               <Button
                 onClick={handleSubmit}

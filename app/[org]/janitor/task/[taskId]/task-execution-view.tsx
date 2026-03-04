@@ -30,6 +30,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react"
+import { TASK_STATUS } from "@/lib/status-styles"
 
 interface TaskData {
   id: string
@@ -204,14 +205,7 @@ export function TaskExecutionView({
     setIsSubmitting(false)
   }
 
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    not_started: { label: "Not Started", className: "border-gray-200 bg-gray-50 text-gray-700" },
-    in_progress: { label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-    done: { label: "Done", className: "border-green-200 bg-green-50 text-green-700" },
-    has_issues: { label: "Has Issues", className: "border-red-200 bg-red-50 text-red-700" },
-  }
-
-  const currentStatus = statusConfig[task.status] || statusConfig.not_started
+  const currentStatus = TASK_STATUS[task.status] || TASK_STATUS.not_started
 
   return (
     <div className="space-y-4">
@@ -226,17 +220,17 @@ export function TaskExecutionView({
 
       {/* Completed / Issue banner */}
       {task.status === "done" && (
-        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3">
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
-          <p className="text-sm font-medium text-green-800">
+        <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 p-3">
+          <CheckCircle2 className="h-5 w-5 text-success" />
+          <p className="text-sm font-medium text-success">
             Room completed
           </p>
         </div>
       )}
       {task.status === "has_issues" && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          <p className="text-sm font-medium text-red-800">
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <p className="text-sm font-medium text-destructive">
             Issue reported for this room
           </p>
         </div>
@@ -246,7 +240,7 @@ export function TaskExecutionView({
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-brand">
+            <CardTitle className="text-lg text-primary">
               {room?.name || "Unknown Room"}
             </CardTitle>
             <Badge variant="outline" className={currentStatus.className}>
@@ -306,7 +300,7 @@ export function TaskExecutionView({
               </div>
               <div className="h-2 w-full rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-brand transition-all duration-300"
+                  className="h-2 rounded-full bg-primary transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -343,7 +337,7 @@ export function TaskExecutionView({
             <div className="flex gap-3 pb-4">
               <Button
                 variant="outline"
-                className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
                 onClick={() => setShowIssueDialog(true)}
                 disabled={isSubmitting}
               >

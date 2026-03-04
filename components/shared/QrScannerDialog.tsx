@@ -63,8 +63,8 @@ export function QrScannerDialog({
   const [processing, setProcessing] = useState(false)
 
   const colors = variant === "amber"
-    ? { bg: "bg-amber-100", icon: "text-amber-600", heading: "text-amber-900", text: "text-amber-700", border: "border-amber-200", cardBg: "bg-amber-50/50", btnBg: "bg-amber-600 hover:bg-amber-700" }
-    : { bg: "bg-blue-100", icon: "text-blue-600", heading: "text-blue-900", text: "text-blue-700", border: "border-blue-200", cardBg: "bg-blue-50/50", btnBg: "bg-blue-600 hover:bg-blue-700" }
+    ? { bg: "bg-warning/20", icon: "text-warning", heading: "text-warning", text: "text-warning", border: "border-warning/30", cardBg: "bg-warning/10", btnBg: "bg-warning text-warning-foreground hover:bg-warning/90" }
+    : { bg: "bg-info/20", icon: "text-info", heading: "text-info", text: "text-info", border: "border-info/30", cardBg: "bg-info/10", btnBg: "bg-info text-info-foreground hover:bg-info/90" }
 
   const handleScan = useCallback(
     async (result: { rawValue: string }[]) => {
@@ -111,7 +111,7 @@ export function QrScannerDialog({
         </div>
         <Button
           onClick={() => { setOpen(true); setError(null) }}
-          className={`${colors.btnBg} text-white`}
+          className={`${colors.btnBg}`}
         >
           <Camera className="mr-2 h-4 w-4" />
           Open Camera
@@ -152,8 +152,8 @@ export function QrScannerDialog({
 
           {error && (
             <div className="px-4 pb-4">
-              <div className="rounded-md border border-red-200 bg-red-50 p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             </div>
           )}

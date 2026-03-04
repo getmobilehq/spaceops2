@@ -113,7 +113,7 @@ export function FloorSetupForm({
                   {i > 0 && (
                     <div
                       className={`h-px w-6 ${
-                        stepStatus !== "upcoming" ? "bg-brand" : "bg-muted"
+                        stepStatus !== "upcoming" ? "bg-primary" : "bg-muted"
                       }`}
                     />
                   )}
@@ -176,8 +176,8 @@ export function FloorSetupForm({
           )}
 
           {floor.plan_status === "confirmed" && (
-            <div className="rounded-md border border-green-200 bg-green-50 p-3">
-              <p className="text-sm text-green-800">
+            <div className="rounded-md border border-success/30 bg-success/10 p-3">
+              <p className="text-sm text-success">
                 Floor plan is confirmed and ready for use in activities.
               </p>
             </div>

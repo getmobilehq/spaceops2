@@ -93,7 +93,7 @@ export function ResetPasswordForm() {
           </Button>
           <Link
             href="/auth/login"
-            className="text-sm text-muted-foreground hover:text-brand transition-colors"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             Back to Sign In
           </Link>

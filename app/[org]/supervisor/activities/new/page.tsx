@@ -66,7 +66,7 @@ export default async function NewActivityPage({
         ]}
       />
       <div>
-        <h1 className="text-2xl font-bold text-brand">New Activity</h1>
+        <h1 className="text-2xl font-semibold text-foreground">New Activity</h1>
         <p className="text-muted-foreground">
           Create a cleaning activity for a floor
         </p>

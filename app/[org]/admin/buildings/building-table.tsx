@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { BUILDING_STATUS } from "@/lib/status-styles"
 
 interface BuildingWithRelations {
   id: string
@@ -20,14 +21,6 @@ interface BuildingWithRelations {
   floors: { id: string }[]
 }
 
-const statusConfig: Record<
-  string,
-  { variant: "default" | "secondary" | "outline" | "destructive"; className?: string }
-> = {
-  setup: { variant: "outline", className: "border-amber-200 bg-amber-50 text-amber-700" },
-  active: { variant: "outline", className: "border-green-200 bg-green-50 text-green-700" },
-  inactive: { variant: "destructive" },
-}
 
 export function BuildingTable({
   buildings,
@@ -39,7 +32,7 @@ export function BuildingTable({
   const router = useRouter()
 
   return (
-    <div className="rounded-lg border bg-white">
+    <div className="rounded-lg border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -52,7 +45,7 @@ export function BuildingTable({
         </TableHeader>
         <TableBody>
           {buildings.map((building) => {
-            const status = statusConfig[building.status] || { variant: "outline" as const }
+            const status = BUILDING_STATUS[building.status]
             return (
               <TableRow
                 key={building.id}
@@ -69,9 +62,8 @@ export function BuildingTable({
                   {building.clients?.company_name || "—"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={status.variant} className={status.className}>
-                    {building.status.charAt(0).toUpperCase() +
-                      building.status.slice(1)}
+                  <Badge variant="outline" className={status?.className}>
+                    {status?.label ?? building.status.charAt(0).toUpperCase() + building.status.slice(1)}
                   </Badge>
                 </TableCell>
                 <TableCell>{building.floors.length}</TableCell>

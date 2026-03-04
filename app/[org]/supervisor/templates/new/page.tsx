@@ -30,7 +30,7 @@ export default async function NewTemplatePage({
         ]}
       />
       <div>
-        <h1 className="text-2xl font-bold text-brand">New Template</h1>
+        <h1 className="text-2xl font-semibold text-foreground">New Template</h1>
         <p className="text-muted-foreground">
           Create a reusable activity configuration
         </p>

@@ -123,7 +123,7 @@ export function NotificationBell() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -136,7 +136,7 @@ export function NotificationBell() {
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllRead}
-              className="text-xs text-brand hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               Mark all read
             </button>
@@ -153,7 +153,7 @@ export function NotificationBell() {
                 key={n.id}
                 onClick={() => handleClick(n)}
                 className={`w-full text-left px-4 py-3 border-b last:border-0 hover:bg-muted transition-colors ${
-                  !n.is_read ? "bg-brand/5" : ""
+                  !n.is_read ? "bg-primary/5" : ""
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -169,7 +169,7 @@ export function NotificationBell() {
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {!n.is_read && (
-                      <span className="h-2 w-2 rounded-full bg-brand" />
+                      <span className="h-2 w-2 rounded-full bg-primary" />
                     )}
                     <span className="text-xs text-muted-foreground">
                       {timeAgo(n.created_at)}

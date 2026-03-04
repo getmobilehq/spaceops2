@@ -149,12 +149,12 @@ export function InspectionView({
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-brand">
+            <CardTitle className="text-lg text-primary">
               {room?.name || "Unknown Room"}
             </CardTitle>
             <Badge
               variant="outline"
-              className="border-green-200 bg-green-50 text-green-700"
+              className="border-success/30 bg-success/10 text-success dark:bg-success/20"
             >
               Awaiting Inspection
             </Badge>
@@ -234,7 +234,7 @@ export function InspectionView({
               </div>
               <div className="h-2 w-full rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-brand transition-all duration-300"
+                  className="h-2 rounded-full bg-primary transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -262,16 +262,16 @@ export function InspectionView({
                     key={item.id}
                     className={`rounded-lg border p-3 space-y-2 ${
                       isCompleted
-                        ? "bg-green-50/50 border-green-200"
-                        : "bg-red-50/50 border-red-200"
+                        ? "bg-success/10 border-success/30"
+                        : "bg-destructive/10 border-destructive/30"
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <div
                         className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 ${
                           isCompleted
-                            ? "border-green-500 bg-green-500 text-white"
-                            : "border-red-300 bg-red-100 text-red-500"
+                            ? "border-success bg-success text-white"
+                            : "border-destructive/30 bg-destructive/10 text-destructive"
                         }`}
                       >
                         {isCompleted ? (
@@ -283,7 +283,7 @@ export function InspectionView({
                       <div className="flex-1 min-w-0">
                         <p
                           className={`text-sm leading-snug ${
-                            isCompleted ? "text-muted-foreground" : "text-red-700"
+                            isCompleted ? "text-muted-foreground" : "text-destructive"
                           }`}
                         >
                           {item.description}
@@ -294,8 +294,8 @@ export function InspectionView({
                               variant="outline"
                               className={`text-[10px] px-1.5 py-0 ${
                                 hasPhoto
-                                  ? "border-green-200 bg-green-50 text-green-700"
-                                  : "border-red-200 bg-red-50 text-red-700"
+                                  ? "border-success/30 bg-success/10 text-success"
+                                  : "border-destructive/30 bg-destructive/10 text-destructive"
                               }`}
                             >
                               {hasPhoto ? "Photo added" : "No photo"}
@@ -306,8 +306,8 @@ export function InspectionView({
                               variant="outline"
                               className={`text-[10px] px-1.5 py-0 ${
                                 hasNote
-                                  ? "border-green-200 bg-green-50 text-green-700"
-                                  : "border-red-200 bg-red-50 text-red-700"
+                                  ? "border-success/30 bg-success/10 text-success"
+                                  : "border-destructive/30 bg-destructive/10 text-destructive"
                               }`}
                             >
                               {hasNote ? "Note added" : "No note"}
@@ -378,7 +378,7 @@ export function InspectionView({
           <div className="flex gap-3 pb-4">
             <Button
               variant="outline"
-              className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+              className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
               onClick={() => handleInspect("inspected_fail")}
               disabled={isSubmitting}
             >

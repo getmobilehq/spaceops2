@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { MapPin } from "lucide-react"
 import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
+import { FLOOR_PLAN_PIN } from "@/lib/status-styles"
 
 interface RoomWithStatus {
   id: string
@@ -20,41 +21,6 @@ interface RoomWithStatus {
   taskStatus: string | null
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; pinColor: string; fillColor: string }
-> = {
-  not_started: {
-    label: "Not Started",
-    pinColor: "text-gray-400",
-    fillColor: "fill-gray-200",
-  },
-  in_progress: {
-    label: "In Progress",
-    pinColor: "text-yellow-500",
-    fillColor: "fill-yellow-200",
-  },
-  done: {
-    label: "Done",
-    pinColor: "text-blue-500",
-    fillColor: "fill-blue-200",
-  },
-  has_issues: {
-    label: "Has Issues",
-    pinColor: "text-red-500",
-    fillColor: "fill-red-200",
-  },
-  inspected_pass: {
-    label: "Passed",
-    pinColor: "text-green-500",
-    fillColor: "fill-green-200",
-  },
-  inspected_fail: {
-    label: "Failed",
-    pinColor: "text-red-600",
-    fillColor: "fill-red-300",
-  },
-}
 
 const defaultStatus = {
   label: "No Task",
@@ -101,7 +67,7 @@ export function FloorPlanView({
       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-3">
-            {Object.entries(statusConfig).map(([key, config]) => (
+            {Object.entries(FLOOR_PLAN_PIN).map(([key, config]) => (
               <div key={key} className="flex items-center gap-1.5 text-xs">
                 <MapPin
                   className={`h-4 w-4 ${config.pinColor} ${config.fillColor}`}
@@ -136,7 +102,7 @@ export function FloorPlanView({
             {/* Room pins */}
             {placedRooms.map((room) => {
               const status =
-                statusConfig[room.taskStatus || ""] || defaultStatus
+                FLOOR_PLAN_PIN[room.taskStatus || ""] || defaultStatus
               return (
                 <div
                   key={room.id}
@@ -150,7 +116,7 @@ export function FloorPlanView({
                   <MapPin
                     className={`h-7 w-7 ${status.pinColor} ${status.fillColor} drop-shadow`}
                   />
-                  <span className="text-[10px] font-medium bg-white/90 px-1 rounded shadow whitespace-nowrap">
+                  <span className="text-[10px] font-medium bg-card/90 px-1 rounded shadow whitespace-nowrap">
                     {room.name}
                   </span>
                 </div>
@@ -170,7 +136,7 @@ export function FloorPlanView({
         <CardContent className="space-y-2">
           {rooms.map((room) => {
             const status =
-              statusConfig[room.taskStatus || ""] || defaultStatus
+              FLOOR_PLAN_PIN[room.taskStatus || ""] || defaultStatus
             return (
               <div
                 key={room.id}

@@ -6,23 +6,13 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
+import { ISSUE_STATUS, ISSUE_SEVERITY } from "@/lib/status-styles"
 
 export const metadata = {
   title: "Issues - SpaceOps",
 }
 
-const statusConfig: Record<string, { label: string; className: string; icon: typeof AlertTriangle }> = {
-  open: { label: "Open", className: "border-red-200 bg-red-50 text-red-700", icon: AlertTriangle },
-  in_progress: { label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700", icon: Clock },
-  resolved: { label: "Resolved", className: "border-green-200 bg-green-50 text-green-700", icon: CheckCircle2 },
-}
-
-const severityConfig: Record<string, { label: string; className: string }> = {
-  low: { label: "Low", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  medium: { label: "Medium", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  high: { label: "High", className: "border-red-200 bg-red-50 text-red-700" },
-}
 
 export default async function ClientDeficienciesPage() {
   const supabase = createClient()
@@ -42,7 +32,7 @@ export default async function ClientDeficienciesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Issues</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Issues</h1>
         <p className="text-muted-foreground">
           Issues found during inspections
         </p>
@@ -54,9 +44,9 @@ export default async function ClientDeficienciesPage() {
             Open ({open.length})
           </h2>
           {open.map((d) => {
-            const sc = statusConfig[d.status] || statusConfig.open
-            const StatusIcon = sc.icon
-            const sevConfig = severityConfig[d.severity] || severityConfig.medium
+            const sc = ISSUE_STATUS[d.status] || ISSUE_STATUS.open
+            const StatusIcon = sc.icon!
+            const sevConfig = ISSUE_SEVERITY[d.severity] || ISSUE_SEVERITY.medium
             const roomTasks = d.room_tasks as Record<string, unknown> | null
             const roomName = (roomTasks?.rooms as Record<string, unknown>)?.name as string || "Unknown Room"
             const buildingName = ((roomTasks?.cleaning_activities as Record<string, unknown>)?.floors as Record<string, unknown>)?.buildings as Record<string, unknown> | undefined
@@ -99,8 +89,8 @@ export default async function ClientDeficienciesPage() {
             Resolved ({resolved.length})
           </h2>
           {resolved.map((d) => {
-            const sc = statusConfig[d.status] || statusConfig.resolved
-            const StatusIcon = sc.icon
+            const sc = ISSUE_STATUS[d.status] || ISSUE_STATUS.resolved
+            const StatusIcon = sc.icon!
             const roomTasks = d.room_tasks as Record<string, unknown> | null
             const roomName = (roomTasks?.rooms as Record<string, unknown>)?.name as string || "Unknown Room"
 
@@ -133,7 +123,7 @@ export default async function ClientDeficienciesPage() {
       {deficiencies.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center">
-            <CheckCircle2 className="h-8 w-8 mx-auto text-green-500 mb-2" />
+            <CheckCircle2 className="h-8 w-8 mx-auto text-success mb-2" />
             <p className="text-sm text-muted-foreground">
               No issues found. Everything looks good!
             </p>

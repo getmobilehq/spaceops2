@@ -348,7 +348,7 @@ export function RoomManager({
                       <ClipboardCheck
                         className={`h-4 w-4 ${
                           room.room_checklist_overrides
-                            ? "text-brand"
+                            ? "text-primary"
                             : "text-muted-foreground"
                         }`}
                       />
@@ -373,7 +373,7 @@ export function RoomManager({
                       <Power
                         className={`h-4 w-4 ${
                           room.is_active
-                            ? "text-green-600"
+                            ? "text-success"
                             : "text-muted-foreground"
                         }`}
                       />

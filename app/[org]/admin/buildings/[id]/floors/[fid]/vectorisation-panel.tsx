@@ -358,9 +358,9 @@ export function VectorisationPanel({
         </CardHeader>
         <CardContent className="space-y-3">
           {extractionError && (
-            <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
-              <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
-              <p className="text-sm text-red-800">{extractionError}</p>
+            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3">
+              <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+              <p className="text-sm text-destructive">{extractionError}</p>
             </div>
           )}
 
@@ -398,7 +398,7 @@ export function VectorisationPanel({
           <CardTitle className="text-base">AI Room Detection</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center gap-3 py-8 justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">
             Analyzing floor plan with AI... This may take 15-30 seconds.
           </p>

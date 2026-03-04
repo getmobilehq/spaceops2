@@ -13,38 +13,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  CheckCircle2,
-  XCircle,
-  Clock,
   CalendarDays,
   Flame,
   BarChart3,
 } from "lucide-react"
+import { INSPECTION_STATUS } from "@/lib/status-styles"
 
 export const metadata = {
   title: "Task History - SpaceOps",
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; className: string; icon: typeof CheckCircle2 }
-> = {
-  done: {
-    label: "Awaiting Inspection",
-    className: "border-yellow-200 bg-yellow-50 text-yellow-700",
-    icon: Clock,
-  },
-  inspected_pass: {
-    label: "Passed",
-    className: "border-green-200 bg-green-50 text-green-700",
-    icon: CheckCircle2,
-  },
-  inspected_fail: {
-    label: "Failed",
-    className: "border-red-200 bg-red-50 text-red-700",
-    icon: XCircle,
-  },
-}
 
 export default async function JanitorHistoryPage() {
   const supabase = createClient()
@@ -73,7 +51,7 @@ export default async function JanitorHistoryPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Task History</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Task History</h1>
         <p className="text-muted-foreground">
           Your completed tasks and inspection results
         </p>
@@ -89,10 +67,10 @@ export default async function JanitorHistoryPage() {
                 <span
                   className={
                     perfStats.passRate >= 80
-                      ? "text-green-600"
+                      ? "text-success"
                       : perfStats.passRate >= 50
-                      ? "text-yellow-600"
-                      : "text-red-600"
+                      ? "text-warning"
+                      : "text-destructive"
                   }
                 >
                   {perfStats.passRate}%
@@ -113,9 +91,9 @@ export default async function JanitorHistoryPage() {
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Inspections</p>
             <p className="text-2xl font-bold">
-              <span className="text-green-600">{perfStats.passed}</span>
+              <span className="text-success">{perfStats.passed}</span>
               {" / "}
-              <span className="text-red-600">{perfStats.failed}</span>
+              <span className="text-destructive">{perfStats.failed}</span>
             </p>
             <p className="text-xs text-muted-foreground">passed / failed</p>
           </CardContent>
@@ -166,16 +144,16 @@ export default async function JanitorHistoryPage() {
                         {weekLabel}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">
+                        <span className="text-success">
                           {week.passed} passed
                         </span>
                         {week.failed > 0 && (
-                          <span className="text-red-600">
+                          <span className="text-destructive">
                             {week.failed} failed
                           </span>
                         )}
                         {week.done > 0 && (
-                          <span className="text-yellow-600">
+                          <span className="text-warning">
                             {week.done} awaiting
                           </span>
                         )}
@@ -183,10 +161,10 @@ export default async function JanitorHistoryPage() {
                           <span
                             className={`font-medium ${
                               passRate >= 80
-                                ? "text-green-600"
+                                ? "text-success"
                                 : passRate >= 50
-                                ? "text-yellow-600"
-                                : "text-red-600"
+                                ? "text-warning"
+                                : "text-destructive"
                             }`}
                           >
                             {passRate}%
@@ -198,7 +176,7 @@ export default async function JanitorHistoryPage() {
                       {total > 0 && (
                         <>
                           <div
-                            className="h-2 bg-green-500 transition-all"
+                            className="h-2 bg-success transition-all"
                             style={{
                               width: `${
                                 (week.passed / (total + week.done)) * 100
@@ -257,8 +235,8 @@ export default async function JanitorHistoryPage() {
                 : "Unknown Date"}
             </div>
             {dateTasks.map((task) => {
-              const sc = statusConfig[task.status] || statusConfig.done
-              const StatusIcon = sc.icon
+              const sc = INSPECTION_STATUS[task.status] || INSPECTION_STATUS.done
+              const StatusIcon = sc.icon!
               const roomName =
                 (task.rooms as { name?: string; room_types?: { name?: string } } | null)?.name || "Unknown Room"
               const roomType =

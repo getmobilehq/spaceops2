@@ -29,7 +29,7 @@ export function ClientTable({
   const router = useRouter()
 
   return (
-    <div className="rounded-lg border bg-white">
+    <div className="rounded-lg border bg-card">
       <Table>
         <TableHeader>
           <TableRow>

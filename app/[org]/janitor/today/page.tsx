@@ -16,10 +16,10 @@ export const metadata = {
 }
 
 const taskStatusConfig: Record<string, { label: string; className: string }> = {
-  not_started: { label: "Not Started", className: "border-gray-200 bg-gray-50 text-gray-700" },
-  in_progress: { label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  done: { label: "Done", className: "border-green-200 bg-green-50 text-green-700" },
-  has_issues: { label: "Has Issues", className: "border-red-200 bg-red-50 text-red-700" },
+  not_started: { label: "Not Started", className: "border-muted-foreground/30 bg-muted text-muted-foreground" },
+  in_progress: { label: "In Progress", className: "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20" },
+  done: { label: "Done", className: "border-success/30 bg-success/10 text-success dark:bg-success/20" },
+  has_issues: { label: "Has Issues", className: "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/20" },
 }
 
 export default async function JanitorTodayPage({
@@ -69,7 +69,7 @@ export default async function JanitorTodayPage({
     <div className="space-y-4">
       <RealtimeListener table="room_tasks" />
       <div>
-        <h1 className="text-xl font-bold text-brand">Today</h1>
+        <h1 className="text-xl font-semibold text-foreground">Today</h1>
         <p className="text-muted-foreground text-sm">
           {user?.user_metadata?.first_name || "Welcome"}
         </p>
@@ -128,7 +128,7 @@ export default async function JanitorTodayPage({
                       {needsCheckIn && (
                         <Badge
                           variant="outline"
-                          className="border-amber-200 bg-amber-50 text-amber-700 text-[10px] px-1.5 gap-1"
+                          className="border-warning/30 bg-warning/10 text-warning dark:bg-warning/20 text-[10px] px-1.5 gap-1"
                         >
                           <QrCode className="h-3 w-3" />
                           Scan to Start

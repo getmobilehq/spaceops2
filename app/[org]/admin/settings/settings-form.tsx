@@ -120,7 +120,7 @@ export function SettingsForm({ org }: SettingsFormProps) {
         <CardContent className="flex items-center gap-6">
           <Avatar className="h-20 w-20">
             <AvatarImage src={logoPreview || undefined} alt={org.name} />
-            <AvatarFallback className="bg-brand text-white text-2xl font-semibold">
+            <AvatarFallback className="bg-primary text-white text-2xl font-semibold">
               {org.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -173,7 +173,7 @@ export function SettingsForm({ org }: SettingsFormProps) {
                   step={1}
                   className="flex-1"
                 />
-                <span className="w-12 text-right text-sm font-medium text-brand">
+                <span className="w-12 text-right text-sm font-medium text-primary">
                   {threshold}%
                 </span>
               </div>

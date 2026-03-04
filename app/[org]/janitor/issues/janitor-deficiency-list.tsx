@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { resolveDeficiency } from "@/actions/deficiencies"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
+import { ISSUE_SEVERITY } from "@/lib/status-styles"
 
 interface Deficiency {
   id: string
@@ -33,11 +34,6 @@ interface Deficiency {
   } | null
 }
 
-const severityConfig: Record<string, { label: string; className: string }> = {
-  low: { label: "Low", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  medium: { label: "Medium", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  high: { label: "High", className: "border-red-200 bg-red-50 text-red-700" },
-}
 
 export function JanitorDeficiencyList({
   deficiencies,
@@ -81,7 +77,7 @@ export function JanitorDeficiencyList({
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-green-500" />
+          <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-success" />
           <p className="text-sm text-muted-foreground">
             No open issues. Great work!
           </p>
@@ -94,7 +90,7 @@ export function JanitorDeficiencyList({
     <>
       <div className="space-y-3">
         {deficiencies.map((d) => {
-          const sev = severityConfig[d.severity] || severityConfig.medium
+          const sev = ISSUE_SEVERITY[d.severity] || ISSUE_SEVERITY.medium
 
           return (
             <Card key={d.id}>
@@ -102,7 +98,7 @@ export function JanitorDeficiencyList({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
                       <p className="text-sm font-medium">
                         {d.description}
                       </p>

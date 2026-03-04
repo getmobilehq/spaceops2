@@ -69,11 +69,11 @@ export default async function ScanPage({
   // Not authenticated — show room info with login prompt
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-md space-y-4">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-brand">{roomInfo.name}</CardTitle>
+              <CardTitle className="text-primary">{roomInfo.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 {roomInfo.buildingName} · {roomInfo.floorName}
               </p>
@@ -102,7 +102,7 @@ export default async function ScanPage({
   // Security: verify room belongs to user's org
   if (room.org_id !== userOrgId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground">
@@ -154,7 +154,7 @@ export default async function ScanPage({
 
   // All other roles — show room info card
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <RoomInfoCard room={roomInfo} role={role || "unknown"} />
     </div>
   )

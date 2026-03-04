@@ -13,8 +13,8 @@ export const metadata = {
 }
 
 const statusBadge: Record<string, { label: string; className: string }> = {
-  active: { label: "Active", className: "border-green-200 bg-green-50 text-green-700" },
-  closed: { label: "Completed", className: "border-blue-200 bg-blue-50 text-blue-700" },
+  active: { label: "Active", className: "border-success/30 bg-success/10 text-success dark:bg-success/20" },
+  closed: { label: "Completed", className: "border-info/30 bg-info/10 text-info dark:bg-info/20" },
 }
 
 export default async function ClientActivitiesPage() {
@@ -32,7 +32,7 @@ export default async function ClientActivitiesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Activities</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Activities</h1>
         <p className="text-muted-foreground">
           Cleaning activity history for your buildings
         </p>
@@ -92,19 +92,19 @@ export default async function ClientActivitiesPage() {
                     <div className="h-2 rounded-full bg-muted overflow-hidden flex">
                       {passedPct > 0 && (
                         <div
-                          className="h-full bg-green-500"
+                          className="h-full bg-success"
                           style={{ width: `${passedPct}%` }}
                         />
                       )}
                       {failedPct > 0 && (
                         <div
-                          className="h-full bg-red-500"
+                          className="h-full bg-destructive"
                           style={{ width: `${failedPct}%` }}
                         />
                       )}
                       {progressPct - passedPct - failedPct > 0 && (
                         <div
-                          className="h-full bg-yellow-400"
+                          className="h-full bg-warning"
                           style={{
                             width: `${progressPct - passedPct - failedPct}%`,
                           }}
@@ -115,13 +115,13 @@ export default async function ClientActivitiesPage() {
                       <span>{a.completedRooms}/{a.totalRooms} rooms</span>
                       <div className="flex items-center gap-3">
                         {a.passedRooms > 0 && (
-                          <span className="flex items-center gap-1 text-green-600">
+                          <span className="flex items-center gap-1 text-success">
                             <CheckCircle2 className="h-3 w-3" />
                             {a.passedRooms}
                           </span>
                         )}
                         {a.failedRooms > 0 && (
-                          <span className="flex items-center gap-1 text-red-600">
+                          <span className="flex items-center gap-1 text-destructive">
                             <XCircle className="h-3 w-3" />
                             {a.failedRooms}
                           </span>
@@ -130,10 +130,10 @@ export default async function ClientActivitiesPage() {
                           <span
                             className={
                               a.passRate >= 80
-                                ? "font-medium text-green-600"
+                                ? "font-medium text-success"
                                 : a.passRate >= 50
-                                ? "font-medium text-yellow-600"
-                                : "font-medium text-red-600"
+                                ? "font-medium text-warning"
+                                : "font-medium text-destructive"
                             }
                           >
                             {a.passRate}%

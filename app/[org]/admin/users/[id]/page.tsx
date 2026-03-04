@@ -27,7 +27,7 @@ export default async function EditUserPage({
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Edit User</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Edit User</h1>
         <p className="text-muted-foreground">
           Update user details and permissions
         </p>

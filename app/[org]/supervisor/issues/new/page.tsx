@@ -54,7 +54,7 @@ export default async function NewDeficiencyPage({
         ]}
       />
       <div>
-        <h1 className="text-2xl font-bold text-brand">Report Issues</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Report Issues</h1>
         <p className="text-muted-foreground">
           Add issues found during inspection of {roomName}
         </p>

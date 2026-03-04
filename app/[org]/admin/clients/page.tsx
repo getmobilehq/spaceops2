@@ -21,7 +21,7 @@ export default async function ClientsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand">Clients</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
           <p className="text-muted-foreground">
             Manage your building owner clients
           </p>
@@ -35,7 +35,7 @@ export default async function ClientsPage({
       </div>
 
       {clients.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground mb-4">
             No clients yet. Add your first client to get started.
           </p>

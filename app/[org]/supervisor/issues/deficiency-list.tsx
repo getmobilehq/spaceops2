@@ -8,8 +8,8 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
 import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
+import { ISSUE_STATUS, ISSUE_SEVERITY } from "@/lib/status-styles"
 
 interface Deficiency {
   id: string
@@ -26,17 +26,6 @@ interface Deficiency {
   assignee: { first_name: string; last_name: string } | null
 }
 
-const statusConfig: Record<string, { label: string; className: string; icon: typeof AlertTriangle }> = {
-  open: { label: "Open", className: "border-red-200 bg-red-50 text-red-700", icon: AlertTriangle },
-  in_progress: { label: "In Progress", className: "border-yellow-200 bg-yellow-50 text-yellow-700", icon: Clock },
-  resolved: { label: "Resolved", className: "border-green-200 bg-green-50 text-green-700", icon: CheckCircle2 },
-}
-
-const severityConfig: Record<string, { label: string; className: string }> = {
-  low: { label: "Low", className: "border-blue-200 bg-blue-50 text-blue-700" },
-  medium: { label: "Medium", className: "border-yellow-200 bg-yellow-50 text-yellow-700" },
-  high: { label: "High", className: "border-red-200 bg-red-50 text-red-700" },
-}
 
 const FILTERS = [
   { value: "all", label: "All" },
@@ -91,9 +80,9 @@ export function DeficiencyList({
         </Card>
       ) : (
         deficiencies.map((d) => {
-          const sc = statusConfig[d.status] || statusConfig.open
-          const sev = severityConfig[d.severity] || severityConfig.medium
-          const StatusIcon = sc.icon
+          const sc = ISSUE_STATUS[d.status] || ISSUE_STATUS.open
+          const sev = ISSUE_SEVERITY[d.severity] || ISSUE_SEVERITY.medium
+          const StatusIcon = sc.icon!
 
           return (
             <Link

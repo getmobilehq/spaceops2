@@ -101,10 +101,10 @@ export function RoomReviewList({
             key={state.tempId}
             className={`rounded-md border p-3 space-y-2 cursor-pointer transition-colors ${
               isSelected
-                ? "border-brand bg-brand/5"
+                ? "border-primary bg-primary/5"
                 : isSkipped
                   ? "border-muted bg-muted/30 opacity-60"
-                  : "border-border hover:border-brand/30"
+                  : "border-border hover:border-primary/30"
             }`}
             onClick={() => onSelectRoom(state.tempId)}
           >
@@ -112,7 +112,7 @@ export function RoomReviewList({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 {state.action === "match" && (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                 )}
                 {state.action === "create" && (
                   <Plus className="h-4 w-4 text-blue-600 shrink-0" />
@@ -156,8 +156,8 @@ export function RoomReviewList({
                     variant="outline"
                     className={`text-[10px] shrink-0 ${
                       room.confidence === "low"
-                        ? "border-red-200 text-red-600"
-                        : "border-yellow-200 text-yellow-600"
+                        ? "border-destructive/30 text-destructive"
+                        : "border-warning/30 text-warning"
                     }`}
                   >
                     {room.confidence}

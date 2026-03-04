@@ -90,7 +90,7 @@ export function UserTable({
 
   return (
     <>
-      <div className="rounded-lg border bg-white">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -127,7 +127,7 @@ export function UserTable({
                     variant={user.is_active ? "outline" : "destructive"}
                     className={
                       user.is_active
-                        ? "border-green-200 bg-green-50 text-green-700"
+                        ? "border-success/30 bg-success/10 text-success dark:bg-success/20"
                         : ""
                     }
                   >

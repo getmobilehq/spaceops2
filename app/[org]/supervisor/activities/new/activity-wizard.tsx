@@ -316,9 +316,9 @@ export function ActivityWizard({
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${
                   i < step
-                    ? "bg-brand text-white"
+                    ? "bg-primary text-white"
                     : i === step
-                    ? "bg-brand text-white"
+                    ? "bg-primary text-white"
                     : "bg-muted text-muted-foreground"
                 }`}
               >

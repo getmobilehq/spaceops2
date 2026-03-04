@@ -27,7 +27,7 @@ export default async function JanitorDeficienciesPage({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-brand">My Issues</h1>
+        <h1 className="text-xl font-semibold text-foreground">My Issues</h1>
         <p className="text-sm text-muted-foreground">
           Issues that need your attention
         </p>

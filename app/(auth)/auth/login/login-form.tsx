@@ -99,7 +99,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           </Button>
           <Link
             href="/auth/reset-password"
-            className="text-sm text-muted-foreground hover:text-brand transition-colors"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             Forgot your password?
           </Link>

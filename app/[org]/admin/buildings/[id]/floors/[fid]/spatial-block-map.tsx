@@ -143,7 +143,7 @@ export function SpatialBlockMap({
             </div>
 
             {/* Canvas area */}
-            <div className="border rounded-lg overflow-hidden bg-white">
+            <div className="border rounded-lg overflow-hidden bg-card">
               <TransformComponent
                 wrapperStyle={{ width: "100%", minHeight: "400px", maxHeight: "600px" }}
                 contentStyle={{ width: "100%", minWidth: "600px" }}

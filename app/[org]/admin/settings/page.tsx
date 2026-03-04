@@ -32,7 +32,7 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">Settings</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
         <p className="text-muted-foreground">
           Manage your organisation settings
         </p>

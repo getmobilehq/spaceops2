@@ -131,7 +131,7 @@ function SortableItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 rounded-md border bg-white p-2",
+        "flex items-center gap-2 rounded-md border bg-card p-2",
         isDragging && "opacity-50 shadow-lg"
       )}
     >
@@ -157,7 +157,7 @@ function SortableItem({
       ) : (
         <button
           type="button"
-          className="flex-1 text-left text-sm hover:text-brand transition-colors"
+          className="flex-1 text-left text-sm hover:text-primary transition-colors"
           onClick={() => {
             setIsEditing(true)
             setTimeout(() => inputRef.current?.focus(), 0)
@@ -172,7 +172,7 @@ function SortableItem({
         className={cn(
           "rounded p-1 transition-colors",
           item.requires_photo
-            ? "bg-blue-100 text-blue-700"
+            ? "bg-info/10 text-info"
             : "text-muted-foreground/40 hover:text-muted-foreground"
         )}
         title="Requires photo"
@@ -186,7 +186,7 @@ function SortableItem({
         className={cn(
           "rounded p-1 transition-colors",
           item.requires_note
-            ? "bg-amber-100 text-amber-700"
+            ? "bg-warning/10 text-warning"
             : "text-muted-foreground/40 hover:text-muted-foreground"
         )}
         title="Requires note"
@@ -413,7 +413,7 @@ export function TemplateEditor({
                   className="text-left"
                   onClick={() => setIsEditingName(true)}
                 >
-                  <CardTitle className="hover:text-brand transition-colors">
+                  <CardTitle className="hover:text-primary transition-colors">
                     {templateName}
                   </CardTitle>
                 </button>
@@ -422,7 +422,7 @@ export function TemplateEditor({
                 {template.is_default && (
                   <Badge
                     variant="outline"
-                    className="border-green-200 bg-green-50 text-green-700"
+                    className="border-success/30 bg-success/10 text-success dark:bg-success/20"
                   >
                     Default
                   </Badge>

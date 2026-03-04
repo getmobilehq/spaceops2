@@ -197,7 +197,7 @@ export function NewDeficiencyForm({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-red-600"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => removeEntry(entry.id)}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -221,7 +221,7 @@ export function NewDeficiencyForm({
                     />
                     <button
                       type="button"
-                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs"
+                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white text-xs"
                       onClick={() => removePhoto(entry.id)}
                     >
                       <X className="h-3 w-3" />

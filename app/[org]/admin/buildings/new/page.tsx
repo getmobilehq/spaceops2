@@ -22,7 +22,7 @@ export default async function NewBuildingPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand">New Building</h1>
+        <h1 className="text-2xl font-semibold text-foreground">New Building</h1>
         <p className="text-muted-foreground">
           Set up a new building with floors
         </p>

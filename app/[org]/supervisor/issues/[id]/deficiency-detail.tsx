@@ -20,14 +20,13 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
   User,
   CalendarDays,
   MapPin,
+  CheckCircle2,
 } from "lucide-react"
 import { updateDeficiency } from "@/actions/deficiencies"
+import { ISSUE_STATUS, ISSUE_SEVERITY } from "@/lib/status-styles"
 
 interface Deficiency {
   id: string
@@ -57,41 +56,6 @@ interface Janitor {
   last_name: string
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; className: string; icon: typeof AlertTriangle }
-> = {
-  open: {
-    label: "Open",
-    className: "border-red-200 bg-red-50 text-red-700",
-    icon: AlertTriangle,
-  },
-  in_progress: {
-    label: "In Progress",
-    className: "border-yellow-200 bg-yellow-50 text-yellow-700",
-    icon: Clock,
-  },
-  resolved: {
-    label: "Resolved",
-    className: "border-green-200 bg-green-50 text-green-700",
-    icon: CheckCircle2,
-  },
-}
-
-const severityConfig: Record<string, { label: string; className: string }> = {
-  low: {
-    label: "Low",
-    className: "border-blue-200 bg-blue-50 text-blue-700",
-  },
-  medium: {
-    label: "Medium",
-    className: "border-yellow-200 bg-yellow-50 text-yellow-700",
-  },
-  high: {
-    label: "High",
-    className: "border-red-200 bg-red-50 text-red-700",
-  },
-}
 
 export function DeficiencyDetail({
   deficiency,
@@ -112,9 +76,9 @@ export function DeficiencyDetail({
   const [error, setError] = useState("")
 
   const isResolved = deficiency.status === "resolved"
-  const sc = statusConfig[deficiency.status] || statusConfig.open
-  const sev = severityConfig[deficiency.severity] || severityConfig.medium
-  const StatusIcon = sc.icon
+  const sc = ISSUE_STATUS[deficiency.status] || ISSUE_STATUS.open
+  const sev = ISSUE_SEVERITY[deficiency.severity] || ISSUE_SEVERITY.medium
+  const StatusIcon = sc.icon!
 
   const hasChanges =
     status !== deficiency.status ||
@@ -162,7 +126,7 @@ export function DeficiencyDetail({
               {sev.label}
             </Badge>
           </div>
-          <h1 className="text-xl font-bold text-brand">
+          <h1 className="text-xl font-semibold text-foreground">
             {deficiency.description}
           </h1>
         </div>
@@ -214,7 +178,7 @@ export function DeficiencyDetail({
           )}
           {deficiency.resolver && deficiency.resolved_at && (
             <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               <span>
                 Resolved by {deficiency.resolver.first_name}{" "}
                 {deficiency.resolver.last_name} on{" "}
@@ -298,7 +262,7 @@ export function DeficiencyDetail({
             </div>
 
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
             )}
 
             <Button
