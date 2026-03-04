@@ -1,9 +1,7 @@
-"use client"
-
 import type { LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { useCountUp } from "@/hooks/use-count-up"
+import { AnimatedNumber } from "./AnimatedNumber"
 
 interface StatCardProps {
   title: string
@@ -14,11 +12,6 @@ interface StatCardProps {
   trend?: { value: string; positive: boolean }
   className?: string
   animationDelay?: string
-}
-
-function AnimatedNumber({ value }: { value: number }) {
-  const display = useCountUp({ end: value })
-  return <>{display}</>
 }
 
 export function StatCard({
