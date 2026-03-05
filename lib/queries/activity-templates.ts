@@ -30,3 +30,18 @@ export async function getActivityTemplateById(
   if (error) throw error
   return data
 }
+
+export async function getRecurringTemplates(
+  supabase: SupabaseClient<Database>
+) {
+  const { data, error } = await supabase
+    .from("activity_templates")
+    .select(
+      "*, floors(floor_name, building_id, buildings(name))"
+    )
+    .eq("is_recurring", true)
+    .order("name", { ascending: true })
+
+  if (error) throw error
+  return data
+}

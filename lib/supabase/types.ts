@@ -542,6 +542,7 @@ export type Database = {
           window_start: string
           window_end: string
           notes: string | null
+          source_template_id: string | null
           created_at: string
           updated_at: string
         }
@@ -556,6 +557,7 @@ export type Database = {
           window_start: string
           window_end: string
           notes?: string | null
+          source_template_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -570,6 +572,7 @@ export type Database = {
           window_start?: string
           window_end?: string
           notes?: string | null
+          source_template_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -593,6 +596,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_activities_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "activity_templates"
             referencedColumns: ["id"]
           }
         ]
@@ -836,6 +846,12 @@ export type Database = {
           window_end: string
           notes: string | null
           default_assignments: Json
+          is_recurring: boolean
+          recurrence_days: string[]
+          time_slots: Json
+          recurrence_preset: string | null
+          is_active: boolean
+          last_generated_date: string | null
           created_at: string
           updated_at: string
         }
@@ -849,6 +865,12 @@ export type Database = {
           window_end?: string
           notes?: string | null
           default_assignments?: Json
+          is_recurring?: boolean
+          recurrence_days?: string[]
+          time_slots?: Json
+          recurrence_preset?: string | null
+          is_active?: boolean
+          last_generated_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -862,6 +884,12 @@ export type Database = {
           window_end?: string
           notes?: string | null
           default_assignments?: Json
+          is_recurring?: boolean
+          recurrence_days?: string[]
+          time_slots?: Json
+          recurrence_preset?: string | null
+          is_active?: boolean
+          last_generated_date?: string | null
           created_at?: string
           updated_at?: string
         }

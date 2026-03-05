@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Calendar, Clock, MapPin } from "lucide-react"
+import { Plus, Calendar, Clock, MapPin, RefreshCw } from "lucide-react"
 import { ActivityStatusBadge } from "@/components/shared/ActivityStatusBadge"
 
 interface ActivityData {
@@ -25,6 +25,7 @@ interface ActivityData {
   scheduled_date: string
   window_start: string
   window_end: string
+  source_template_id: string | null
   floors: {
     floor_name: string
     building_id: string
@@ -99,6 +100,9 @@ export function ActivityList({
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
+                  {activity.source_template_id && (
+                    <RefreshCw className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  )}
                   <p className="font-medium">{activity.name}</p>
                   <ActivityStatusBadge status={activity.status} />
                 </div>

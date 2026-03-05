@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { updateSession } from "@/lib/supabase/middleware"
 
-const publicPatterns = ["/auth", "/scan", "/_next", "/favicon.ico", "/api/health"]
+const publicPatterns = ["/auth", "/scan", "/_next", "/favicon.ico", "/api/health", "/api/cron"]
 
 function isPublicRoute(pathname: string): boolean {
   return publicPatterns.some((pattern) => pathname.startsWith(pattern))

@@ -48,6 +48,7 @@ import {
   BookTemplate,
   Trash2,
   Map,
+  RefreshCw,
 } from "lucide-react"
 
 interface RoomTask {
@@ -69,11 +70,13 @@ interface ActivityData {
   window_end: string
   notes: string | null
   floor_id: string
+  source_template_id: string | null
   floors: {
     floor_name: string
     buildings: { name: string } | null
   } | null
   room_tasks: RoomTask[]
+  activity_templates: { id: string; name: string } | null
 }
 
 interface JanitorOption {
@@ -258,6 +261,20 @@ export function ActivityDetail({
                 <p className="text-sm text-muted-foreground mt-1">
                   {activity.notes}
                 </p>
+              )}
+              {activity.source_template_id && activity.activity_templates && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                  <RefreshCw className="h-3 w-3" />
+                  <span>
+                    Part of recurring schedule:{" "}
+                    <Link
+                      href={`/${orgSlug}/supervisor/templates/${activity.activity_templates.id}`}
+                      className="text-primary hover:underline"
+                    >
+                      {activity.activity_templates.name}
+                    </Link>
+                  </span>
+                </div>
               )}
             </div>
             <div className="flex gap-2">
