@@ -51,6 +51,9 @@ export const updateBuildingSchema = z.object({
   address: z.string().min(1).max(200).optional(),
   clientId: z.string().uuid().nullable().optional(),
   status: buildingStatusEnum.optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  geofenceRadiusM: z.number().int().min(10).max(5000).optional(),
 })
 
 export type UpdateBuildingInput = z.infer<typeof updateBuildingSchema>

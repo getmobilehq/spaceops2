@@ -15,7 +15,9 @@ import {
   assignSupervisor,
   removeSupervisor,
   deleteBuilding,
+  updateBuildingLocation,
 } from "@/actions/buildings"
+import { generateBuildingAttendanceQR } from "@/actions/attendance"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +45,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Trash2 } from "lucide-react"
+import { Trash2, MapPin, QrCode } from "lucide-react"
+import { QRCodeDisplay } from "@/components/shared/QRCodeDisplay"
 
 interface Supervisor {
   id: string
@@ -57,6 +60,10 @@ interface BuildingData {
   address: string
   status: string
   client_id: string | null
+  latitude: number | null
+  longitude: number | null
+  geofence_radius_m: number
+  attendance_qr_path: string | null
   clients: { id: string; company_name: string } | null
   floors: {
     id: string
@@ -108,6 +115,11 @@ export function BuildingDetailForm({
   const [isRemoving, setIsRemoving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeletingBuilding, setIsDeletingBuilding] = useState(false)
+  const [locLat, setLocLat] = useState<string>(building.latitude?.toString() ?? "")
+  const [locLng, setLocLng] = useState<string>(building.longitude?.toString() ?? "")
+  const [locRadius, setLocRadius] = useState<string>(building.geofence_radius_m?.toString() ?? "150")
+  const [isSavingLocation, setIsSavingLocation] = useState(false)
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false)
 
   const {
     register,
@@ -210,6 +222,45 @@ export function BuildingDetailForm({
     setConfirmRemove(null)
   }
 
+  async function handleSaveLocation() {
+    const lat = parseFloat(locLat)
+    const lng = parseFloat(locLng)
+    const radius = parseInt(locRadius, 10)
+
+    if (isNaN(lat) || isNaN(lng)) {
+      toast({ title: "Error", description: "Enter valid latitude and longitude", variant: "destructive" })
+      return
+    }
+
+    setIsSavingLocation(true)
+    const result = await updateBuildingLocation({
+      buildingId: building.id,
+      latitude: lat,
+      longitude: lng,
+      geofenceRadiusM: isNaN(radius) ? 150 : radius,
+    })
+
+    if (result.success) {
+      toast({ title: "Location saved" })
+      router.refresh()
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsSavingLocation(false)
+  }
+
+  async function handleGenerateQR() {
+    setIsGeneratingQR(true)
+    const result = await generateBuildingAttendanceQR(building.id)
+    if (result.success) {
+      toast({ title: "Attendance QR generated" })
+      router.refresh()
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsGeneratingQR(false)
+  }
+
   return (
     <>
       {/* Settings */}
@@ -299,6 +350,91 @@ export function BuildingDetailForm({
             </Button>
           </CardFooter>
         </form>
+      </Card>
+
+      {/* Attendance & Location */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Attendance & Location
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input
+                id="latitude"
+                type="number"
+                step="any"
+                placeholder="-33.8688"
+                value={locLat}
+                onChange={(e) => setLocLat(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input
+                id="longitude"
+                type="number"
+                step="any"
+                placeholder="151.2093"
+                value={locLng}
+                onChange={(e) => setLocLng(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="geofenceRadius">Geofence Radius (metres)</Label>
+            <Input
+              id="geofenceRadius"
+              type="number"
+              min={10}
+              max={5000}
+              value={locRadius}
+              onChange={(e) => setLocRadius(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Janitors must be within this distance to be verified (default 150m).
+            </p>
+          </div>
+          <Button
+            onClick={handleSaveLocation}
+            disabled={isSavingLocation}
+            variant="outline"
+            className="w-full"
+          >
+            {isSavingLocation ? "Saving..." : "Save Location"}
+          </Button>
+
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <QrCode className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Attendance QR Code</span>
+              </div>
+              <Button
+                onClick={handleGenerateQR}
+                disabled={isGeneratingQR}
+                size="sm"
+              >
+                {isGeneratingQR
+                  ? "Generating..."
+                  : building.attendance_qr_path
+                    ? "Regenerate QR"
+                    : "Generate QR"}
+              </Button>
+            </div>
+            {building.attendance_qr_path && (
+              <QRCodeDisplay
+                qrCodeUrl={building.attendance_qr_path}
+                roomName={building.name}
+                scanUrl={`${process.env.NEXT_PUBLIC_APP_URL}/scan/building/${building.id}`}
+              />
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       {/* Supervisors */}

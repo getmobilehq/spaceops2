@@ -118,6 +118,76 @@ export type Database = {
           }
         ]
       }
+      attendance_records: {
+        Row: {
+          id: string
+          org_id: string
+          building_id: string
+          user_id: string
+          clock_in_at: string
+          clock_out_at: string | null
+          scan_latitude: number | null
+          scan_longitude: number | null
+          distance_m: number | null
+          geo_verified: boolean
+          geo_error: string | null
+          date: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          building_id: string
+          user_id: string
+          clock_in_at?: string
+          clock_out_at?: string | null
+          scan_latitude?: number | null
+          scan_longitude?: number | null
+          distance_m?: number | null
+          geo_verified?: boolean
+          geo_error?: string | null
+          date?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          building_id?: string
+          user_id?: string
+          clock_in_at?: string
+          clock_out_at?: string | null
+          scan_latitude?: number | null
+          scan_longitude?: number | null
+          distance_m?: number | null
+          geo_verified?: boolean
+          geo_error?: string | null
+          date?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       buildings: {
         Row: {
           id: string
@@ -126,6 +196,10 @@ export type Database = {
           name: string
           address: string
           status: "active" | "inactive" | "setup"
+          latitude: number | null
+          longitude: number | null
+          geofence_radius_m: number
+          attendance_qr_path: string | null
           created_at: string
         }
         Insert: {
@@ -135,6 +209,10 @@ export type Database = {
           name: string
           address: string
           status?: "active" | "inactive" | "setup"
+          latitude?: number | null
+          longitude?: number | null
+          geofence_radius_m?: number
+          attendance_qr_path?: string | null
           created_at?: string
         }
         Update: {
@@ -144,6 +222,10 @@ export type Database = {
           name?: string
           address?: string
           status?: "active" | "inactive" | "setup"
+          latitude?: number | null
+          longitude?: number | null
+          geofence_radius_m?: number
+          attendance_qr_path?: string | null
           created_at?: string
         }
         Relationships: [

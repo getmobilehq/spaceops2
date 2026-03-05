@@ -14,6 +14,10 @@ import {
   type RemoveSupervisorInput,
   type DeleteBuildingInput,
 } from "@/lib/validations/building"
+import {
+  updateBuildingLocationSchema,
+  type UpdateBuildingLocationInput,
+} from "@/lib/validations/attendance"
 
 type ActionResult = { success: true } | { success: false; error: string }
 type ActionResultWithId =
@@ -309,5 +313,29 @@ export async function deleteBuilding(
     .eq("id", parsed.data.buildingId)
 
   if (error) return { success: false, error: "Failed to delete building" }
+  return { success: true }
+}
+
+export async function updateBuildingLocation(
+  input: UpdateBuildingLocationInput
+): Promise<ActionResult> {
+  const parsed = updateBuildingLocationSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  const { error } = await ctx.supabase
+    .from("buildings")
+    .update({
+      latitude: parsed.data.latitude,
+      longitude: parsed.data.longitude,
+      geofence_radius_m: parsed.data.geofenceRadiusM,
+    })
+    .eq("id", parsed.data.buildingId)
+
+  if (error) return { success: false, error: "Failed to update building location" }
   return { success: true }
 }

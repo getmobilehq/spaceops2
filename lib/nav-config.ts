@@ -11,6 +11,7 @@ import {
   Eye,
   AlertTriangle,
   BookTemplate,
+  Clock,
   type LucideIcon,
 } from "lucide-react"
 
@@ -35,11 +36,13 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: "Dashboard", href: "dashboard", icon: LayoutDashboard, enabled: true },
     { label: "Activities", href: "activities", icon: CalendarCheck, enabled: true },
     { label: "Templates", href: "templates", icon: BookTemplate, enabled: true },
+    { label: "Attendance", href: "attendance", icon: Clock, enabled: true },
     { label: "Issues", href: "issues", icon: AlertTriangle, enabled: true },
     { label: "Reports", href: "reports", icon: BarChart3, enabled: true },
   ],
   janitor: [
     { label: "Today", href: "today", icon: CalendarDays, enabled: true },
+    { label: "Attendance", href: "attendance", icon: Clock, enabled: true },
     { label: "History", href: "history", icon: ClipboardCheck, enabled: true },
     { label: "Issues", href: "issues", icon: AlertTriangle, enabled: true },
   ],

@@ -12,12 +12,16 @@ import {
   AlertTriangle,
   MapPin,
   Clock,
+  CheckCircle2,
+  Users as UsersIcon,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { getSupervisorBuildings } from "@/lib/queries/activities"
 import {
   getSupervisorDashboardStats,
   getTodayActivityDetails,
 } from "@/lib/queries/dashboard"
+import { getSupervisorBuildingAttendance } from "@/lib/queries/attendance"
 import { ActivityStatusBadge } from "@/components/shared/ActivityStatusBadge"
 import { StatCard } from "@/components/shared/StatCard"
 
@@ -40,6 +44,7 @@ export default async function SupervisorDashboardPage({
     getTodayActivityDetails(supabase),
     user ? getSupervisorBuildings(supabase, user.id) : [],
   ])
+  const attendanceRecords = user ? await getSupervisorBuildingAttendance(supabase, user.id) : []
 
   const activeCount = todayActivities.length
 
@@ -157,6 +162,71 @@ export default async function SupervisorDashboardPage({
           </CardContent>
         </Card>
       )}
+
+      {/* Attendance Today */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Attendance Today</CardTitle>
+            <Badge variant="secondary" className="text-xs">
+              <UsersIcon className="mr-1 h-3 w-3" />
+              {attendanceRecords.length} clocked in
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {attendanceRecords.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No janitors have clocked in today.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {attendanceRecords.map((record) => {
+                const u = record.users as { id: string; first_name: string; last_name: string } | null
+                const b = record.buildings as { name: string } | null
+                const clockIn = new Date(record.clock_in_at).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+                return (
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between rounded-md border p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {u ? `${u.first_name} ${u.last_name}` : "Unknown"}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {b?.name || "Unknown Building"}
+                        <span>·</span>
+                        <Clock className="h-3 w-3" />
+                        {clockIn}
+                      </div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        record.geo_verified
+                          ? "border-success/30 bg-success/10 text-success dark:bg-success/20"
+                          : "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20"
+                      }
+                    >
+                      {record.geo_verified ? (
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                      ) : (
+                        <AlertTriangle className="mr-1 h-3 w-3" />
+                      )}
+                      {record.geo_verified ? "Verified" : "Unverified"}
+                    </Badge>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Assigned Buildings */}
       <Card>
