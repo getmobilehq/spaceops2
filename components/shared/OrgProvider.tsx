@@ -8,6 +8,12 @@ interface OrgContextValue {
   orgName: string
   passThreshold: number
   orgLogoUrl: string | null
+  userId: string
+  userFirstName: string
+  userLastName: string
+  userAvatarUrl: string | null
+  userRole: string
+  userEmail: string
 }
 
 const OrgContext = createContext<OrgContextValue | null>(null)

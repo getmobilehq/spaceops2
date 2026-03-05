@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/tooltip"
 import { NAV_CONFIG } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
-import { ChevronsLeft, ChevronsRight } from "lucide-react"
+import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react"
+import { signOutAction } from "@/actions/auth"
 
 interface AppSidebarProps {
   className?: string
@@ -28,7 +29,15 @@ export function AppSidebar({
   onNavClick,
   forceExpanded,
 }: AppSidebarProps) {
-  const { orgSlug, orgName, orgLogoUrl } = useOrg()
+  const {
+    orgSlug,
+    orgName,
+    orgLogoUrl,
+    userFirstName,
+    userLastName,
+    userAvatarUrl,
+    userRole,
+  } = useOrg()
   const pathname = usePathname()
 
   let collapsed = false
@@ -152,14 +161,14 @@ export function AppSidebar({
       </TooltipProvider>
 
       {/* Footer */}
-      <div className="border-t px-3 py-3">
+      <div className="border-t px-3 py-3 space-y-2">
         {toggle && (
           <Button
             variant="ghost"
             size="sm"
             onClick={toggle}
             className={cn(
-              "mb-2 text-muted-foreground hover:text-foreground",
+              "text-muted-foreground hover:text-foreground",
               collapsed ? "w-full justify-center" : "w-full justify-start"
             )}
           >
@@ -173,7 +182,59 @@ export function AppSidebar({
             )}
           </Button>
         )}
-        {!collapsed && <SignOutButton />}
+
+        {/* User profile link */}
+        <Link
+          href={`/${orgSlug}/${role}/profile`}
+          onClick={onNavClick}
+          className={cn(
+            "flex items-center rounded-md text-sm transition-all hover:bg-accent",
+            collapsed ? "justify-center p-2" : "gap-3 px-3 py-2"
+          )}
+        >
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarImage
+              src={userAvatarUrl || undefined}
+              alt={userFirstName}
+            />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+              {(userFirstName.charAt(0) + userLastName.charAt(0)).toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium text-foreground">
+                {userFirstName} {userLastName}
+              </p>
+              <p className="truncate text-xs text-muted-foreground capitalize">
+                {userRole}
+              </p>
+            </div>
+          )}
+        </Link>
+
+        {/* Sign out */}
+        {collapsed ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <form action={signOutAction} className="w-full">
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-center text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </form>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">
+              Sign Out
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <SignOutButton />
+        )}
       </div>
     </aside>
   )

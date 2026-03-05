@@ -37,6 +37,12 @@ export default async function OrgLayout({
     redirect("/auth/login")
   }
 
+  const { data: userRecord } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .single()
+
   return (
     <OrgProvider
       value={{
@@ -45,6 +51,12 @@ export default async function OrgLayout({
         orgName: org.name,
         passThreshold: org.pass_threshold,
         orgLogoUrl: org.logo_url,
+        userId: user.id,
+        userFirstName: userRecord?.first_name || "",
+        userLastName: userRecord?.last_name || "",
+        userAvatarUrl: userRecord?.avatar_url || null,
+        userRole: userRecord?.role || (user.app_metadata?.role as string) || "",
+        userEmail: user.email || "",
       }}
     >
       {children}
