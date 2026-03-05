@@ -28,7 +28,8 @@ import { useToast } from "@/hooks/use-toast"
 import { createActivity, assignRoomTasks, publishActivity } from "@/actions/activities"
 import { saveActivityAsTemplate } from "@/actions/activity-templates"
 import { createClient } from "@/lib/supabase/client"
-import { ChevronLeft, ChevronRight, Check } from "lucide-react"
+import Link from "next/link"
+import { ChevronLeft, ChevronRight, Check, RefreshCw } from "lucide-react"
 
 interface BuildingOption {
   id: string
@@ -427,6 +428,21 @@ export function ActivityWizard({
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
+
+            {/* Recurring hint */}
+            <Link
+              href={`/${orgSlug}/supervisor/templates/new`}
+              className="flex items-center gap-3 rounded-lg border border-dashed p-3 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+            >
+              <RefreshCw className="h-4 w-4 shrink-0" />
+              <span>
+                Need this to repeat?{" "}
+                <span className="text-primary font-medium">
+                  Create a recurring schedule
+                </span>{" "}
+                instead.
+              </span>
+            </Link>
           </div>
         )}
 
