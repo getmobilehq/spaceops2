@@ -69,6 +69,12 @@ export const removeSupervisorSchema = z.object({
 
 export type RemoveSupervisorInput = z.infer<typeof removeSupervisorSchema>
 
+export const deleteBuildingSchema = z.object({
+  buildingId: z.string().uuid("Invalid building ID"),
+})
+
+export type DeleteBuildingInput = z.infer<typeof deleteBuildingSchema>
+
 export const BUILDING_STATUS_OPTIONS = [
   { value: "setup", label: "Setup" },
   { value: "active", label: "Active" },

@@ -9,7 +9,7 @@ import {
   updateClientSchema,
   type UpdateClientInput,
 } from "@/lib/validations/client"
-import { updateClient } from "@/actions/clients"
+import { updateClient, deleteClient } from "@/actions/clients"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Trash2 } from "lucide-react"
 
 interface ClientWithBuildings {
   id: string
@@ -41,6 +50,8 @@ export function EditClientForm({
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const {
     register,
@@ -55,6 +66,23 @@ export function EditClientForm({
       contactEmail: client.contact_email,
     },
   })
+
+  async function handleDeleteClient() {
+    setIsDeleting(true)
+    const result = await deleteClient({ clientId: client.id })
+    if (result.success) {
+      toast({ title: "Client deleted" })
+      router.push(`/${orgSlug}/admin/clients`)
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
 
   async function onSubmit(data: UpdateClientInput) {
     setIsLoading(true)
@@ -125,13 +153,23 @@ export function EditClientForm({
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              Cancel
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
@@ -173,6 +211,35 @@ export function EditClientForm({
           )}
         </CardContent>
       </Card>
+
+      {/* Delete client confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Client</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{client.company_name}&quot;?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteClient}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

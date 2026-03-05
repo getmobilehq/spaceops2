@@ -5,6 +5,8 @@ export interface ReportFilters {
   dateFrom?: string // YYYY-MM-DD
   dateTo?: string // YYYY-MM-DD
   buildingId?: string // UUID
+  clientId?: string // UUID
+  floorId?: string // UUID
 }
 
 /**
@@ -17,7 +19,7 @@ export async function getReportSummary(
   let taskQuery = supabase
     .from("room_tasks")
     .select(
-      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
+      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id, buildings!inner(id, client_id)))"
     )
 
   if (filters?.dateFrom) {
@@ -28,6 +30,12 @@ export async function getReportSummary(
   }
   if (filters?.buildingId) {
     taskQuery = taskQuery.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    taskQuery = taskQuery.eq("cleaning_activities.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    taskQuery = taskQuery.eq("cleaning_activities.floor_id", filters.floorId)
   }
 
   const { data: tasks } = await taskQuery
@@ -42,7 +50,7 @@ export async function getReportSummary(
 
   let activityQuery = supabase
     .from("cleaning_activities")
-    .select("id, scheduled_date, floors!inner(building_id)", { count: "exact", head: true })
+    .select("id, scheduled_date, floors!inner(building_id, buildings!inner(id, client_id))", { count: "exact", head: true })
 
   if (filters?.dateFrom) {
     activityQuery = activityQuery.gte("scheduled_date", filters.dateFrom)
@@ -52,6 +60,12 @@ export async function getReportSummary(
   }
   if (filters?.buildingId) {
     activityQuery = activityQuery.eq("floors.building_id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    activityQuery = activityQuery.eq("floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    activityQuery = activityQuery.eq("floor_id", filters.floorId)
   }
 
   const { count: totalActivities } = await activityQuery
@@ -92,6 +106,8 @@ export function getPreviousPeriodFilters(
       dateFrom: prevFrom.toISOString().split("T")[0],
       dateTo: prevTo.toISOString().split("T")[0],
       buildingId: filters.buildingId,
+      clientId: filters.clientId,
+      floorId: filters.floorId,
     }
   }
 
@@ -106,6 +122,8 @@ export function getPreviousPeriodFilters(
     dateFrom: sixtyAgo.toISOString().split("T")[0],
     dateTo: thirtyAgo.toISOString().split("T")[0],
     buildingId: filters?.buildingId,
+    clientId: filters?.clientId,
+    floorId: filters?.floorId,
   }
 }
 
@@ -119,7 +137,7 @@ export async function getPassRatesByBuilding(
   let query = supabase
     .from("room_tasks")
     .select(
-      "status, rooms!inner(floors!inner(buildings!inner(id, name))), cleaning_activities!inner(scheduled_date)"
+      "status, rooms!inner(floors!inner(buildings!inner(id, name, client_id))), cleaning_activities!inner(scheduled_date)"
     )
     .in("status", ["inspected_pass", "inspected_fail"])
 
@@ -131,6 +149,12 @@ export async function getPassRatesByBuilding(
   }
   if (filters?.buildingId) {
     query = query.eq("rooms.floors.buildings.id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("rooms.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("rooms.floor_id", filters.floorId)
   }
 
   const { data, error } = await query
@@ -167,7 +191,7 @@ export async function getPassRatesByJanitor(
   let query = supabase
     .from("room_tasks")
     .select(
-      "status, assigned_to, users!room_tasks_assigned_to_fkey(first_name, last_name), cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
+      "status, assigned_to, users!room_tasks_assigned_to_fkey(first_name, last_name), cleaning_activities!inner(scheduled_date, floors!inner(building_id, buildings!inner(id, client_id)))"
     )
     .in("status", ["inspected_pass", "inspected_fail"])
     .not("assigned_to", "is", null)
@@ -180,6 +204,12 @@ export async function getPassRatesByJanitor(
   }
   if (filters?.buildingId) {
     query = query.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("cleaning_activities.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("cleaning_activities.floor_id", filters.floorId)
   }
 
   const { data, error } = await query
@@ -222,7 +252,7 @@ export async function getActivityTrend(
   let query = supabase
     .from("room_tasks")
     .select(
-      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id))"
+      "status, cleaning_activities!inner(scheduled_date, floors!inner(building_id, buildings!inner(id, client_id)))"
     )
     .in("status", ["inspected_pass", "inspected_fail", "done"])
     .gte("cleaning_activities.scheduled_date", sinceStr)
@@ -232,6 +262,12 @@ export async function getActivityTrend(
   }
   if (filters?.buildingId) {
     query = query.eq("cleaning_activities.floors.building_id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("cleaning_activities.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("cleaning_activities.floor_id", filters.floorId)
   }
 
   const { data, error } = await query
@@ -263,7 +299,7 @@ export async function getActivityHistory(
   let query = supabase
     .from("cleaning_activities")
     .select(
-      "id, name, status, scheduled_date, floors!inner(floor_name, building_id, buildings!inner(name)), room_tasks(status)"
+      "id, name, status, scheduled_date, floors!inner(floor_name, building_id, buildings!inner(id, name, client_id)), room_tasks(status)"
     )
     .order("scheduled_date", { ascending: false })
     .limit(limit)
@@ -276,6 +312,12 @@ export async function getActivityHistory(
   }
   if (filters?.buildingId) {
     query = query.eq("floors.buildings.id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("floor_id", filters.floorId)
   }
 
   const { data, error } = await query
@@ -328,4 +370,162 @@ export async function getDeficiencyBreakdown(supabase: SupabaseClient<Database>)
   }
 
   return { total: all.length, bySeverity, byStatus }
+}
+
+/**
+ * Pass rates grouped by client.
+ */
+export async function getPassRatesByClient(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
+    .from("room_tasks")
+    .select(
+      "status, rooms!inner(floors!inner(buildings!inner(id, client_id, clients(id, company_name)))), cleaning_activities!inner(scheduled_date)"
+    )
+    .in("status", ["inspected_pass", "inspected_fail"])
+
+  if (filters?.dateFrom) {
+    query = query.gte("cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("rooms.floors.buildings.id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("rooms.floors.buildings.client_id", filters.clientId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  const map = new Map<string, { name: string; passed: number; failed: number }>()
+
+  for (const task of data || []) {
+    const building = (task.rooms as { floors?: { buildings?: { client_id: string | null; clients?: { id: string; company_name: string } | null } } } | null)?.floors?.buildings
+    if (!building?.clients) continue
+    const key = building.clients.id
+    if (!map.has(key)) map.set(key, { name: building.clients.company_name, passed: 0, failed: 0 })
+    const entry = map.get(key)!
+    if (task.status === "inspected_pass") entry.passed++
+    else entry.failed++
+  }
+
+  return Array.from(map.values()).map((c) => ({
+    name: c.name,
+    passed: c.passed,
+    failed: c.failed,
+    total: c.passed + c.failed,
+    passRate: Math.round((c.passed / (c.passed + c.failed)) * 100),
+  }))
+}
+
+/**
+ * Pass rates grouped by floor.
+ */
+export async function getPassRatesByFloor(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
+    .from("room_tasks")
+    .select(
+      "status, rooms!inner(floor_id, floors!inner(id, floor_name, buildings!inner(id, name, client_id))), cleaning_activities!inner(scheduled_date)"
+    )
+    .in("status", ["inspected_pass", "inspected_fail"])
+
+  if (filters?.dateFrom) {
+    query = query.gte("cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("rooms.floors.buildings.id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("rooms.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("rooms.floor_id", filters.floorId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  const map = new Map<string, { name: string; buildingName: string; passed: number; failed: number }>()
+
+  for (const task of data || []) {
+    const room = task.rooms as { floor_id?: string; floors?: { id: string; floor_name: string; buildings?: { id: string; name: string } } } | null
+    const floor = room?.floors
+    if (!floor) continue
+    const key = floor.id
+    if (!map.has(key)) map.set(key, { name: floor.floor_name, buildingName: floor.buildings?.name || "Unknown", passed: 0, failed: 0 })
+    const entry = map.get(key)!
+    if (task.status === "inspected_pass") entry.passed++
+    else entry.failed++
+  }
+
+  return Array.from(map.values()).map((f) => ({
+    name: f.name,
+    buildingName: f.buildingName,
+    passed: f.passed,
+    failed: f.failed,
+    total: f.passed + f.failed,
+    passRate: Math.round((f.passed / (f.passed + f.failed)) * 100),
+  }))
+}
+
+/**
+ * Detailed issue report — deficiencies with full location context.
+ */
+export async function getIssueReport(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
+    .from("deficiencies")
+    .select(
+      "id, description, severity, status, created_at, reporter:users!deficiencies_reported_by_fkey(first_name, last_name), room_tasks!inner(rooms!inner(name, floors!inner(floor_name, buildings!inner(id, name, client_id))), cleaning_activities!inner(scheduled_date))"
+    )
+    .order("created_at", { ascending: false })
+
+  if (filters?.dateFrom) {
+    query = query.gte("room_tasks.cleaning_activities.scheduled_date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("room_tasks.cleaning_activities.scheduled_date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("room_tasks.rooms.floors.buildings.id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("room_tasks.rooms.floors.buildings.client_id", filters.clientId)
+  }
+  if (filters?.floorId) {
+    query = query.eq("room_tasks.rooms.floor_id", filters.floorId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  return (data || []).map((d) => {
+    const roomTask = d.room_tasks as { rooms?: { name?: string; floors?: { floor_name?: string; buildings?: { id?: string; name?: string } } } } | null
+    const reporter = d.reporter as { first_name: string; last_name: string } | null
+
+    return {
+      id: d.id,
+      description: d.description,
+      severity: d.severity,
+      status: d.status,
+      createdAt: d.created_at,
+      buildingName: roomTask?.rooms?.floors?.buildings?.name || "Unknown",
+      floorName: roomTask?.rooms?.floors?.floor_name || "Unknown",
+      roomName: roomTask?.rooms?.name || "Unknown",
+      reporterName: reporter ? `${reporter.first_name} ${reporter.last_name}` : "Unknown",
+    }
+  })
 }

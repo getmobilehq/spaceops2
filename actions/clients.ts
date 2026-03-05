@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 import {
   createClientSchema,
   updateClientSchema,
+  deleteClientSchema,
   type CreateClientInput,
   type UpdateClientInput,
+  type DeleteClientInput,
 } from "@/lib/validations/client"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -79,5 +81,38 @@ export async function updateClient(
     .eq("id", parsed.data.clientId)
 
   if (error) return { success: false, error: "Failed to update client" }
+  return { success: true }
+}
+
+export async function deleteClient(
+  input: DeleteClientInput
+): Promise<ActionResult> {
+  const parsed = deleteClientSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Check for linked buildings
+  const { count } = await ctx.supabase
+    .from("buildings")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", parsed.data.clientId)
+
+  if (count && count > 0) {
+    return {
+      success: false,
+      error: "Cannot delete client with linked buildings. Remove or reassign buildings first.",
+    }
+  }
+
+  const { error } = await ctx.supabase
+    .from("clients")
+    .delete()
+    .eq("id", parsed.data.clientId)
+
+  if (error) return { success: false, error: "Failed to delete client" }
   return { success: true }
 }

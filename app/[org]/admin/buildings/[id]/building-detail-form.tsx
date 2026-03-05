@@ -14,6 +14,7 @@ import {
   updateBuilding,
   assignSupervisor,
   removeSupervisor,
+  deleteBuilding,
 } from "@/actions/buildings"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -105,6 +106,8 @@ export function BuildingDetailForm({
   const [isAssigning, setIsAssigning] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeletingBuilding, setIsDeletingBuilding] = useState(false)
 
   const {
     register,
@@ -166,6 +169,23 @@ export function BuildingDetailForm({
       })
     }
     setIsAssigning(false)
+  }
+
+  async function handleDeleteBuilding() {
+    setIsDeletingBuilding(true)
+    const result = await deleteBuilding({ buildingId: building.id })
+    if (result.success) {
+      toast({ title: "Building deleted" })
+      router.push(`/${orgSlug}/admin/buildings`)
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+      setIsDeletingBuilding(false)
+      setShowDeleteDialog(false)
+    }
   }
 
   async function handleRemove() {
@@ -265,7 +285,15 @@ export function BuildingDetailForm({
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-between">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Building
+            </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
@@ -380,7 +408,7 @@ export function BuildingDetailForm({
         </CardContent>
       </Card>
 
-      {/* Remove confirmation dialog */}
+      {/* Remove supervisor confirmation dialog */}
       <Dialog
         open={!!confirmRemove}
         onOpenChange={(open) => !open && setConfirmRemove(null)}
@@ -406,6 +434,36 @@ export function BuildingDetailForm({
               disabled={isRemoving}
             >
               {isRemoving ? "Removing..." : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete building confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Building</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{building.name}&quot;? The
+              building will be marked as inactive. This action cannot be undone
+              if there are no active activities.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeletingBuilding}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteBuilding}
+              disabled={isDeletingBuilding}
+            >
+              {isDeletingBuilding ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

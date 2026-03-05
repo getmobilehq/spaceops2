@@ -34,3 +34,9 @@ export const updateClientSchema = z.object({
 })
 
 export type UpdateClientInput = z.infer<typeof updateClientSchema>
+
+export const deleteClientSchema = z.object({
+  clientId: z.string().uuid("Invalid client ID"),
+})
+
+export type DeleteClientInput = z.infer<typeof deleteClientSchema>

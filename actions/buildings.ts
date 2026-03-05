@@ -7,10 +7,12 @@ import {
   updateBuildingSchema,
   assignSupervisorSchema,
   removeSupervisorSchema,
+  deleteBuildingSchema,
   type CreateBuildingInput,
   type UpdateBuildingInput,
   type AssignSupervisorInput,
   type RemoveSupervisorInput,
+  type DeleteBuildingInput,
 } from "@/lib/validations/building"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -264,5 +266,48 @@ export async function confirmFloorPlan(
     .eq("id", floorId)
 
   if (error) return { success: false, error: "Failed to confirm floor plan" }
+  return { success: true }
+}
+
+export async function deleteBuilding(
+  input: DeleteBuildingInput
+): Promise<ActionResult> {
+  const parsed = deleteBuildingSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Check for active/draft activities on any floor of this building
+  const { data: floors } = await ctx.supabase
+    .from("floors")
+    .select("id")
+    .eq("building_id", parsed.data.buildingId)
+
+  if (floors && floors.length > 0) {
+    const floorIds = floors.map((f) => f.id)
+    const { count } = await ctx.supabase
+      .from("cleaning_activities")
+      .select("id", { count: "exact", head: true })
+      .in("floor_id", floorIds)
+      .in("status", ["draft", "active"])
+
+    if (count && count > 0) {
+      return {
+        success: false,
+        error: "Cannot delete building with active or draft activities. Complete or cancel them first.",
+      }
+    }
+  }
+
+  // Soft delete: set status to inactive
+  const { error } = await ctx.supabase
+    .from("buildings")
+    .update({ status: "inactive" })
+    .eq("id", parsed.data.buildingId)
+
+  if (error) return { success: false, error: "Failed to delete building" }
   return { success: true }
 }
