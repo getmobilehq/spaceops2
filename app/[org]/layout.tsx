@@ -57,6 +57,7 @@ export default async function OrgLayout({
         userAvatarUrl: userRecord?.avatar_url || null,
         userRole: userRecord?.role || (user.app_metadata?.role as string) || "",
         userEmail: user.email || "",
+        plan: org.plan || "free",
       }}
     >
       {children}

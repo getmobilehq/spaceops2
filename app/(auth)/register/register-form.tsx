@@ -5,7 +5,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { loginSchema, type LoginInput } from "@/lib/validations/auth"
+import {
+  registerSchema,
+  type RegisterInput,
+} from "@/lib/validations/register"
+import { registerOrg } from "@/actions/register"
 import { loginAction } from "@/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,11 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-interface LoginFormProps {
-  redirectTo?: string
-}
-
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function RegisterForm() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -31,15 +31,15 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
   })
 
-  async function onSubmit(data: LoginInput) {
+  async function onSubmit(data: RegisterInput) {
     setIsLoading(true)
     setError(null)
 
-    const result = await loginAction(data)
+    const result = await registerOrg(data)
 
     if (!result.success) {
       setError(result.error)
@@ -47,14 +47,26 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       return
     }
 
-    router.push(redirectTo || "/")
+    // Auto sign-in after registration
+    const loginResult = await loginAction({
+      email: data.email,
+      password: data.password,
+    })
+
+    if (!loginResult.success) {
+      setError("Account created but login failed. Please sign in manually.")
+      setIsLoading(false)
+      return
+    }
+
+    router.push("/")
     router.refresh()
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-center">Sign In</CardTitle>
+        <CardTitle className="text-center">Create Account</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
@@ -63,6 +75,50 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
               {error}
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="orgName">Organisation Name</Label>
+            <Input
+              id="orgName"
+              placeholder="Acme Cleaning Co"
+              {...register("orgName")}
+            />
+            {errors.orgName && (
+              <p className="text-sm text-destructive">
+                {errors.orgName.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-4 grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                {...register("firstName")}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-destructive">
+                  {errors.firstName.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                {...register("lastName")}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-destructive">
+                  {errors.lastName.message}
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -78,12 +134,13 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
               </p>
             )}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               {...register("password")}
             />
             {errors.password && (
@@ -95,19 +152,13 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </CardContent>
         <CardFooter className="flex flex-col space-y-3">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Creating account..." : "Create Account"}
           </Button>
           <Link
-            href="/auth/reset-password"
+            href="/auth/login"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            Forgot your password?
-          </Link>
-          <Link
-            href="/register"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            Create an account
+            Already have an account? Sign in
           </Link>
         </CardFooter>
       </form>

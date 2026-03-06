@@ -51,6 +51,29 @@ export async function createBuilding(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
+  // Enforce building limit
+  const { data: orgData } = await ctx.supabase
+    .from("organisations")
+    .select("plan")
+    .eq("id", ctx.orgId)
+    .single()
+
+  const { getPlanLimits } = await import("@/lib/plans")
+  const limits = getPlanLimits((orgData?.plan as "free" | "pro" | "enterprise") || "free")
+  if (limits.buildings > 0) {
+    const { count } = await ctx.supabase
+      .from("buildings")
+      .select("id", { count: "exact", head: true })
+      .neq("status", "inactive")
+
+    if ((count || 0) >= limits.buildings) {
+      return {
+        success: false,
+        error: `Your plan allows up to ${limits.buildings} building${limits.buildings === 1 ? "" : "s"}. Upgrade to add more.`,
+      }
+    }
+  }
+
   // 1. Insert building
   const { data: building, error: buildingError } = await ctx.supabase
     .from("buildings")

@@ -37,6 +37,7 @@ export function AppSidebar({
     userLastName,
     userAvatarUrl,
     userRole,
+    plan,
   } = useOrg()
   const pathname = usePathname()
 
@@ -96,7 +97,13 @@ export function AppSidebar({
             const isActive = pathname.startsWith(href)
             const Icon = item.icon
 
-            if (!item.enabled) {
+            // Check plan gating
+            const planOrder: Record<string, number> = { free: 0, pro: 1, enterprise: 2 }
+            const planLocked = item.requiredPlan
+              ? (planOrder[plan] || 0) < (planOrder[item.requiredPlan] || 0)
+              : false
+
+            if (!item.enabled || planLocked) {
               const disabledContent = (
                 <span
                   key={item.href}

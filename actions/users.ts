@@ -43,6 +43,29 @@ export async function inviteUser(
     return { success: false, error: "Unauthorized" }
   }
 
+  // Enforce seat limit
+  const { data: orgData } = await ctx.supabase
+    .from("organisations")
+    .select("plan")
+    .eq("id", ctx.orgId)
+    .single()
+
+  const { getPlanLimits } = await import("@/lib/plans")
+  const limits = getPlanLimits((orgData?.plan as "free" | "pro" | "enterprise") || "free")
+  if (limits.seats > 0) {
+    const { count } = await ctx.supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    if ((count || 0) >= limits.seats) {
+      return {
+        success: false,
+        error: `Your plan allows up to ${limits.seats} users. Upgrade to add more.`,
+      }
+    }
+  }
+
   const admin = createAdminClient()
   const origin = headers().get("origin") || process.env.NEXT_PUBLIC_APP_URL
 

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { updateSession } from "@/lib/supabase/middleware"
 
-const publicPatterns = ["/auth", "/scan", "/_next", "/favicon.ico", "/api/health", "/api/cron"]
+const publicPatterns = ["/auth", "/register", "/scan", "/_next", "/favicon.ico", "/api/health", "/api/cron", "/api/webhooks"]
 
 function isPublicRoute(pathname: string): boolean {
   return publicPatterns.some((pattern) => pathname.startsWith(pattern))
@@ -67,6 +67,17 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = getDefaultPath(orgSlug, role)
     return NextResponse.redirect(url)
+  }
+
+  // 5b. Platform (super-admin) routes
+  if (pathname.startsWith("/platform")) {
+    const isSuperAdmin = user.app_metadata?.is_super_admin === true
+    if (!isSuperAdmin) {
+      const url = request.nextUrl.clone()
+      url.pathname = getDefaultPath(orgSlug, role)
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
   }
 
   // 6. Validate org slug from URL

@@ -14,6 +14,7 @@ interface OrgContextValue {
   userAvatarUrl: string | null
   userRole: string
   userEmail: string
+  plan: "free" | "pro" | "enterprise"
 }
 
 const OrgContext = createContext<OrgContextValue | null>(null)

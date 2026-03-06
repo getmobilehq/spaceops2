@@ -44,6 +44,21 @@ export async function vectoriseFloorPlan(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
+  // Check plan allows AI vectorisation
+  const { data: orgData } = await ctx.supabase
+    .from("organisations")
+    .select("plan")
+    .eq("id", ctx.orgId)
+    .single()
+
+  const { canAccess } = await import("@/lib/plans")
+  if (!canAccess("ai_vectorisation", (orgData?.plan as "free" | "pro" | "enterprise") || "free")) {
+    return {
+      success: false,
+      error: "AI floor plan vectorisation requires a Pro or Enterprise plan.",
+    }
+  }
+
   // Fetch the vectorised_plans row for this floor
   const { data: plan, error: planError } = await ctx.supabase
     .from("vectorised_plans")

@@ -12,14 +12,17 @@ import {
   AlertTriangle,
   BookTemplate,
   Clock,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react"
+import type { PlanType } from "@/lib/plans"
 
 export interface NavItem {
   label: string
   href: string
   icon: LucideIcon
   enabled: boolean
+  requiredPlan?: PlanType
 }
 
 export const NAV_CONFIG: Record<string, NavItem[]> = {
@@ -31,6 +34,7 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: "Checklists", href: "checklists", icon: ClipboardCheck, enabled: true },
     { label: "Settings", href: "settings", icon: Settings, enabled: true },
     { label: "Reports", href: "reports", icon: BarChart3, enabled: true },
+    { label: "Billing", href: "billing", icon: CreditCard, enabled: true },
   ],
   supervisor: [
     { label: "Dashboard", href: "dashboard", icon: LayoutDashboard, enabled: true },
