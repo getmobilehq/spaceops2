@@ -102,7 +102,21 @@ export async function registerOrg(
     return { success: false, error: "Failed to create user record" }
   }
 
-  // 4. Create Stripe customer (non-fatal)
+  // 4. Send welcome email (non-fatal)
+  try {
+    const { welcomeEmail } = await import("@/lib/email/templates")
+    const { sendEmail } = await import("@/lib/email/send")
+    const tmpl = welcomeEmail({
+      firstName,
+      orgName,
+      loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/auth/login`,
+    })
+    await sendEmail({ to: email, ...tmpl })
+  } catch (err) {
+    console.error("Welcome email failed:", err)
+  }
+
+  // 5. Create Stripe customer (non-fatal)
   try {
     const stripe = getStripe()
     const customer = await stripe.customers.create({

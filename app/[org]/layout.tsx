@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
+import { headers } from "next/headers"
 import { OrgProvider } from "@/components/shared/OrgProvider"
 import type { Tables } from "@/lib/supabase/types"
 
@@ -43,6 +44,17 @@ export default async function OrgLayout({
     .eq("id", user.id)
     .single()
 
+  // Redirect admin to onboarding if not completed
+  const headerList = headers()
+  const pathname = headerList.get("x-next-pathname") || ""
+  if (
+    org.onboarding_completed === false &&
+    userRecord?.role === "admin" &&
+    !pathname.includes("/onboarding")
+  ) {
+    redirect(`/${org.slug}/admin/onboarding`)
+  }
+
   return (
     <OrgProvider
       value={{
@@ -58,6 +70,7 @@ export default async function OrgLayout({
         userRole: userRecord?.role || (user.app_metadata?.role as string) || "",
         userEmail: user.email || "",
         plan: org.plan || "free",
+        onboardingCompleted: org.onboarding_completed ?? true,
       }}
     >
       {children}

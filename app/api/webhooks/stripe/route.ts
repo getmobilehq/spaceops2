@@ -94,6 +94,36 @@ export async function POST(request: NextRequest) {
         .update({ plan: derivedPlan })
         .eq("id", org.id)
 
+      // Send subscription confirmation email (non-fatal)
+      if (derivedPlan !== "free") {
+        try {
+          const { subscriptionConfirmEmail } = await import(
+            "@/lib/email/templates"
+          )
+          const { sendEmail } = await import("@/lib/email/send")
+          const { data: orgRecord } = await admin
+            .from("organisations")
+            .select("name")
+            .eq("id", org.id)
+            .single()
+          const periodEnd = new Date(
+            sub.current_period_end * 1000
+          ).toLocaleDateString("en-GB")
+          const tmpl = subscriptionConfirmEmail({
+            orgName: orgRecord?.name || "Your organisation",
+            planName: derivedPlan.charAt(0).toUpperCase() + derivedPlan.slice(1),
+            periodEnd,
+          })
+          // Send to the customer's email
+          const customer = await stripe.customers.retrieve(customerId)
+          if ("email" in customer && customer.email) {
+            await sendEmail({ to: customer.email, ...tmpl })
+          }
+        } catch (err) {
+          console.error("Subscription confirmation email failed:", err)
+        }
+      }
+
       break
     }
 
@@ -118,6 +148,35 @@ export async function POST(request: NextRequest) {
         .from("organisations")
         .update({ plan: "free" })
         .eq("id", org.id)
+
+      // Send subscription canceled email (non-fatal)
+      try {
+        const { subscriptionCanceledEmail } = await import(
+          "@/lib/email/templates"
+        )
+        const { sendEmail } = await import("@/lib/email/send")
+        const { data: orgRecord } = await admin
+          .from("organisations")
+          .select("name")
+          .eq("id", org.id)
+          .single()
+        const sub = subscription as unknown as {
+          current_period_end: number
+        }
+        const periodEnd = new Date(
+          sub.current_period_end * 1000
+        ).toLocaleDateString("en-GB")
+        const tmpl = subscriptionCanceledEmail({
+          orgName: orgRecord?.name || "Your organisation",
+          periodEnd,
+        })
+        const customer = await stripe.customers.retrieve(customerId)
+        if ("email" in customer && customer.email) {
+          await sendEmail({ to: customer.email, ...tmpl })
+        }
+      } catch (err) {
+        console.error("Subscription canceled email failed:", err)
+      }
 
       break
     }

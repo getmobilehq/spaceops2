@@ -103,6 +103,26 @@ export async function inviteUser(
     return { success: false, error: "Failed to create user record" }
   }
 
+  // Send invite notification email (non-fatal)
+  try {
+    const { inviteEmail } = await import("@/lib/email/templates")
+    const { sendEmail } = await import("@/lib/email/send")
+    const { data: orgRecord } = await admin
+      .from("organisations")
+      .select("name")
+      .eq("id", ctx.orgId)
+      .single()
+    const tmpl = inviteEmail({
+      firstName: parsed.data.firstName,
+      inviterOrgName: orgRecord?.name || "your organisation",
+      role: parsed.data.role,
+      acceptUrl: `${origin}/auth/callback?type=invite`,
+    })
+    await sendEmail({ to: parsed.data.email, ...tmpl })
+  } catch (err) {
+    console.error("Invite email failed:", err)
+  }
+
   return { success: true }
 }
 

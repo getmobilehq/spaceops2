@@ -25,6 +25,9 @@ function getDefaultPath(orgSlug: string, role: string): string {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Set pathname header so server components can read it via headers()
+  request.headers.set("x-pathname", pathname)
+
   // 1. Always refresh the session (updates cookies)
   const { user, supabaseResponse } = await updateSession(request)
 

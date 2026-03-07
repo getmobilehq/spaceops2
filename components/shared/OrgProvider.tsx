@@ -15,6 +15,7 @@ interface OrgContextValue {
   userRole: string
   userEmail: string
   plan: "free" | "pro" | "enterprise"
+  onboardingCompleted: boolean
 }
 
 const OrgContext = createContext<OrgContextValue | null>(null)
