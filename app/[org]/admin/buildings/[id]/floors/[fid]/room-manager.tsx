@@ -15,6 +15,7 @@ import {
   updateRoom,
   deleteRoom,
   createCustomRoomType,
+  regenerateRoomQR,
 } from "@/actions/rooms"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -353,16 +354,26 @@ export function RoomManager({
                         }`}
                       />
                     </Button>
-                    {room.qr_code_url && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setQrRoom(room)}
-                      >
-                        <QrCode className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={async () => {
+                        if (room.qr_code_url) {
+                          setQrRoom(room)
+                        } else {
+                          const res = await regenerateRoomQR(room.id)
+                          if (res.success) {
+                            router.refresh()
+                            toast({ title: "QR code generated — click again to view" })
+                          } else {
+                            toast({ title: "Failed to generate QR", variant: "destructive" })
+                          }
+                        }
+                      }}
+                    >
+                      <QrCode className="h-4 w-4 text-muted-foreground" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
