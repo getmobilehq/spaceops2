@@ -39,6 +39,7 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
   supervisor: [
     { label: "Dashboard", href: "dashboard", icon: LayoutDashboard, enabled: true },
     { label: "Activities", href: "activities", icon: CalendarCheck, enabled: true },
+    { label: "Inspections", href: "inspections", icon: ClipboardCheck, enabled: true },
     { label: "Templates", href: "templates", icon: BookTemplate, enabled: true },
     { label: "Attendance", href: "attendance", icon: Clock, enabled: true },
     { label: "Issues", href: "issues", icon: AlertTriangle, enabled: true },

@@ -244,7 +244,9 @@ export type Database = {
         Row: {
           address: string
           attendance_qr_path: string | null
+          city: string
           client_id: string | null
+          country: string
           created_at: string
           geofence_radius_m: number
           id: string
@@ -252,12 +254,16 @@ export type Database = {
           longitude: number | null
           name: string
           org_id: string
+          state: string
           status: string
+          zip_code: string
         }
         Insert: {
           address: string
           attendance_qr_path?: string | null
+          city?: string
           client_id?: string | null
+          country?: string
           created_at?: string
           geofence_radius_m?: number
           id?: string
@@ -265,12 +271,16 @@ export type Database = {
           longitude?: number | null
           name: string
           org_id: string
+          state?: string
           status?: string
+          zip_code?: string
         }
         Update: {
           address?: string
           attendance_qr_path?: string | null
+          city?: string
           client_id?: string | null
+          country?: string
           created_at?: string
           geofence_radius_m?: number
           id?: string
@@ -278,7 +288,9 @@ export type Database = {
           longitude?: number | null
           name?: string
           org_id?: string
+          state?: string
           status?: string
+          zip_code?: string
         }
         Relationships: [
           {
@@ -633,6 +645,84 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          building_id: string
+          created_at: string
+          floor_id: string
+          id: string
+          inspected_at: string | null
+          inspection_scan_at: string | null
+          inspector_id: string
+          notes: string | null
+          org_id: string
+          room_id: string
+          status: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          floor_id: string
+          id?: string
+          inspected_at?: string | null
+          inspection_scan_at?: string | null
+          inspector_id: string
+          notes?: string | null
+          org_id: string
+          room_id: string
+          status?: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          floor_id?: string
+          id?: string
+          inspected_at?: string | null
+          inspection_scan_at?: string | null
+          inspector_id?: string
+          notes?: string | null
+          org_id?: string
+          room_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]

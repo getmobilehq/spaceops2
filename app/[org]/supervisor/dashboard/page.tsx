@@ -22,6 +22,7 @@ import {
   getTodayActivityDetails,
 } from "@/lib/queries/dashboard"
 import { getSupervisorBuildingAttendance } from "@/lib/queries/attendance"
+import { getInspectionStats } from "@/lib/queries/inspections"
 import { ActivityStatusBadge } from "@/components/shared/ActivityStatusBadge"
 import { StatCard } from "@/components/shared/StatCard"
 
@@ -39,10 +40,11 @@ export default async function SupervisorDashboardPage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [stats, todayActivities, buildings] = await Promise.all([
+  const [stats, todayActivities, buildings, inspectionStats] = await Promise.all([
     getSupervisorDashboardStats(supabase),
     getTodayActivityDetails(supabase),
     user ? getSupervisorBuildings(supabase, user.id) : [],
+    user ? getInspectionStats(supabase, user.id) : { total: 0, pending: 0, passed: 0, failed: 0 },
   ])
   const attendanceRecords = user ? await getSupervisorBuildingAttendance(supabase, user.id) : []
 
@@ -70,17 +72,20 @@ export default async function SupervisorDashboardPage({
             animationDelay="0ms"
           />
         </Link>
-        <StatCard
-          title="Pending Inspection"
-          value={stats.pendingInspection}
-          icon={ClipboardCheck}
-          iconClassName={
-            stats.pendingInspection > 0
-              ? "bg-warning/10 text-warning"
-              : "bg-primary/10 text-primary"
-          }
-          animationDelay="100ms"
-        />
+        <Link href={`/${params.org}/supervisor/inspections`}>
+          <StatCard
+            title="Inspections"
+            value={inspectionStats.total}
+            icon={ClipboardCheck}
+            iconClassName={
+              inspectionStats.pending > 0
+                ? "bg-warning/10 text-warning"
+                : "bg-primary/10 text-primary"
+            }
+            className="hover:bg-muted/50 transition-colors"
+            animationDelay="100ms"
+          />
+        </Link>
         <Link href={`/${params.org}/supervisor/issues`}>
           <StatCard
             title="Open Issues"

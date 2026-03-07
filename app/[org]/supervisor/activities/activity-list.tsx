@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Calendar, Clock, MapPin, RefreshCw } from "lucide-react"
+import { Plus, Calendar, Clock, MapPin, RefreshCw, ArrowUp, ArrowDown } from "lucide-react"
 import { ActivityStatusBadge } from "@/components/shared/ActivityStatusBadge"
 
 interface ActivityData {
@@ -43,14 +43,36 @@ export function ActivityList({
 }) {
   const [dateFilter, setDateFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [sortField, setSortField] = useState<"date" | "name" | "status">("date")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
 
   const filtered = useMemo(() => {
-    return activities.filter((a) => {
+    const result = activities.filter((a) => {
       if (dateFilter && a.scheduled_date !== dateFilter) return false
       if (statusFilter !== "all" && a.status !== statusFilter) return false
       return true
     })
-  }, [activities, dateFilter, statusFilter])
+
+    const statusOrder: Record<string, number> = { active: 0, draft: 1, closed: 2, cancelled: 3 }
+
+    result.sort((a, b) => {
+      let cmp = 0
+      switch (sortField) {
+        case "date":
+          cmp = a.scheduled_date.localeCompare(b.scheduled_date)
+          break
+        case "name":
+          cmp = a.name.localeCompare(b.name)
+          break
+        case "status":
+          cmp = (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99)
+          break
+      }
+      return sortDirection === "asc" ? cmp : -cmp
+    })
+
+    return result
+  }, [activities, dateFilter, statusFilter, sortField, sortDirection])
 
   return (
     <div className="space-y-4">
@@ -73,6 +95,31 @@ export function ActivityList({
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
+        <Select
+          value={sortField}
+          onValueChange={(v) => setSortField(v as "date" | "name" | "status")}
+        >
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">Sort by Date</SelectItem>
+            <SelectItem value="name">Sort by Name</SelectItem>
+            <SelectItem value="status">Sort by Status</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+          title={sortDirection === "asc" ? "Ascending" : "Descending"}
+        >
+          {sortDirection === "asc" ? (
+            <ArrowUp className="h-4 w-4" />
+          ) : (
+            <ArrowDown className="h-4 w-4" />
+          )}
+        </Button>
         <div className="flex-1" />
         <Button asChild>
           <Link href={`/${orgSlug}/supervisor/activities/new`}>

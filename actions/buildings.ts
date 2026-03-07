@@ -82,6 +82,10 @@ export async function createBuilding(
       client_id: parsed.data.clientId,
       name: parsed.data.name,
       address: parsed.data.address,
+      city: parsed.data.city,
+      state: parsed.data.state,
+      zip_code: parsed.data.zipCode,
+      country: parsed.data.country,
       status: "setup",
     })
     .select("id")
@@ -127,6 +131,12 @@ export async function updateBuilding(
   if (parsed.data.name !== undefined) updateData.name = parsed.data.name
   if (parsed.data.address !== undefined)
     updateData.address = parsed.data.address
+  if (parsed.data.city !== undefined) updateData.city = parsed.data.city
+  if (parsed.data.state !== undefined) updateData.state = parsed.data.state
+  if (parsed.data.zipCode !== undefined)
+    updateData.zip_code = parsed.data.zipCode
+  if (parsed.data.country !== undefined)
+    updateData.country = parsed.data.country
   if (parsed.data.clientId !== undefined)
     updateData.client_id = parsed.data.clientId
   if (parsed.data.status !== undefined) updateData.status = parsed.data.status

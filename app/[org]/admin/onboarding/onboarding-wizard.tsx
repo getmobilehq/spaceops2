@@ -40,7 +40,11 @@ import {
 
 const buildingSchema = z.object({
   name: z.string().min(1, "Building name is required").max(100),
-  address: z.string().min(1, "Address is required").max(200),
+  address: z.string().min(1, "Street address is required").max(200),
+  city: z.string().min(1, "City is required").max(100),
+  state: z.string().min(1, "State is required").max(100),
+  zipCode: z.string().min(1, "ZIP code is required").max(20),
+  country: z.string().min(1, "Country is required").max(100),
 })
 
 const inviteSchema = z.object({
@@ -80,7 +84,7 @@ export function OnboardingWizard({
 
   const buildingForm = useForm<BuildingFormData>({
     resolver: zodResolver(buildingSchema),
-    defaultValues: { name: "", address: "" },
+    defaultValues: { name: "", address: "", city: "", state: "", zipCode: "", country: "United States" },
   })
 
   const inviteForm = useForm<InviteFormData>({
@@ -99,6 +103,10 @@ export function OnboardingWizard({
       const result = await createBuilding({
         name: data.name,
         address: data.address,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zipCode,
+        country: data.country,
         clientId: null,
         floors: [{ floorNumber: 1, floorName: "Ground Floor" }],
       })
@@ -278,10 +286,10 @@ export function OnboardingWizard({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="building-address">Address</Label>
+                <Label htmlFor="building-address">Street Address</Label>
                 <Input
                   id="building-address"
-                  placeholder="e.g. 123 Main Street, London"
+                  placeholder="e.g. 123 Main Street"
                   {...buildingForm.register("address")}
                 />
                 {buildingForm.formState.errors.address && (
@@ -289,6 +297,57 @@ export function OnboardingWizard({
                     {buildingForm.formState.errors.address.message}
                   </p>
                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="building-city">City</Label>
+                  <Input
+                    id="building-city"
+                    placeholder="New York"
+                    {...buildingForm.register("city")}
+                  />
+                  {buildingForm.formState.errors.city && (
+                    <p className="text-sm text-destructive">
+                      {buildingForm.formState.errors.city.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="building-state">State</Label>
+                  <Input
+                    id="building-state"
+                    placeholder="NY"
+                    {...buildingForm.register("state")}
+                  />
+                  {buildingForm.formState.errors.state && (
+                    <p className="text-sm text-destructive">
+                      {buildingForm.formState.errors.state.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="building-zip">ZIP Code</Label>
+                  <Input
+                    id="building-zip"
+                    placeholder="10001"
+                    {...buildingForm.register("zipCode")}
+                  />
+                  {buildingForm.formState.errors.zipCode && (
+                    <p className="text-sm text-destructive">
+                      {buildingForm.formState.errors.zipCode.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="building-country">Country</Label>
+                  <Input
+                    id="building-country"
+                    placeholder="United States"
+                    {...buildingForm.register("country")}
+                  />
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">

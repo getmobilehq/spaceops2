@@ -16,6 +16,10 @@ interface BuildingWithRelations {
   id: string
   name: string
   address: string
+  city: string
+  state: string
+  zip_code: string
+  country: string
   status: string
   clients: { company_name: string } | null
   floors: { id: string }[]
@@ -57,6 +61,8 @@ export function BuildingTable({
                 <TableCell className="font-medium">{building.name}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {building.address}
+                  {building.city ? `, ${building.city}` : ""}
+                  {building.state ? `, ${building.state}` : ""}
                 </TableCell>
                 <TableCell>
                   {building.clients?.company_name || "—"}

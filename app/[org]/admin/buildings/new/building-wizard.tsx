@@ -63,6 +63,10 @@ export function BuildingWizard({
   const [details, setDetails] = useState<BuildingDetailsInput>({
     name: "",
     address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "United States",
   })
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [floors, setFloors] = useState<FloorEntryInput[]>([
@@ -144,6 +148,10 @@ export function BuildingWizard({
     const result = await createBuilding({
       name: details.name,
       address: details.address,
+      city: details.city,
+      state: details.state,
+      zipCode: details.zipCode,
+      country: details.country,
       clientId: selectedClientId,
       floors,
     })
@@ -220,10 +228,10 @@ export function BuildingWizard({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Street Address</Label>
                 <Input
                   id="address"
-                  placeholder="123 Business Ave, City, State"
+                  placeholder="123 Business Ave"
                   {...detailsForm.register("address")}
                 />
                 {detailsForm.formState.errors.address && (
@@ -231,6 +239,62 @@ export function BuildingWizard({
                     {detailsForm.formState.errors.address.message}
                   </p>
                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="New York"
+                    {...detailsForm.register("city")}
+                  />
+                  {detailsForm.formState.errors.city && (
+                    <p className="text-sm text-destructive">
+                      {detailsForm.formState.errors.city.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">State</Label>
+                  <Input
+                    id="state"
+                    placeholder="NY"
+                    {...detailsForm.register("state")}
+                  />
+                  {detailsForm.formState.errors.state && (
+                    <p className="text-sm text-destructive">
+                      {detailsForm.formState.errors.state.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode">ZIP Code</Label>
+                  <Input
+                    id="zipCode"
+                    placeholder="10001"
+                    {...detailsForm.register("zipCode")}
+                  />
+                  {detailsForm.formState.errors.zipCode && (
+                    <p className="text-sm text-destructive">
+                      {detailsForm.formState.errors.zipCode.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    placeholder="United States"
+                    {...detailsForm.register("country")}
+                  />
+                  {detailsForm.formState.errors.country && (
+                    <p className="text-sm text-destructive">
+                      {detailsForm.formState.errors.country.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
@@ -405,6 +469,12 @@ export function BuildingWizard({
               <div>
                 <p className="text-xs text-muted-foreground">Address</p>
                 <p className="font-medium">{details.address}</p>
+                <p className="text-sm text-muted-foreground">
+                  {details.city}, {details.state} {details.zipCode}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {details.country}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Client</p>

@@ -9,8 +9,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { getJanitorTodayTasks } from "@/lib/queries/activities"
 import { getJanitorTodayAttendance } from "@/lib/queries/attendance"
-import { Clock, MapPin, ChevronRight, QrCode, CheckCircle2, AlertTriangle, Building2 } from "lucide-react"
+import { Clock, MapPin, ChevronRight, QrCode } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
+import { AttendanceBanner } from "./attendance-banner"
 
 export const metadata = {
   title: "Today - SpaceOps",
@@ -78,80 +79,10 @@ export default async function JanitorTodayPage({
       </div>
 
       {/* Attendance Banner */}
-      {(() => {
-        // Collect unique building names from today's tasks
-        const buildingNames = new Set<string>()
-        for (const [, group] of grouped) {
-          if (group.buildingName) buildingNames.add(group.buildingName)
-        }
-
-        const openAttendance = attendance.filter((a) => !a.clock_out_at)
-        const hasAttendance = attendance.length > 0
-
-        if (!hasAttendance && buildingNames.size > 0) {
-          return (
-            <Card className="border-warning/30 bg-warning/5">
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/10">
-                    <Building2 className="h-5 w-5 text-warning" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Clock In Required</p>
-                    <p className="text-xs text-muted-foreground">
-                      Scan the attendance QR code at the building entrance
-                    </p>
-                  </div>
-                  <QrCode className="h-5 w-5 text-warning" />
-                </div>
-              </CardContent>
-            </Card>
-          )
-        }
-
-        return openAttendance.map((a) => {
-          const building = a.buildings as { name: string } | null
-          const clockInTime = new Date(a.clock_in_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-          return (
-            <Card
-              key={a.id}
-              className={
-                a.geo_verified
-                  ? "border-success/30 bg-success/5"
-                  : "border-warning/30 bg-warning/5"
-              }
-            >
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      a.geo_verified ? "bg-success/10" : "bg-warning/10"
-                    }`}
-                  >
-                    {a.geo_verified ? (
-                      <CheckCircle2 className="h-5 w-5 text-success" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-warning" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">
-                      Clocked in at {building?.name || "building"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {clockInTime}
-                      {!a.geo_verified && " · Unverified"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })
-      })()}
+      <AttendanceBanner
+        attendance={attendance as { id: string; clock_in_at: string; clock_out_at: string | null; geo_verified: boolean; buildings: { name: string } | null }[]}
+        hasTasks={tasks.length > 0}
+      />
 
       {tasks.length === 0 ? (
         <Card>

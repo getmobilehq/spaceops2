@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await admin
     .from("buildings")
     .select(
-      "id, name, address, status, client_id, latitude, longitude, geofence_radius_m, created_at"
+      "id, name, address, city, state, zip_code, country, status, client_id, latitude, longitude, geofence_radius_m, created_at"
     )
     .eq("org_id", auth.ctx.orgId)
     .order("created_at", { ascending: false })

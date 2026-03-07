@@ -9,8 +9,24 @@ export const buildingDetailsSchema = z.object({
     .max(100, "Building name must be 100 characters or fewer"),
   address: z
     .string()
-    .min(1, "Address is required")
-    .max(200, "Address must be 200 characters or fewer"),
+    .min(1, "Street address is required")
+    .max(200, "Street address must be 200 characters or fewer"),
+  city: z
+    .string()
+    .min(1, "City is required")
+    .max(100),
+  state: z
+    .string()
+    .min(1, "State is required")
+    .max(100),
+  zipCode: z
+    .string()
+    .min(1, "ZIP code is required")
+    .max(20),
+  country: z
+    .string()
+    .min(1, "Country is required")
+    .max(100),
 })
 
 export type BuildingDetailsInput = z.infer<typeof buildingDetailsSchema>
@@ -39,6 +55,10 @@ export type BuildingFloorsInput = z.infer<typeof buildingFloorsSchema>
 export const createBuildingSchema = z.object({
   name: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
+  city: z.string().min(1).max(100),
+  state: z.string().min(1).max(100),
+  zipCode: z.string().min(1).max(20),
+  country: z.string().min(1).max(100),
   clientId: z.string().uuid().nullable(),
   floors: z.array(floorEntrySchema).min(1),
 })
@@ -49,6 +69,10 @@ export const updateBuildingSchema = z.object({
   buildingId: z.string().uuid("Invalid building ID"),
   name: z.string().min(1).max(100).optional(),
   address: z.string().min(1).max(200).optional(),
+  city: z.string().min(1).max(100).optional(),
+  state: z.string().min(1).max(100).optional(),
+  zipCode: z.string().min(1).max(20).optional(),
+  country: z.string().max(100).optional(),
   clientId: z.string().uuid().nullable().optional(),
   status: buildingStatusEnum.optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),

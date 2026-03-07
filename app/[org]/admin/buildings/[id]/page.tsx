@@ -36,7 +36,12 @@ export default async function BuildingDetailPage({
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-foreground">{building.name}</h1>
-        <p className="text-muted-foreground">{building.address}</p>
+        <p className="text-muted-foreground">
+          {building.address}
+          {building.city ? `, ${building.city}` : ""}
+          {building.state ? `, ${building.state}` : ""}
+          {building.zip_code ? ` ${building.zip_code}` : ""}
+        </p>
       </div>
       <BuildingDetailForm
         building={building}

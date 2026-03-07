@@ -58,6 +58,10 @@ interface BuildingData {
   id: string
   name: string
   address: string
+  city: string
+  state: string
+  zip_code: string
+  country: string
   status: string
   client_id: string | null
   latitude: number | null
@@ -132,6 +136,10 @@ export function BuildingDetailForm({
       buildingId: building.id,
       name: building.name,
       address: building.address,
+      city: building.city || "",
+      state: building.state || "",
+      zipCode: building.zip_code || "",
+      country: building.country || "United States",
       status: building.status as UpdateBuildingInput["status"],
       clientId: building.client_id,
     },
@@ -281,13 +289,42 @@ export function BuildingDetailForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">Street Address</Label>
               <Input id="address" {...register("address")} />
               {errors.address && (
                 <p className="text-sm text-destructive">
                   {errors.address.message}
                 </p>
               )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input id="city" {...register("city")} />
+                {errors.city && (
+                  <p className="text-sm text-destructive">{errors.city.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input id="state" {...register("state")} />
+                {errors.state && (
+                  <p className="text-sm text-destructive">{errors.state.message}</p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="zipCode">ZIP Code</Label>
+                <Input id="zipCode" {...register("zipCode")} />
+                {errors.zipCode && (
+                  <p className="text-sm text-destructive">{errors.zipCode.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input id="country" {...register("country")} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
