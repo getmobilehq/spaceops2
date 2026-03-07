@@ -218,10 +218,19 @@ export async function applyVectorisation(
         })
 
         const qrPath = `${ctx.orgId}/${newRoom.id}/qr.png`
-        await admin.storage.from("qr-codes").upload(qrPath, buffer, {
-          contentType: "image/png",
-          upsert: true,
-        })
+        const { error: uploadError } = await admin.storage
+          .from("qr-codes")
+          .upload(qrPath, buffer, {
+            contentType: "image/png",
+            upsert: true,
+          })
+
+        if (!uploadError) {
+          await ctx.supabase
+            .from("rooms")
+            .update({ qr_code_url: qrPath })
+            .eq("id", newRoom.id)
+        }
       } catch {
         // QR generation failure is non-critical, continue
       }
