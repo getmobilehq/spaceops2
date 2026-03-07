@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server"
 import type { Tables } from "@/lib/supabase/types"
 import { notFound } from "next/navigation"
 import { SettingsForm } from "./settings-form"
+import { getOrgApiKeys } from "@/lib/queries/api-keys"
+import { ApiKeyManager } from "@/components/api-keys/api-key-manager"
+import { UpgradePrompt } from "@/components/shared/UpgradePrompt"
 
 export const metadata = {
   title: "Settings - SpaceOps",
@@ -28,6 +31,7 @@ export default async function SettingsPage() {
   if (error || !data) return notFound()
 
   const org = data as Tables<"organisations">
+  const apiKeys = await getOrgApiKeys(supabase)
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -38,6 +42,13 @@ export default async function SettingsPage() {
         </p>
       </div>
       <SettingsForm org={org} />
+
+      {/* API Keys — Enterprise only */}
+      {org.plan === "enterprise" ? (
+        <ApiKeyManager apiKeys={apiKeys} />
+      ) : (
+        <UpgradePrompt feature="API access" />
+      )}
     </div>
   )
 }

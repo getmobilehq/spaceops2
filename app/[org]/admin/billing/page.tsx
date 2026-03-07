@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { getOrgSubscription, getOrgUsage } from "@/lib/queries/billing"
+import { getOrgUsageEvents } from "@/lib/queries/usage"
 import { BillingDashboard } from "./billing-dashboard"
 import type { Tables } from "@/lib/supabase/types"
 
@@ -26,9 +27,10 @@ export default async function BillingPage() {
 
   if (!org) return notFound()
 
-  const [subscription, usage] = await Promise.all([
+  const [subscription, usage, usageEvents] = await Promise.all([
     getOrgSubscription(supabase, orgId),
     getOrgUsage(supabase, orgId),
+    getOrgUsageEvents(supabase, orgId),
   ])
 
   return (
@@ -44,6 +46,9 @@ export default async function BillingPage() {
         subscription={subscription}
         buildingCount={usage.buildingCount}
         userCount={usage.userCount}
+        aiVectorisations={usageEvents.aiVectorisations}
+        aiReports={usageEvents.aiReports}
+        apiCalls={usageEvents.apiCalls}
       />
     </div>
   )

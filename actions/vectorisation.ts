@@ -3,6 +3,7 @@
 import QRCode from "qrcode"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import type { Json } from "@/lib/supabase/types"
 import {
   vectoriseFloorPlanSchema,
   applyVectorisationSchema,
@@ -86,11 +87,19 @@ export async function vectoriseFloorPlan(
   try {
     const result = await extractRoomsFromFloorPlan(ctx.supabase, plan.original_path)
 
+    // Record usage event (fire-and-forget)
+    const { recordUsageEvent } = await import("@/lib/usage")
+    recordUsageEvent({
+      orgId: ctx.orgId,
+      eventType: "ai_vectorisation",
+      metadata: { floorId: parsed.data.floorId as string },
+    })
+
     // Store results
     await ctx.supabase
       .from("vectorised_plans")
       .update({
-        extracted_data: result as unknown as Record<string, unknown>,
+        extracted_data: result as unknown as Json,
         extraction_status: "completed",
         extraction_error: null,
         extracted_at: new Date().toISOString(),

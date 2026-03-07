@@ -18,7 +18,7 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Check, CreditCard, Zap, Building2, Users } from "lucide-react"
+import { Check, CreditCard, Zap, Building2, Users, Cpu, FileText, Code } from "lucide-react"
 import type { Tables } from "@/lib/supabase/types"
 
 interface BillingDashboardProps {
@@ -26,6 +26,9 @@ interface BillingDashboardProps {
   subscription: Tables<"subscriptions"> | null
   buildingCount: number
   userCount: number
+  aiVectorisations: number
+  aiReports: number
+  apiCalls: number
 }
 
 const PRICE_IDS = {
@@ -42,6 +45,9 @@ export function BillingDashboard({
   subscription,
   buildingCount,
   userCount,
+  aiVectorisations,
+  aiReports,
+  apiCalls,
 }: BillingDashboardProps) {
   const { toast } = useToast()
   const router = useRouter()
@@ -118,7 +124,7 @@ export function BillingDashboard({
           )}
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-center gap-3 rounded-lg border p-3">
               <Building2 className="h-5 w-5 text-muted-foreground" />
               <div>
@@ -137,6 +143,35 @@ export function BillingDashboard({
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3">
+              <Cpu className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">AI Vectorisations</p>
+                <p className="text-xs text-muted-foreground">
+                  {aiVectorisations} this period
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">AI Reports</p>
+                <p className="text-xs text-muted-foreground">
+                  {aiReports} this period
+                </p>
+              </div>
+            </div>
+            {plan === "enterprise" && (
+              <div className="flex items-center gap-3 rounded-lg border p-3">
+                <Code className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">API Calls</p>
+                  <p className="text-xs text-muted-foreground">
+                    {apiCalls} this period
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
         {!isFreePlan && (

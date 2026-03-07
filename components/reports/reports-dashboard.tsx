@@ -34,7 +34,9 @@ import {
   BarChart3,
   LineChart,
   Printer,
+  FileText,
 } from "lucide-react"
+import Link from "next/link"
 import { TrendChart } from "./trend-chart"
 import { PassRateBar } from "./pass-rate-bar"
 import { StatCard } from "@/components/shared/StatCard"
@@ -361,13 +363,19 @@ export function ReportsDashboard({
           </p>
         </div>
         <div className="flex gap-2">
+          <Link href={`${pathname}/generate?${buildParams().toString()}`}>
+            <Button size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"
             onClick={() => window.print()}
           >
             <Printer className="h-4 w-4 mr-2" />
-            Print / PDF
+            Print
           </Button>
           <Button
             variant="outline"

@@ -44,6 +44,12 @@ export default async function PlatformLayout({
               >
                 Subscriptions
               </Link>
+              <Link
+                href="/platform/usage"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Usage
+              </Link>
             </nav>
           </div>
           <ThemeToggle />

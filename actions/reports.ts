@@ -98,6 +98,20 @@ Use a professional, confident tone. Be specific with numbers. Do not use bullet 
     messages: [{ role: "user", content: prompt }],
   })
 
+  // Record usage event (fire-and-forget)
+  const orgId = user?.app_metadata?.org_id as string | undefined
+  if (orgId) {
+    const { recordUsageEvent } = await import("@/lib/usage")
+    await recordUsageEvent({
+      orgId,
+      eventType: "ai_report",
+      metadata: {
+        inputTokens: response.usage?.input_tokens,
+        outputTokens: response.usage?.output_tokens,
+      },
+    })
+  }
+
   const textBlock = response.content.find((b) => b.type === "text")
   return textBlock?.text || "Executive summary could not be generated."
 }

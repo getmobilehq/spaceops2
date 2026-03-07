@@ -1,4 +1,5 @@
 import { getPlatformStats, getAllOrgs } from "@/lib/queries/platform"
+import { getPlatformUsageStats } from "@/lib/queries/usage"
 import {
   Card,
   CardContent,
@@ -6,12 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, CreditCard, BarChart3 } from "lucide-react"
+import { Building2, Users, CreditCard, BarChart3, Cpu, Code } from "lucide-react"
 
 export default async function PlatformDashboard() {
-  const [stats, orgs] = await Promise.all([
+  const [stats, orgs, usage] = await Promise.all([
     getPlatformStats(),
     getAllOrgs(),
+    getPlatformUsageStats(),
   ])
 
   const recentOrgs = orgs.slice(0, 5)
@@ -21,7 +23,7 @@ export default async function PlatformDashboard() {
       <h1 className="text-2xl font-semibold">Platform Dashboard</h1>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
@@ -72,6 +74,28 @@ export default async function PlatformDashboard() {
                 Ent: {stats.planDistribution.enterprise}
               </Badge>
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              AI Calls This Month
+            </CardTitle>
+            <Cpu className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{usage.totalAiCalls}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              API Calls This Month
+            </CardTitle>
+            <Code className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{usage.totalApiCalls}</div>
           </CardContent>
         </Card>
       </div>
