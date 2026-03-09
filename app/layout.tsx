@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Public_Sans } from "next/font/google"
 import localFont from "next/font/local"
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import "./globals.css"
 
@@ -40,8 +38,6 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   )
