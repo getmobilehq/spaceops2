@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 import { getStripe } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { planFromPriceId } from "@/lib/plans"
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     )
   } catch (err) {
-    console.error("Webhook signature verification failed:", err)
+    Sentry.captureException(err, { tags: { context: "stripe_webhook_signature" } })
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
             await sendEmail({ to: customer.email, ...tmpl })
           }
         } catch (err) {
-          console.error("Subscription confirmation email failed:", err)
+          Sentry.captureException(err, { tags: { context: "subscription_confirm_email" } })
         }
       }
 
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
           await sendEmail({ to: customer.email, ...tmpl })
         }
       } catch (err) {
-        console.error("Subscription canceled email failed:", err)
+        Sentry.captureException(err, { tags: { context: "subscription_canceled_email" } })
       }
 
       break
@@ -183,8 +184,9 @@ export async function POST(request: NextRequest) {
 
     case "invoice.payment_failed": {
       const invoice = event.data.object as Stripe.Invoice
-      console.warn(
-        `Payment failed for customer: ${invoice.customer as string}`
+      Sentry.captureMessage(
+        `Payment failed for customer: ${invoice.customer as string}`,
+        "warning"
       )
       break
     }
