@@ -8,11 +8,14 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://rwmcyleyzwzkxlvxlpqj.supabase.co";
-const ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bWN5bGV5end6a3hsdnhscHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNzgxNzYsImV4cCI6MjA4NTc1NDE3Nn0.MiASFBy9N9MOCzjlHv2f2Nzt0VUmW4EGNFJRxWXxy84";
-const SERVICE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bWN5bGV5end6a3hsdnhscHFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDE3ODE3NiwiZXhwIjoyMDg1NzU0MTc2fQ.OmyJP14oiEXBZ_epWSSxZqhTXFkvWtn8hsv1quqC828";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !ANON_KEY || !SERVICE_KEY) {
+  console.error("Missing required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY");
+  process.exit(1);
+}
 
 // Admin client (bypasses RLS)
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
