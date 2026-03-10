@@ -34,4 +34,8 @@ const nextConfig = {
 
 export default withSentryConfig(nextConfig, {
   silent: true,
+  disableServerWebpackPlugin: true,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  hideSourceMaps: true,
 });
