@@ -19,8 +19,47 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: "SpaceOps",
-  description: "Quality control for janitorial services",
+  title: {
+    default: "SpaceOps - Facility Management & Quality Control Platform",
+    template: "%s | SpaceOps",
+  },
+  description:
+    "Streamline janitorial operations with real-time inspections, scheduling, attendance tracking, and automated quality reports. Built for facility managers and cleaning service providers.",
+  keywords: [
+    "facility management",
+    "janitorial services",
+    "quality control",
+    "building inspections",
+    "cleaning management",
+    "space operations",
+    "facility maintenance",
+    "cleaning schedule",
+    "inspection reports",
+    "attendance tracking",
+  ],
+  authors: [{ name: "SpaceOps" }],
+  creator: "SpaceOps",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://onyxspaceops.com"
+  ),
+  openGraph: {
+    type: "website",
+    siteName: "SpaceOps",
+    title: "SpaceOps - Facility Management & Quality Control Platform",
+    description:
+      "Streamline janitorial operations with real-time inspections, scheduling, attendance tracking, and automated quality reports.",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SpaceOps - Facility Management & Quality Control Platform",
+    description:
+      "Streamline janitorial operations with real-time inspections, scheduling, attendance tracking, and automated quality reports.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({
