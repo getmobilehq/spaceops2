@@ -4,6 +4,7 @@ import localFont from "next/font/local"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
+import { getLocale } from "@/lib/i18n/server"
 import "./globals.css"
 
 const publicSans = Public_Sans({
@@ -27,8 +28,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = getLocale()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${publicSans.variable} ${geistMono.variable} font-[family-name:var(--font-public-sans)] antialiased`}
       >

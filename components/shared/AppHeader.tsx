@@ -19,9 +19,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AppSidebar } from "./AppSidebar"
+import { LocaleSwitcher } from "./LocaleSwitcher"
 import { NotificationBell } from "./NotificationBell"
 import { ThemeToggle } from "./ThemeToggle"
 import { useOrg } from "@/components/shared/OrgProvider"
+import { useTranslation } from "@/lib/i18n/client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signOutAction } from "@/actions/auth"
 
@@ -36,6 +38,7 @@ export function AppHeader() {
     userAvatarUrl,
     userEmail,
   } = useOrg()
+  const { t } = useTranslation()
   const pathname = usePathname()
   const segments = pathname.split("/").filter(Boolean)
   const role = segments[1] || "admin"
@@ -50,7 +53,7 @@ export function AppHeader() {
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="shrink-0">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
+              <span className="sr-only">{t("header.toggleMenu")}</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[260px] p-0">
@@ -81,6 +84,7 @@ export function AppHeader() {
 
       {/* Right actions */}
       <div className="flex items-center gap-1">
+        <LocaleSwitcher />
         <ThemeToggle />
         <NotificationBell />
 
@@ -111,7 +115,7 @@ export function AppHeader() {
             <DropdownMenuItem asChild>
               <Link href={`/${orgSlug}/${role}/profile`}>
                 <User className="mr-2 h-4 w-4" />
-                Profile & Settings
+                {t("header.profileAndSettings")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -125,7 +129,7 @@ export function AppHeader() {
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              {t("header.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

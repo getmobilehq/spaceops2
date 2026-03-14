@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/tooltip"
 import { NAV_CONFIG } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n/client"
+import type { DictionaryKey } from "@/lib/i18n/get-dictionary"
 import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react"
 import { signOutAction } from "@/actions/auth"
 
@@ -39,6 +41,7 @@ export function AppSidebar({
     userRole,
     plan,
   } = useOrg()
+  const { t } = useTranslation()
   const pathname = usePathname()
 
   let collapsed = false
@@ -96,6 +99,7 @@ export function AppSidebar({
             const href = `${basePath}/${item.href}`
             const isActive = pathname.startsWith(href)
             const Icon = item.icon
+            const label = t(item.labelKey as DictionaryKey)
 
             // Check plan gating
             const planOrder: Record<string, number> = { free: 0, pro: 1, enterprise: 2 }
@@ -115,7 +119,7 @@ export function AppSidebar({
                   )}
                 >
                   <Icon className="h-[18px] w-[18px] shrink-0" />
-                  {!collapsed && item.label}
+                  {!collapsed && label}
                 </span>
               )
 
@@ -124,7 +128,7 @@ export function AppSidebar({
                   <Tooltip key={item.href}>
                     <TooltipTrigger asChild>{disabledContent}</TooltipTrigger>
                     <TooltipContent side="right" className="text-xs">
-                      {item.label}
+                      {label}
                     </TooltipContent>
                   </Tooltip>
                 )
@@ -148,7 +152,7 @@ export function AppSidebar({
                 )}
               >
                 <Icon className="h-[18px] w-[18px] shrink-0" />
-                {!collapsed && item.label}
+                {!collapsed && label}
               </Link>
             )
 
@@ -157,7 +161,7 @@ export function AppSidebar({
                 <Tooltip key={item.href}>
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                   <TooltipContent side="right" className="text-xs">
-                    {item.label}
+                    {label}
                   </TooltipContent>
                 </Tooltip>
               )
@@ -184,7 +188,7 @@ export function AppSidebar({
             ) : (
               <>
                 <ChevronsLeft className="h-4 w-4 mr-2" />
-                Collapse
+                {t("sidebar.collapse")}
               </>
             )}
           </Button>
@@ -236,7 +240,7 @@ export function AppSidebar({
               </form>
             </TooltipTrigger>
             <TooltipContent side="right" className="text-xs">
-              Sign Out
+              {t("sidebar.signOut")}
             </TooltipContent>
           </Tooltip>
         ) : (

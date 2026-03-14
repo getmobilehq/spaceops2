@@ -28,6 +28,15 @@ export async function middleware(request: NextRequest) {
   // Set pathname header so server components can read it via headers()
   request.headers.set("x-pathname", pathname)
 
+  // Locale detection
+  const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value
+  const acceptLang = request.headers.get("accept-language")?.split(",")[0]?.split("-")[0]
+  const supportedLocales = ["en", "es", "fr"]
+  const locale = supportedLocales.includes(cookieLocale ?? "") ? cookieLocale!
+    : supportedLocales.includes(acceptLang ?? "") ? acceptLang!
+    : "en"
+  request.headers.set("x-locale", locale)
+
   // 1. Always refresh the session (updates cookies)
   const { user, supabaseResponse } = await updateSession(request)
 

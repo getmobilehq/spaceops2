@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import { headers } from "next/headers"
 import { OrgProvider } from "@/components/shared/OrgProvider"
+import { I18nProvider } from "@/lib/i18n/client"
+import { getLocale } from "@/lib/i18n/server"
+import { getDictionary } from "@/lib/i18n/get-dictionary"
 import type { Tables } from "@/lib/supabase/types"
 
 export default async function OrgLayout({
@@ -44,6 +47,9 @@ export default async function OrgLayout({
     .eq("id", user.id)
     .single()
 
+  const locale = getLocale()
+  const dict = await getDictionary(locale)
+
   // Redirect admin to onboarding if not completed
   const headerList = headers()
   const pathname = headerList.get("x-next-pathname") || ""
@@ -56,24 +62,26 @@ export default async function OrgLayout({
   }
 
   return (
-    <OrgProvider
-      value={{
-        orgId: org.id,
-        orgSlug: org.slug,
-        orgName: org.name,
-        passThreshold: org.pass_threshold,
-        orgLogoUrl: org.logo_url,
-        userId: user.id,
-        userFirstName: userRecord?.first_name || "",
-        userLastName: userRecord?.last_name || "",
-        userAvatarUrl: userRecord?.avatar_url || null,
-        userRole: userRecord?.role || (user.app_metadata?.role as string) || "",
-        userEmail: user.email || "",
-        plan: org.plan || "free",
-        onboardingCompleted: org.onboarding_completed ?? true,
-      }}
-    >
-      {children}
-    </OrgProvider>
+    <I18nProvider locale={locale} dict={dict}>
+      <OrgProvider
+        value={{
+          orgId: org.id,
+          orgSlug: org.slug,
+          orgName: org.name,
+          passThreshold: org.pass_threshold,
+          orgLogoUrl: org.logo_url,
+          userId: user.id,
+          userFirstName: userRecord?.first_name || "",
+          userLastName: userRecord?.last_name || "",
+          userAvatarUrl: userRecord?.avatar_url || null,
+          userRole: userRecord?.role || (user.app_metadata?.role as string) || "",
+          userEmail: user.email || "",
+          plan: org.plan || "free",
+          onboardingCompleted: org.onboarding_completed ?? true,
+        }}
+      >
+        {children}
+      </OrgProvider>
+    </I18nProvider>
   )
 }
