@@ -57,3 +57,10 @@ export const setOverrideSchema = z.object({
 })
 
 export type SetOverrideInput = z.infer<typeof setOverrideSchema>
+
+export const cloneGlobalTemplateSchema = z.object({
+  globalTemplateId: z.string().uuid(),
+  roomTypeId: z.string().uuid().nullable().optional(),
+})
+
+export type CloneGlobalTemplateInput = z.infer<typeof cloneGlobalTemplateSchema>

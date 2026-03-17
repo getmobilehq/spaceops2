@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -7,7 +8,9 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { Plus, ClipboardCheck } from "lucide-react"
+import { Plus, ClipboardCheck, BookOpen } from "lucide-react"
+import { TemplateBrowserDialog } from "./template-browser-dialog"
+import type { GlobalChecklistTemplate } from "@/lib/queries/checklists"
 
 interface TemplateData {
   id: string
@@ -27,11 +30,14 @@ export function ChecklistLibrary({
   templates,
   roomTypes,
   orgSlug,
+  globalTemplates,
 }: {
   templates: TemplateData[]
   roomTypes: RoomTypeOption[]
   orgSlug: string
+  globalTemplates: GlobalChecklistTemplate[]
 }) {
+  const [browserOpen, setBrowserOpen] = useState(false)
   // Group templates by room type
   const grouped = new Map<string | null, TemplateData[]>()
 
@@ -52,7 +58,11 @@ export function ChecklistLibrary({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setBrowserOpen(true)}>
+          <BookOpen className="mr-2 h-4 w-4" />
+          Browse Library
+        </Button>
         <Button asChild>
           <Link href={`/${orgSlug}/admin/checklists/new`}>
             <Plus className="mr-2 h-4 w-4" />
@@ -60,6 +70,12 @@ export function ChecklistLibrary({
           </Link>
         </Button>
       </div>
+
+      <TemplateBrowserDialog
+        globalTemplates={globalTemplates}
+        open={browserOpen}
+        onOpenChange={setBrowserOpen}
+      />
 
       {templates.length === 0 ? (
         <Card>

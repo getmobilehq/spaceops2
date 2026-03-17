@@ -10,6 +10,7 @@ import {
   reorderItemsSchema,
   setDefaultSchema,
   setOverrideSchema,
+  cloneGlobalTemplateSchema,
   type CreateTemplateInput,
   type UpdateTemplateInput,
   type DeleteTemplateInput,
@@ -18,6 +19,7 @@ import {
   type ReorderItemsInput,
   type SetDefaultInput,
   type SetOverrideInput,
+  type CloneGlobalTemplateInput,
 } from "@/lib/validations/checklist"
 
 type ActionResult = { success: true } | { success: false; error: string }
@@ -273,4 +275,51 @@ export async function setOverride(
 
   if (error) return { success: false, error: "Failed to set override" }
   return { success: true }
+}
+
+export async function cloneGlobalTemplate(
+  input: CloneGlobalTemplateInput
+): Promise<ActionResultWithId> {
+  const parsed = cloneGlobalTemplateSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  let roomTypeId = parsed.data.roomTypeId ?? null
+
+  // If no roomTypeId provided, try to auto-match by room_type_name
+  if (!roomTypeId) {
+    // Cast needed: global tables not yet in generated types
+    const { data: globalTpl } = await (ctx.supabase as any)
+      .from("global_checklist_templates")
+      .select("room_type_name")
+      .eq("id", parsed.data.globalTemplateId)
+      .single()
+
+    if (!globalTpl) {
+      return { success: false, error: "Global template not found" }
+    }
+
+    const { data: roomType } = await ctx.supabase
+      .from("room_types")
+      .select("id")
+      .eq("name", globalTpl.room_type_name)
+      .limit(1)
+      .maybeSingle()
+
+    roomTypeId = roomType?.id ?? null
+  }
+
+  // Cast needed: RPC not yet in generated types
+  const { data, error } = await (ctx.supabase as any).rpc("clone_global_template", {
+    p_global_template_id: parsed.data.globalTemplateId,
+    p_org_id: ctx.orgId,
+    p_room_type_id: roomTypeId,
+  })
+
+  if (error) return { success: false, error: "Failed to clone template" }
+  return { success: true, id: data as unknown as string }
 }

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getOrgTemplates } from "@/lib/queries/checklists"
+import { getOrgTemplates, getGlobalTemplates } from "@/lib/queries/checklists"
 import { getOrgRoomTypes } from "@/lib/queries/rooms"
 import { ChecklistLibrary } from "./checklist-library"
 
@@ -13,9 +13,10 @@ export default async function ChecklistsPage({
   params: { org: string }
 }) {
   const supabase = createClient()
-  const [templates, roomTypes] = await Promise.all([
+  const [templates, roomTypes, globalTemplates] = await Promise.all([
     getOrgTemplates(supabase),
     getOrgRoomTypes(supabase),
+    getGlobalTemplates(supabase),
   ])
 
   return (
@@ -32,6 +33,7 @@ export default async function ChecklistsPage({
         templates={templates}
         roomTypes={roomTypes}
         orgSlug={params.org}
+        globalTemplates={globalTemplates}
       />
     </div>
   )

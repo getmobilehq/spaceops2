@@ -47,6 +47,48 @@ export async function getTemplatesByRoomType(
   return data
 }
 
+// -- Global template types (not yet in generated Database types) ----
+export type GlobalChecklistItem = {
+  id: string
+  template_id: string
+  description: string
+  item_order: number
+  requires_photo: boolean
+  requires_note: boolean
+}
+
+export type GlobalChecklistTemplate = {
+  id: string
+  room_type_name: string
+  name: string
+  description: string | null
+  category: string
+  created_at: string
+  global_checklist_items: GlobalChecklistItem[]
+}
+
+export async function getGlobalTemplates(
+  supabase: SupabaseClient<Database>
+): Promise<GlobalChecklistTemplate[]> {
+  // Cast needed: global tables not yet in generated types (run migration first, then regenerate)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("global_checklist_templates")
+    .select("*, global_checklist_items(*)")
+    .order("room_type_name", { ascending: true })
+
+  if (error) throw error
+
+  // Sort items by item_order client-side
+  for (const tpl of data as unknown as GlobalChecklistTemplate[]) {
+    if (tpl.global_checklist_items && Array.isArray(tpl.global_checklist_items)) {
+      tpl.global_checklist_items.sort((a, b) => a.item_order - b.item_order)
+    }
+  }
+
+  return data as unknown as GlobalChecklistTemplate[]
+}
+
 export async function getRoomOverride(
   supabase: SupabaseClient<Database>,
   roomId: string
