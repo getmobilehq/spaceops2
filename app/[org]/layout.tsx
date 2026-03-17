@@ -52,7 +52,7 @@ export default async function OrgLayout({
 
   // Redirect admin to onboarding if not completed
   const headerList = headers()
-  const pathname = headerList.get("x-next-pathname") || ""
+  const pathname = headerList.get("x-pathname") || ""
   if (
     org.onboarding_completed === false &&
     userRecord?.role === "admin" &&
