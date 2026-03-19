@@ -50,8 +50,8 @@ export function SetPasswordForm({ mode }: SetPasswordFormProps) {
       return
     }
 
-    router.push("/")
-    router.refresh()
+    // Hard navigation to ensure fresh request with new auth cookies
+    window.location.href = "/"
   }
 
   return (

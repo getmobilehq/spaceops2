@@ -47,8 +47,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       return
     }
 
-    router.push(redirectTo || "/")
-    router.refresh()
+    // Hard navigation to ensure fresh request with new auth cookies
+    window.location.href = redirectTo || "/"
   }
 
   return (
