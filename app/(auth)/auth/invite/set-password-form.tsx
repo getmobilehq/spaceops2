@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
 import {
   setPasswordSchema,
   type SetPasswordInput,
@@ -26,7 +25,6 @@ interface SetPasswordFormProps {
 }
 
 export function SetPasswordForm({ mode }: SetPasswordFormProps) {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 

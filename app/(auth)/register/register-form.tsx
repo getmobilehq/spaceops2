@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   registerSchema,
@@ -23,7 +22,6 @@ import {
 } from "@/components/ui/card"
 
 export function RegisterForm() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
