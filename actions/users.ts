@@ -69,16 +69,28 @@ export async function inviteUser(
   const admin = createAdminClient()
   const origin = headers().get("origin") || process.env.NEXT_PUBLIC_APP_URL
 
-  // 1. Create auth user via invite
+  // 1. Create auth user directly (bypasses Supabase SMTP)
+  const tempPassword = crypto.randomUUID()
   const { data: authData, error: authError } =
-    await admin.auth.admin.inviteUserByEmail(parsed.data.email, {
-      data: {
+    await admin.auth.admin.createUser({
+      email: parsed.data.email,
+      password: tempPassword,
+      email_confirm: true,
+      app_metadata: {
         org_id: ctx.orgId,
+        org_slug: (
+          await admin
+            .from("organisations")
+            .select("slug")
+            .eq("id", ctx.orgId)
+            .single()
+        ).data?.slug,
         role: parsed.data.role,
+      },
+      user_metadata: {
         first_name: parsed.data.firstName,
         last_name: parsed.data.lastName,
       },
-      redirectTo: `${origin}/auth/callback?type=invite`,
     })
 
   if (authError) {
@@ -103,7 +115,21 @@ export async function inviteUser(
     return { success: false, error: "Failed to create user record" }
   }
 
-  // Send invite notification email (non-fatal)
+  // 3. Generate password reset link so invited user can set their own password
+  const { data: linkData, error: linkError } =
+    await admin.auth.admin.generateLink({
+      type: "recovery",
+      email: parsed.data.email,
+      options: {
+        redirectTo: `${origin}/auth/invite?type=invite`,
+      },
+    })
+
+  const acceptUrl = linkError
+    ? `${origin}/auth/reset-password`
+    : `${linkData.properties.action_link}`
+
+  // 4. Send invite email via Resend (not Supabase SMTP)
   try {
     const { inviteEmail } = await import("@/lib/email/templates")
     const { sendEmail } = await import("@/lib/email/send")
@@ -116,10 +142,11 @@ export async function inviteUser(
       firstName: parsed.data.firstName,
       inviterOrgName: orgRecord?.name || "your organisation",
       role: parsed.data.role,
-      acceptUrl: `${origin}/auth/callback?type=invite`,
+      acceptUrl,
     })
     await sendEmail({ to: parsed.data.email, ...tmpl })
   } catch (err) {
+    // User is created but email failed — admin can resend later
     console.error("Invite email failed:", err)
   }
 
