@@ -7,7 +7,7 @@ export async function sendEmail(opts: {
 }) {
   const resend = getResend()
   await resend.emails.send({
-    from: `SpaceOps <${process.env.RESEND_FROM_EMAIL || "noreply@spacops.app"}>`,
+    from: `SpaceOps <${process.env.RESEND_FROM_EMAIL || "noreply@mt.onyxspaceops.com"}>`,
     ...opts,
   })
 }
