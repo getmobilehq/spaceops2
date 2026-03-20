@@ -121,13 +121,16 @@ export async function inviteUser(
       type: "recovery",
       email: parsed.data.email,
       options: {
-        redirectTo: `${origin}/auth/invite?type=invite`,
+        redirectTo: `${origin}/auth/callback?type=invite`,
       },
     })
 
-  const acceptUrl = linkError
-    ? `${origin}/auth/reset-password`
-    : `${linkData.properties.action_link}`
+  // Build the accept URL: use the Supabase action_link but ensure our callback gets type=invite
+  let acceptUrl = `${origin}/auth/reset-password`
+  if (!linkError && linkData.properties.action_link) {
+    // The action_link goes to Supabase which will redirect to our redirectTo
+    acceptUrl = linkData.properties.action_link
+  }
 
   // 4. Send invite email via Resend (not Supabase SMTP)
   try {
