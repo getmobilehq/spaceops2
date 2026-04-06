@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { clockIn, clockOut } from "@/actions/attendance"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,11 +38,14 @@ interface ExistingAttendance {
 
 export function BuildingClockIn({
   building,
+  orgSlug,
   existingAttendance,
 }: {
   building: BuildingInfo
+  orgSlug: string
   existingAttendance: ExistingAttendance | null
 }) {
+  const router = useRouter()
   const [gpsState, setGpsState] = useState<"acquiring" | "acquired" | "error" | "idle">("idle")
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null)
   const [geoError, setGeoError] = useState<string | null>(null)
@@ -108,6 +112,10 @@ export function BuildingClockIn({
         geoVerified: res.geoVerified,
         distanceM: res.distanceM,
       })
+      // Redirect to today's tasks after a brief delay so the user sees the success message
+      setTimeout(() => {
+        router.push(`/${orgSlug}/janitor/today`)
+      }, 1500)
     } else {
       setResult({ type: "error", message: res.error })
     }

@@ -105,6 +105,7 @@ export default async function BuildingScanPage({
             address: building.address,
             hasLocation: building.latitude != null && building.longitude != null,
           }}
+          orgSlug={orgSlug || ""}
           existingAttendance={
             existing
               ? {
