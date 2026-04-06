@@ -13,6 +13,7 @@ import { Clock, MapPin, ChevronRight, QrCode } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
 import { AttendanceBanner } from "./attendance-banner"
 import { getTranslations } from "@/lib/i18n/server"
+import type { DictionaryKey } from "@/lib/i18n/get-dictionary"
 
 export const metadata = {
   title: "Today - SpaceOps",
@@ -25,7 +26,7 @@ const taskStatusClassNames: Record<string, string> = {
   has_issues: "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/20",
 }
 
-const taskStatusKeys: Record<string, string> = {
+const taskStatusKeys: Record<string, DictionaryKey> = {
   not_started: "taskStatus.notStarted",
   in_progress: "taskStatus.inProgress",
   done: "taskStatus.done",
@@ -127,7 +128,7 @@ export default async function JanitorTodayPage({
                 const statusClassName =
                   taskStatusClassNames[task.status] || taskStatusClassNames.not_started
                 const statusLabel =
-                  t((taskStatusKeys[task.status] || taskStatusKeys.not_started) as any)
+                  t(taskStatusKeys[task.status] || taskStatusKeys.not_started)
                 const needsCheckIn =
                   !task.checked_in_at &&
                   (task.status === "not_started" || task.status === "in_progress")
