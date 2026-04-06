@@ -5,6 +5,7 @@ import { UserTable } from "./user-table"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { getTranslations } from "@/lib/i18n/server"
 
 export const metadata = {
   title: "Users - SpaceOps",
@@ -16,7 +17,10 @@ export default async function UsersPage({
   params: { org: string }
 }) {
   const supabase = createClient()
-  const users = await getOrgUsers(supabase)
+  const [users, { t }] = await Promise.all([
+    getOrgUsers(supabase),
+    getTranslations(),
+  ])
 
   const authData = await getAuthUsersForOrg(users.map((u) => u.id))
 
@@ -30,15 +34,15 @@ export default async function UsersPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Users</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t("admin.users.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your team members
+            {t("admin.users.subtitle")}
           </p>
         </div>
         <Link href={`/${params.org}/admin/users/invite`}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Invite User
+            {t("admin.users.inviteUser")}
           </Button>
         </Link>
       </div>
@@ -46,12 +50,12 @@ export default async function UsersPage({
       {usersWithAuth.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground mb-4">
-            No team members yet. Invite your first user to get started.
+            {t("admin.users.empty")}
           </p>
           <Link href={`/${params.org}/admin/users/invite`}>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Invite User
+              {t("admin.users.inviteUser")}
             </Button>
           </Link>
         </div>

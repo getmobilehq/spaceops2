@@ -12,16 +12,24 @@ import { getJanitorTodayAttendance } from "@/lib/queries/attendance"
 import { Clock, MapPin, ChevronRight, QrCode } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
 import { AttendanceBanner } from "./attendance-banner"
+import { getTranslations } from "@/lib/i18n/server"
 
 export const metadata = {
   title: "Today - SpaceOps",
 }
 
-const taskStatusConfig: Record<string, { label: string; className: string }> = {
-  not_started: { label: "Not Started", className: "border-muted-foreground/30 bg-muted text-muted-foreground" },
-  in_progress: { label: "In Progress", className: "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20" },
-  done: { label: "Done", className: "border-success/30 bg-success/10 text-success dark:bg-success/20" },
-  has_issues: { label: "Has Issues", className: "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/20" },
+const taskStatusClassNames: Record<string, string> = {
+  not_started: "border-muted-foreground/30 bg-muted text-muted-foreground",
+  in_progress: "border-warning/30 bg-warning/10 text-warning dark:bg-warning/20",
+  done: "border-success/30 bg-success/10 text-success dark:bg-success/20",
+  has_issues: "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/20",
+}
+
+const taskStatusKeys: Record<string, string> = {
+  not_started: "taskStatus.notStarted",
+  in_progress: "taskStatus.inProgress",
+  done: "taskStatus.done",
+  has_issues: "taskStatus.hasIssues",
 }
 
 export default async function JanitorTodayPage({
@@ -34,8 +42,11 @@ export default async function JanitorTodayPage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  const tasks = user ? await getJanitorTodayTasks(supabase, user.id) : []
-  const attendance = user ? await getJanitorTodayAttendance(supabase, user.id) : []
+  const [tasks, attendance, { t }] = await Promise.all([
+    user ? getJanitorTodayTasks(supabase, user.id) : Promise.resolve([]),
+    user ? getJanitorTodayAttendance(supabase, user.id) : Promise.resolve([]),
+    getTranslations(),
+  ])
 
   // Group tasks by activity
   const grouped = new Map<
@@ -72,7 +83,7 @@ export default async function JanitorTodayPage({
     <div className="space-y-4">
       <RealtimeListener table="room_tasks" />
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Today</h1>
+        <h1 className="text-xl font-semibold text-foreground">{t("janitor.today.title")}</h1>
         <p className="text-muted-foreground text-sm">
           {user?.user_metadata?.first_name || "Welcome"}
         </p>
@@ -87,12 +98,11 @@ export default async function JanitorTodayPage({
       {tasks.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Assigned Rooms</CardTitle>
+            <CardTitle className="text-base">{t("janitor.today.assignedRooms")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm">
-              No rooms assigned for today. Check back when your supervisor
-              creates an activity.
+              {t("janitor.today.noRooms")}
             </p>
           </CardContent>
         </Card>
@@ -114,8 +124,10 @@ export default async function JanitorTodayPage({
             </CardHeader>
             <CardContent className="space-y-2">
               {group.tasks.map((task) => {
-                const statusConf =
-                  taskStatusConfig[task.status] || taskStatusConfig.not_started
+                const statusClassName =
+                  taskStatusClassNames[task.status] || taskStatusClassNames.not_started
+                const statusLabel =
+                  t((taskStatusKeys[task.status] || taskStatusKeys.not_started) as any)
                 const needsCheckIn =
                   !task.checked_in_at &&
                   (task.status === "not_started" || task.status === "in_progress")
@@ -127,7 +139,7 @@ export default async function JanitorTodayPage({
                   >
                     <div>
                       <p className="text-sm font-medium">
-                        {task.rooms?.name || "Unknown Room"}
+                        {task.rooms?.name || t("janitor.today.unknownRoom")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {task.rooms?.room_types?.name || ""}
@@ -140,11 +152,11 @@ export default async function JanitorTodayPage({
                           className="border-warning/30 bg-warning/10 text-warning dark:bg-warning/20 text-[10px] px-1.5 gap-1"
                         >
                           <QrCode className="h-3 w-3" />
-                          Scan to Start
+                          {t("janitor.today.scanToStart")}
                         </Badge>
                       )}
-                      <Badge variant="outline" className={statusConf.className}>
-                        {statusConf.label}
+                      <Badge variant="outline" className={statusClassName}>
+                        {statusLabel}
                       </Badge>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>

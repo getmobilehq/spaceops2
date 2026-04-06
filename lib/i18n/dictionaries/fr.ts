@@ -109,7 +109,15 @@ const fr: Dictionary = {
   "admin.users.inviteUser": "Inviter un utilisateur",
   "admin.users.empty": "Aucun membre d'équipe pour le moment. Invitez votre premier utilisateur pour commencer.",
 
+  // ─── Admin Clients ───
+  "admin.clients.title": "Clients",
+  "admin.clients.subtitle": "Gérez vos clients propriétaires d'immeubles",
+  "admin.clients.addClient": "Ajouter un client",
+  "admin.clients.empty": "Aucun client pour le moment. Ajoutez votre premier client pour commencer.",
+
   // ─── Admin Settings ───
+  "admin.settings.title": "Paramètres",
+  "admin.settings.subtitle": "Gérez les paramètres de votre organisation",
   "admin.settings.orgLogo": "Logo de l'organisation",
   "admin.settings.orgLogoDescription": "Téléchargez un logo pour votre organisation. Max 2 Mo, JPEG/PNG/WebP/SVG.",
   "admin.settings.uploadLogo": "Télécharger le logo",

@@ -107,7 +107,15 @@ export const en = {
   "admin.users.inviteUser": "Invite User",
   "admin.users.empty": "No team members yet. Invite your first user to get started.",
 
+  // ─── Admin Clients ───
+  "admin.clients.title": "Clients",
+  "admin.clients.subtitle": "Manage your building owner clients",
+  "admin.clients.addClient": "Add Client",
+  "admin.clients.empty": "No clients yet. Add your first client to get started.",
+
   // ─── Admin Settings ───
+  "admin.settings.title": "Settings",
+  "admin.settings.subtitle": "Manage your organisation settings",
   "admin.settings.orgLogo": "Organisation Logo",
   "admin.settings.orgLogoDescription": "Upload a logo for your organisation. Max 2MB, JPEG/PNG/WebP/SVG.",
   "admin.settings.uploadLogo": "Upload Logo",

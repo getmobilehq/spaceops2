@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { StatCard } from "@/components/shared/StatCard"
 import { ACTIVITY_STATUS } from "@/lib/status-styles"
+import { useTranslation } from "@/lib/i18n/client"
 
 interface Building {
   id: string
@@ -80,40 +81,42 @@ export function ClientDashboard({
   sla: SLAMetrics
   orgSlug: string
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Building Overview</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t("client.overview.title")}</h1>
         <p className="text-muted-foreground">
-          Your cleaning service dashboard
+          {t("client.overview.subtitle")}
         </p>
       </div>
 
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Activities"
+          title={t("client.overview.activities")}
           value={stats.totalActivities}
           icon={CalendarCheck}
           iconClassName="bg-primary/10 text-primary"
           animationDelay="0ms"
         />
         <StatCard
-          title="Pass Rate"
-          value={stats.overallPassRate !== null ? `${stats.overallPassRate}%` : "N/A"}
+          title={t("client.overview.passRate")}
+          value={stats.overallPassRate !== null ? `${stats.overallPassRate}%` : t("common.na")}
           icon={BarChart3}
           iconClassName="bg-info/10 text-info"
           animationDelay="100ms"
         />
         <StatCard
-          title="Inspections Passed"
+          title={t("client.overview.inspectionsPassed")}
           value={stats.passedTasks}
           icon={CheckCircle2}
           iconClassName="bg-success/10 text-success"
           animationDelay="200ms"
         />
         <StatCard
-          title="Open Issues"
+          title={t("client.overview.openIssues")}
           value={stats.openDeficiencies}
           icon={AlertTriangle}
           iconClassName="bg-destructive/10 text-destructive"
@@ -126,7 +129,7 @@ export function ClientDashboard({
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
-            Service Level Agreement
+            {t("client.overview.sla")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -135,7 +138,7 @@ export function ClientDashboard({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Target className="h-4 w-4 text-muted-foreground" />
-                Pass Rate Compliance
+                {t("client.overview.passRateCompliance")}
               </div>
               <div className="text-2xl font-bold">
                 {sla.passRateCompliance !== null ? (
@@ -155,7 +158,7 @@ export function ClientDashboard({
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Activities meeting {sla.passRateTarget}% pass rate target
+                {t("client.overview.passRateTarget", { target: sla.passRateTarget })}
               </p>
             </div>
 
@@ -163,7 +166,7 @@ export function ClientDashboard({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-                Avg Completion Rate
+                {t("client.overview.avgCompletionRate")}
               </div>
               <div className="text-2xl font-bold">
                 {sla.avgCompletionRate !== null ? (
@@ -183,7 +186,7 @@ export function ClientDashboard({
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Rooms cleaned per activity
+                {t("client.overview.roomsCleanedPerActivity")}
               </p>
             </div>
 
@@ -191,7 +194,7 @@ export function ClientDashboard({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                Avg Resolution Time
+                {t("client.overview.avgResolutionTime")}
               </div>
               <div className="text-2xl font-bold">
                 {sla.avgResolutionHours !== null ? (
@@ -211,7 +214,7 @@ export function ClientDashboard({
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Issue resolution time
+                {t("client.overview.issueResolutionTime")}
               </p>
             </div>
           </div>
@@ -221,19 +224,19 @@ export function ClientDashboard({
             sla.deficiencySLA.atRisk > 0 ||
             sla.deficiencySLA.breached > 0) && (
             <div className="mt-4 pt-4 border-t">
-              <p className="text-sm font-medium mb-2">Issue SLA Status</p>
+              <p className="text-sm font-medium mb-2">{t("client.overview.issueSlaStatus")}</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-3 w-3 rounded-full bg-success" />
                   <span className="text-sm">
-                    {sla.deficiencySLA.onTrack} on track
+                    {t("common.onTrack", { count: sla.deficiencySLA.onTrack })}
                   </span>
                 </div>
                 {sla.deficiencySLA.atRisk > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div className="h-3 w-3 rounded-full bg-warning" />
                     <span className="text-sm">
-                      {sla.deficiencySLA.atRisk} at risk
+                      {t("common.atRisk", { count: sla.deficiencySLA.atRisk })}
                     </span>
                   </div>
                 )}
@@ -241,7 +244,7 @@ export function ClientDashboard({
                   <div className="flex items-center gap-1.5">
                     <div className="h-3 w-3 rounded-full bg-destructive" />
                     <span className="text-sm">
-                      {sla.deficiencySLA.breached} breached
+                      {t("common.breached", { count: sla.deficiencySLA.breached })}
                     </span>
                   </div>
                 )}
@@ -254,13 +257,12 @@ export function ClientDashboard({
       {/* Buildings */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Your Buildings</CardTitle>
+          <CardTitle className="text-lg">{t("client.overview.yourBuildings")}</CardTitle>
         </CardHeader>
         <CardContent>
           {buildings.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No buildings configured yet. Your service provider will set
-              things up for you.
+              {t("client.overview.noBuildingsConfigured")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -281,11 +283,11 @@ export function ClientDashboard({
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Layers className="h-3 w-3" />
-                      {b.floorCount} floors
+                      {t("common.floors", { count: b.floorCount })}
                     </span>
                     <span className="flex items-center gap-1">
                       <DoorOpen className="h-3 w-3" />
-                      {b.roomCount} rooms
+                      {t("common.rooms", { count: b.roomCount })}
                     </span>
                   </div>
                 </div>
@@ -298,12 +300,12 @@ export function ClientDashboard({
       {/* Recent activities */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Activities</CardTitle>
+          <CardTitle className="text-lg">{t("client.overview.recentActivities")}</CardTitle>
         </CardHeader>
         <CardContent>
           {activities.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No cleaning activities yet.
+              {t("client.overview.noActivities")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -336,7 +338,7 @@ export function ClientDashboard({
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>
-                          {a.completedRooms}/{a.totalRooms} rooms done
+                          {a.completedRooms}/{a.totalRooms} {t("common.roomsDone")}
                         </span>
                         {a.passRate !== null && (
                           <span
@@ -348,7 +350,7 @@ export function ClientDashboard({
                                 : "text-destructive"
                             }
                           >
-                            {a.passRate}% pass rate
+                            {t("common.passRate", { rate: a.passRate })}
                           </span>
                         )}
                       </div>
@@ -388,13 +390,13 @@ export function ClientDashboard({
                           {a.passedRooms > 0 && (
                             <span className="flex items-center gap-1 text-success">
                               <CheckCircle2 className="h-3 w-3" />
-                              {a.passedRooms} passed
+                              {t("common.passed", { count: a.passedRooms })}
                             </span>
                           )}
                           {a.failedRooms > 0 && (
                             <span className="flex items-center gap-1 text-destructive">
                               <XCircle className="h-3 w-3" />
-                              {a.failedRooms} failed
+                              {t("common.failed", { count: a.failedRooms })}
                             </span>
                           )}
                         </div>

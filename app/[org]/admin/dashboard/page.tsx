@@ -18,6 +18,7 @@ import {
 } from "@/lib/queries/dashboard"
 import { StatCard } from "@/components/shared/StatCard"
 import { ACTIVITY_STATUS, ISSUE_STATUS, ISSUE_SEVERITY } from "@/lib/status-styles"
+import { getTranslations } from "@/lib/i18n/server"
 
 export const metadata = {
   title: "Admin Dashboard - SpaceOps",
@@ -25,31 +26,32 @@ export const metadata = {
 
 export default async function AdminDashboardPage() {
   const supabase = createClient()
-  const [{ data: { user } }, stats, events] = await Promise.all([
+  const [{ data: { user } }, stats, events, { t }] = await Promise.all([
     supabase.auth.getUser(),
     getAdminDashboardStats(supabase),
     getRecentActivity(supabase),
+    getTranslations(),
   ])
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Admin Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t("admin.dashboard.title")}</h1>
         <p className="text-muted-foreground">
-          Welcome, {user?.user_metadata?.first_name || user?.email}
+          {t("common.welcome", { name: user?.user_metadata?.first_name || user?.email || "" })}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Active Buildings"
+          title={t("admin.dashboard.activeBuildings")}
           value={stats.activeBuildings}
           icon={Building2}
           iconClassName="bg-primary/10 text-primary"
           animationDelay="0ms"
         />
         <StatCard
-          title="Open Issues"
+          title={t("admin.dashboard.openIssues")}
           value={stats.openDeficiencies}
           icon={AlertTriangle}
           iconClassName={
@@ -60,15 +62,15 @@ export default async function AdminDashboardPage() {
           animationDelay="100ms"
         />
         <StatCard
-          title="Activities This Week"
+          title={t("admin.dashboard.activitiesThisWeek")}
           value={stats.activitiesThisWeek}
           icon={CalendarCheck}
           iconClassName="bg-success/10 text-success"
           animationDelay="200ms"
         />
         <StatCard
-          title="Avg Pass Rate"
-          value={stats.avgPassRate !== null ? `${stats.avgPassRate}%` : "N/A"}
+          title={t("admin.dashboard.avgPassRate")}
+          value={stats.avgPassRate !== null ? `${stats.avgPassRate}%` : t("common.na")}
           icon={TrendingUp}
           iconClassName="bg-info/10 text-info"
           animationDelay="300ms"
@@ -77,12 +79,12 @@ export default async function AdminDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardTitle className="text-lg">{t("admin.dashboard.recentActivity")}</CardTitle>
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No activity yet. Start by creating a building.
+              {t("admin.dashboard.noActivity")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -102,7 +104,7 @@ export default async function AdminDashboardPage() {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium uppercase text-muted-foreground">
-                          {event.type === "activity" ? "Activity" : "Issue"}
+                          {event.type === "activity" ? t("admin.dashboard.activity") : t("admin.dashboard.issue")}
                         </span>
                         {svb && (
                           <Badge variant="outline" className={svb.className}>
