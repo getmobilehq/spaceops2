@@ -40,6 +40,25 @@ export async function middleware(request: NextRequest) {
   // 1. Always refresh the session (updates cookies)
   const { user, supabaseResponse } = await updateSession(request)
 
+  // Helper: create a redirect that preserves session cookies from supabaseResponse
+  function redirectTo(destination: string) {
+    const url = request.nextUrl.clone()
+    url.pathname = destination
+    const redirect = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirect.cookies.set(cookie.name, cookie.value)
+    })
+    return redirect
+  }
+
+  function redirectToUrl(url: URL) {
+    const redirect = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirect.cookies.set(cookie.name, cookie.value)
+    })
+    return redirect
+  }
+
   // 2. Public routes — pass through
   if (isPublicRoute(pathname)) {
     // Already logged in on login page → redirect to dashboard
@@ -47,9 +66,7 @@ export async function middleware(request: NextRequest) {
       const role = user.app_metadata?.role as string | undefined
       const orgSlug = user.app_metadata?.org_slug as string | undefined
       if (role && orgSlug) {
-        const url = request.nextUrl.clone()
-        url.pathname = getDefaultPath(orgSlug, role)
-        return NextResponse.redirect(url)
+        return redirectTo(getDefaultPath(orgSlug, role))
       }
     }
     return supabaseResponse
@@ -60,7 +77,7 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     url.searchParams.set("next", pathname)
-    return NextResponse.redirect(url)
+    return redirectToUrl(url)
   }
 
   // 4. Extract role and org from JWT
@@ -71,23 +88,19 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     url.searchParams.set("error", "no_role")
-    return NextResponse.redirect(url)
+    return redirectToUrl(url)
   }
 
   // 5. Root path → role-appropriate dashboard
   if (pathname === "/") {
-    const url = request.nextUrl.clone()
-    url.pathname = getDefaultPath(orgSlug, role)
-    return NextResponse.redirect(url)
+    return redirectTo(getDefaultPath(orgSlug, role))
   }
 
   // 5b. Platform (super-admin) routes
   if (pathname.startsWith("/platform")) {
     const isSuperAdmin = user.app_metadata?.is_super_admin === true
     if (!isSuperAdmin) {
-      const url = request.nextUrl.clone()
-      url.pathname = getDefaultPath(orgSlug, role)
-      return NextResponse.redirect(url)
+      return redirectTo(getDefaultPath(orgSlug, role))
     }
     return supabaseResponse
   }
@@ -97,9 +110,7 @@ export async function middleware(request: NextRequest) {
   const urlOrgSlug = segments[0]
 
   if (urlOrgSlug !== orgSlug) {
-    const url = request.nextUrl.clone()
-    url.pathname = getDefaultPath(orgSlug, role)
-    return NextResponse.redirect(url)
+    return redirectTo(getDefaultPath(orgSlug, role))
   }
 
   // 7. Check route prefix matches user role
@@ -113,9 +124,7 @@ export async function middleware(request: NextRequest) {
   const userAllowedRoles = allowedRoles[role] || []
 
   if (routeRole && !userAllowedRoles.includes(routeRole)) {
-    const url = request.nextUrl.clone()
-    url.pathname = getDefaultPath(orgSlug, role)
-    return NextResponse.redirect(url)
+    return redirectTo(getDefaultPath(orgSlug, role))
   }
 
   // 8. All checks passed
