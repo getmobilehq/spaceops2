@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { clockIn, clockOut } from "@/actions/attendance"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -45,7 +44,6 @@ export function BuildingClockIn({
   orgSlug: string
   existingAttendance: ExistingAttendance | null
 }) {
-  const router = useRouter()
   const [gpsState, setGpsState] = useState<"acquiring" | "acquired" | "error" | "idle">("idle")
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null)
   const [geoError, setGeoError] = useState<string | null>(null)
@@ -57,6 +55,7 @@ export function BuildingClockIn({
     distanceM?: number | null
     attendanceId?: string
   } | null>(null)
+  const [redirecting, setRedirecting] = useState(false)
   const [attendance, setAttendance] = useState(existingAttendance)
 
   // Request GPS on mount
@@ -105,21 +104,16 @@ export function BuildingClockIn({
         distanceM: res.distanceM,
         attendanceId: res.attendanceId,
       })
-      setAttendance({
-        id: res.attendanceId,
-        clockInAt: new Date().toISOString(),
-        clockOutAt: null,
-        geoVerified: res.geoVerified,
-        distanceM: res.distanceM,
-      })
-      // Redirect to today's tasks after a brief delay so the user sees the success message
+      setRedirecting(true)
+      // Hard navigation to today's tasks — router.push won't work reliably
+      // across the public /scan layout and the protected org layout
       setTimeout(() => {
-        router.push(`/${orgSlug}/janitor/today`)
+        window.location.href = `/${orgSlug}/janitor/today`
       }, 1500)
     } else {
       setResult({ type: "error", message: res.error })
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
   async function handleClockOut() {
@@ -240,8 +234,31 @@ export function BuildingClockIn({
             </div>
           )}
 
+          {/* Redirecting after successful clock-in */}
+          {redirecting && result && (
+            <div
+              className={`rounded-md p-3 text-center text-sm ${
+                result.geoVerified
+                  ? "bg-success/10 text-success"
+                  : "bg-warning/10 text-warning"
+              }`}
+            >
+              <CheckCircle2 className="mx-auto h-6 w-6 mb-2" />
+              {result.message}
+              {result.distanceM != null && (
+                <p className="text-xs mt-1 opacity-75">
+                  Distance: {result.distanceM}m from building
+                </p>
+              )}
+              <div className="flex items-center justify-center gap-2 mt-3 text-xs opacity-75">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Redirecting to your tasks...
+              </div>
+            </div>
+          )}
+
           {/* Clock in button */}
-          {!isAlreadyClockedIn && !isAlreadyClockedOut && !result && (
+          {!isAlreadyClockedIn && !isAlreadyClockedOut && !result && !redirecting && (
             <Button
               onClick={handleClockIn}
               disabled={isSubmitting || gpsState === "acquiring"}
@@ -256,28 +273,15 @@ export function BuildingClockIn({
             </Button>
           )}
 
-          {/* Result display */}
-          {result && !isAlreadyClockedIn && !isAlreadyClockedOut && (
-            <div
-              className={`rounded-md p-3 text-center text-sm ${
-                result.type === "success"
-                  ? result.geoVerified
-                    ? "bg-success/10 text-success"
-                    : "bg-warning/10 text-warning"
-                  : "bg-destructive/10 text-destructive"
-              }`}
-            >
+          {/* Error display */}
+          {result && result.type === "error" && (
+            <div className="rounded-md p-3 text-center text-sm bg-destructive/10 text-destructive">
               {result.message}
-              {result.distanceM != null && (
-                <p className="text-xs mt-1 opacity-75">
-                  Distance: {result.distanceM}m from building
-                </p>
-              )}
             </div>
           )}
 
           {/* GPS warning for unverified */}
-          {gpsState === "error" && !isAlreadyClockedIn && !isAlreadyClockedOut && (
+          {gpsState === "error" && !isAlreadyClockedIn && !isAlreadyClockedOut && !redirecting && (
             <p className="text-xs text-muted-foreground text-center">
               You can still clock in without GPS, but your attendance will be marked as unverified.
             </p>
