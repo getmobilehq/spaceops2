@@ -69,8 +69,16 @@ export async function inviteUser(
   const admin = createAdminClient()
   const origin = headers().get("origin") || process.env.NEXT_PUBLIC_APP_URL
 
-  // 1. Create auth user directly (bypasses Supabase SMTP)
-  const tempPassword = crypto.randomUUID()
+  // 1. Create auth user with a temporary password
+  const tempPassword = crypto.randomUUID().slice(0, 12)
+  const orgSlug = (
+    await admin
+      .from("organisations")
+      .select("slug")
+      .eq("id", ctx.orgId)
+      .single()
+  ).data?.slug
+
   const { data: authData, error: authError } =
     await admin.auth.admin.createUser({
       email: parsed.data.email,
@@ -78,14 +86,9 @@ export async function inviteUser(
       email_confirm: true,
       app_metadata: {
         org_id: ctx.orgId,
-        org_slug: (
-          await admin
-            .from("organisations")
-            .select("slug")
-            .eq("id", ctx.orgId)
-            .single()
-        ).data?.slug,
+        org_slug: orgSlug,
         role: parsed.data.role,
+        must_change_password: true,
       },
       user_metadata: {
         first_name: parsed.data.firstName,
@@ -115,24 +118,7 @@ export async function inviteUser(
     return { success: false, error: "Failed to create user record" }
   }
 
-  // 3. Generate password reset link so invited user can set their own password
-  const { data: linkData, error: linkError } =
-    await admin.auth.admin.generateLink({
-      type: "recovery",
-      email: parsed.data.email,
-      options: {
-        redirectTo: `${origin}/auth/callback?type=invite`,
-      },
-    })
-
-  // Build the accept URL: use the Supabase action_link but ensure our callback gets type=invite
-  let acceptUrl = `${origin}/auth/reset-password`
-  if (!linkError && linkData.properties.action_link) {
-    // The action_link goes to Supabase which will redirect to our redirectTo
-    acceptUrl = linkData.properties.action_link
-  }
-
-  // 4. Send invite email via Resend (not Supabase SMTP)
+  // 3. Send invite email with temporary password via Resend
   try {
     const { inviteEmail } = await import("@/lib/email/templates")
     const { sendEmail } = await import("@/lib/email/send")
@@ -145,7 +131,9 @@ export async function inviteUser(
       firstName: parsed.data.firstName,
       inviterOrgName: orgRecord?.name || "your organisation",
       role: parsed.data.role,
-      acceptUrl,
+      loginUrl: `${origin}/auth/login`,
+      email: parsed.data.email,
+      tempPassword,
     })
     await sendEmail({ to: parsed.data.email, ...tmpl })
   } catch (err) {

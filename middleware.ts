@@ -91,7 +91,13 @@ export async function middleware(request: NextRequest) {
     return redirectToUrl(url)
   }
 
-  // 5. Root path → role-appropriate dashboard
+  // 5. Force password change for invited users
+  const mustChangePassword = user.app_metadata?.must_change_password === true
+  if (mustChangePassword && !pathname.startsWith("/auth/new-password")) {
+    return redirectTo("/auth/new-password")
+  }
+
+  // 6. Root path → role-appropriate dashboard
   if (pathname === "/") {
     return redirectTo(getDefaultPath(orgSlug, role))
   }

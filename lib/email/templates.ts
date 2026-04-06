@@ -60,12 +60,16 @@ export function inviteEmail({
   firstName,
   inviterOrgName,
   role,
-  acceptUrl,
+  loginUrl,
+  email,
+  tempPassword,
 }: {
   firstName: string
   inviterOrgName: string
   role: string
-  acceptUrl: string
+  loginUrl: string
+  email: string
+  tempPassword: string
 }): { subject: string; html: string } {
   return {
     subject: `You've been invited to join ${inviterOrgName} on SpaceOps`,
@@ -77,11 +81,22 @@ export function inviteEmail({
       <p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
         You&rsquo;ve been invited to join <strong>${inviterOrgName}</strong> on SpaceOps as a <strong>${role}</strong>.
       </p>
-      <p style="margin:0 0 24px;color:#3f3f46;line-height:1.6;">
-        Click the button below to accept the invitation and set up your account.
+      <p style="margin:0 0 8px;color:#3f3f46;line-height:1.6;">
+        Use the credentials below to sign in:
       </p>
-      <a href="${acceptUrl}" style="display:inline-block;background:#18181b;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
-        Accept Invitation
+      <div style="background:#f4f4f5;border-radius:6px;padding:16px;margin:0 0 24px;">
+        <p style="margin:0 0 8px;color:#3f3f46;font-size:14px;">
+          <strong>Email:</strong> ${email}
+        </p>
+        <p style="margin:0;color:#3f3f46;font-size:14px;">
+          <strong>Temporary Password:</strong> <code style="background:#e4e4e7;padding:2px 6px;border-radius:4px;font-size:14px;">${tempPassword}</code>
+        </p>
+      </div>
+      <p style="margin:0 0 24px;color:#71717a;font-size:13px;line-height:1.6;">
+        You&rsquo;ll be asked to set a new password when you first sign in.
+      </p>
+      <a href="${loginUrl}" style="display:inline-block;background:#18181b;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+        Sign In to SpaceOps
       </a>
     `),
   }

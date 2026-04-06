@@ -80,6 +80,19 @@ export async function updatePasswordAction(
     return { success: false, error: error.message }
   }
 
+  // Clear the must_change_password flag if it was set (invited users)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user?.app_metadata?.must_change_password) {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const admin = createAdminClient()
+    await admin.auth.admin.updateUserById(user.id, {
+      app_metadata: { must_change_password: false },
+    })
+  }
+
   return { success: true }
 }
 
