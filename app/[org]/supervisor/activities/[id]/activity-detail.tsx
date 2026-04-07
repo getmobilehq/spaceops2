@@ -320,15 +320,13 @@ export function ActivityDetail({
                   Cancel
                 </Button>
               )}
-              {isDraft && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -463,7 +461,7 @@ export function ActivityDetail({
           <DialogHeader>
             <DialogTitle>Delete Activity</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this draft activity? All room tasks will be removed. This cannot be undone.
+              Are you sure you want to permanently delete this activity? All room tasks, responses, and related issues will be removed. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

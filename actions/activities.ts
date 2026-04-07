@@ -469,28 +469,42 @@ export async function deleteActivity(
   const ctx = await getSupervisorContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Only allow deleting draft activities
+  const activityId = parsed.data.activityId
+
+  // Verify activity exists
   const { data: existing } = await ctx.supabase
     .from("cleaning_activities")
-    .select("status")
-    .eq("id", parsed.data.activityId)
+    .select("id")
+    .eq("id", activityId)
     .single()
 
   if (!existing) return { success: false, error: "Activity not found" }
-  if (existing.status !== "draft") {
-    return { success: false, error: "Only draft activities can be deleted" }
+
+  // Gather room task IDs to clean up related records
+  const { data: tasks } = await ctx.supabase
+    .from("room_tasks")
+    .select("id")
+    .eq("activity_id", activityId)
+
+  const taskIds = tasks?.map((t) => t.id) || []
+
+  if (taskIds.length > 0) {
+    // Delete task item responses and deficiencies linked to these tasks
+    await ctx.supabase.from("task_item_responses").delete().in("room_task_id", taskIds)
+    await ctx.supabase.from("deficiencies").delete().in("room_task_id", taskIds)
   }
 
-  // Delete room tasks first (cascade should handle this, but be explicit)
+  // Delete room tasks
   await ctx.supabase
     .from("room_tasks")
     .delete()
-    .eq("activity_id", parsed.data.activityId)
+    .eq("activity_id", activityId)
 
+  // Delete the activity
   const { error } = await ctx.supabase
     .from("cleaning_activities")
     .delete()
-    .eq("id", parsed.data.activityId)
+    .eq("id", activityId)
 
   if (error) return { success: false, error: "Failed to delete activity" }
   return { success: true }
