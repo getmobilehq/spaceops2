@@ -41,6 +41,12 @@ export const toggleUserActiveSchema = z.object({
 
 export type ToggleUserActiveInput = z.infer<typeof toggleUserActiveSchema>
 
+export const deleteUserSchema = z.object({
+  userId: z.string().uuid("Invalid user ID"),
+})
+
+export type DeleteUserInput = z.infer<typeof deleteUserSchema>
+
 export const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
   { value: "supervisor", label: "Supervisor" },

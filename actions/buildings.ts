@@ -317,33 +317,63 @@ export async function deleteBuilding(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Check for active/draft activities on any floor of this building
-  const { data: floors } = await ctx.supabase
+  const admin = createAdminClient()
+  const buildingId = parsed.data.buildingId
+
+  // Gather floor IDs for this building
+  const { data: floors } = await admin
     .from("floors")
     .select("id")
-    .eq("building_id", parsed.data.buildingId)
+    .eq("building_id", buildingId)
 
-  if (floors && floors.length > 0) {
-    const floorIds = floors.map((f) => f.id)
-    const { count } = await ctx.supabase
-      .from("cleaning_activities")
-      .select("id", { count: "exact", head: true })
+  const floorIds = floors?.map((f) => f.id) || []
+
+  if (floorIds.length > 0) {
+    // Gather room IDs across all floors
+    const { data: rooms } = await admin
+      .from("rooms")
+      .select("id")
       .in("floor_id", floorIds)
-      .in("status", ["draft", "active"])
 
-    if (count && count > 0) {
-      return {
-        success: false,
-        error: "Cannot delete building with active or draft activities. Complete or cancel them first.",
+    const roomIds = rooms?.map((r) => r.id) || []
+
+    if (roomIds.length > 0) {
+      // Gather room_task IDs
+      const { data: tasks } = await admin
+        .from("room_tasks")
+        .select("id")
+        .in("room_id", roomIds)
+
+      const taskIds = tasks?.map((t) => t.id) || []
+
+      if (taskIds.length > 0) {
+        // Delete task responses, then tasks
+        await admin.from("task_item_responses").delete().in("room_task_id", taskIds)
+        await admin.from("deficiencies").delete().in("room_task_id", taskIds)
+        await admin.from("room_tasks").delete().in("room_id", roomIds)
       }
     }
+
+    // Delete activities and templates linked to floors
+    await admin.from("cleaning_activities").delete().in("floor_id", floorIds)
+    await admin.from("activity_templates").delete().in("floor_id", floorIds)
+
+    // Delete rooms, then floors
+    if (roomIds.length > 0) {
+      await admin.from("rooms").delete().in("floor_id", floorIds)
+    }
+    await admin.from("floors").delete().eq("building_id", buildingId)
   }
 
-  // Soft delete: set status to inactive
-  const { error } = await ctx.supabase
+  // Delete building-level records
+  await admin.from("building_supervisors").delete().eq("building_id", buildingId)
+  await admin.from("attendance_records").delete().eq("building_id", buildingId)
+
+  // Delete the building itself
+  const { error } = await admin
     .from("buildings")
-    .update({ status: "inactive" })
-    .eq("id", parsed.data.buildingId)
+    .delete()
+    .eq("id", buildingId)
 
   if (error) return { success: false, error: "Failed to delete building" }
   return { success: true }

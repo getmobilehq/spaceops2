@@ -218,8 +218,9 @@ export function EditClientForm({
           <DialogHeader>
             <DialogTitle>Delete Client</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{client.company_name}&quot;?
-              This action cannot be undone.
+              Are you sure you want to permanently delete
+              &quot;{client.company_name}&quot;? Any buildings linked to this
+              client will be unlinked. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -95,18 +95,11 @@ export async function deleteClient(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Check for linked buildings
-  const { count } = await ctx.supabase
+  // Unlink any buildings associated with this client
+  await ctx.supabase
     .from("buildings")
-    .select("id", { count: "exact", head: true })
+    .update({ client_id: null })
     .eq("client_id", parsed.data.clientId)
-
-  if (count && count > 0) {
-    return {
-      success: false,
-      error: "Cannot delete client with linked buildings. Remove or reassign buildings first.",
-    }
-  }
 
   const { error } = await ctx.supabase
     .from("clients")

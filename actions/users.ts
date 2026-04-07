@@ -6,9 +6,11 @@ import {
   inviteUserSchema,
   updateUserSchema,
   toggleUserActiveSchema,
+  deleteUserSchema,
   type InviteUserInput,
   type UpdateUserInput,
   type ToggleUserActiveInput,
+  type DeleteUserInput,
 } from "@/lib/validations/user"
 import { headers } from "next/headers"
 
@@ -249,6 +251,72 @@ export async function toggleUserActive(
   await admin.auth.admin.updateUserById(parsed.data.userId, {
     ban_duration: newActiveState ? "none" : "876600h", // ~100 years
   })
+
+  return { success: true }
+}
+
+export async function deleteUser(
+  input: DeleteUserInput
+): Promise<ActionResult> {
+  const parsed = deleteUserSchema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const ctx = await getAdminContext()
+  if (!ctx) return { success: false, error: "Unauthorized" }
+
+  // Prevent self-deletion
+  if (parsed.data.userId === ctx.user.id) {
+    return { success: false, error: "You cannot delete your own account" }
+  }
+
+  // Verify target user belongs to the same org
+  const { data: targetUser, error: fetchError } = await ctx.supabase
+    .from("users")
+    .select("org_id")
+    .eq("id", parsed.data.userId)
+    .single()
+
+  if (fetchError || !targetUser) {
+    return { success: false, error: "User not found" }
+  }
+
+  if (targetUser.org_id !== ctx.orgId) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const admin = createAdminClient()
+  const userId = parsed.data.userId
+
+  // Clean up references before deleting
+  await admin.from("building_supervisors").delete().eq("user_id", userId)
+  await admin.from("attendance_records").delete().eq("user_id", userId)
+  await admin.from("task_item_responses").delete().eq("user_id", userId)
+
+  // Nullify nullable foreign key references
+  await admin.from("deficiencies").update({ assigned_to: null }).eq("assigned_to", userId)
+  await admin.from("deficiencies").update({ resolved_by: null }).eq("resolved_by", userId)
+  await admin.from("room_tasks").update({ assigned_to: null }).eq("assigned_to", userId)
+
+  // Delete records where user is a non-nullable FK (reported deficiencies)
+  await admin.from("deficiencies").delete().eq("reported_by", userId)
+
+  // Delete from public.users table
+  const { error: deleteError } = await admin
+    .from("users")
+    .delete()
+    .eq("id", userId)
+
+  if (deleteError) {
+    return { success: false, error: "Failed to delete user record" }
+  }
+
+  // Delete from Supabase auth
+  const { error: authError } = await admin.auth.admin.deleteUser(userId)
+  if (authError) {
+    console.error("Failed to delete auth user:", authError.message)
+  }
 
   return { success: true }
 }

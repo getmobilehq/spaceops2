@@ -9,7 +9,7 @@ import {
   type UpdateUserInput,
   ROLE_OPTIONS,
 } from "@/lib/validations/user"
-import { updateUser, toggleUserActive } from "@/actions/users"
+import { updateUser, toggleUserActive, deleteUser } from "@/actions/users"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +51,8 @@ export function EditUserForm({ user, email, orgSlug }: EditUserFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const {
     register,
@@ -109,6 +111,27 @@ export function EditUserForm({ user, email, orgSlug }: EditUserFormProps) {
 
     setIsToggling(false)
     setShowConfirm(false)
+  }
+
+  async function handleDeleteUser() {
+    setIsDeleting(true)
+    const result = await deleteUser({ userId: user.id })
+
+    if (result.success) {
+      toast({
+        title: "User deleted",
+        description: `${user.first_name} ${user.last_name} has been permanently deleted.`,
+      })
+      router.push(`/${orgSlug}/admin/users`)
+    } else {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive",
+      })
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
   }
 
   return (
@@ -199,17 +222,21 @@ export function EditUserForm({ user, email, orgSlug }: EditUserFormProps) {
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>
-            {user.is_active
-              ? "Deactivating this user will prevent them from signing in."
-              : "This user is currently inactive and cannot sign in."}
+            These actions are irreversible. Please proceed with caution.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex gap-3">
           <Button
             variant={user.is_active ? "destructive" : "default"}
             onClick={() => setShowConfirm(true)}
           >
             {user.is_active ? "Deactivate User" : "Reactivate User"}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Delete User
           </Button>
         </CardContent>
       </Card>
@@ -244,6 +271,36 @@ export function EditUserForm({ user, email, orgSlug }: EditUserFormProps) {
                 : user.is_active
                   ? "Deactivate"
                   : "Reactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete user confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete {user.first_name}{" "}
+              {user.last_name}? This will remove their account, attendance
+              records, and task responses. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
             </Button>
           </DialogFooter>
         </DialogContent>

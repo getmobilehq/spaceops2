@@ -618,9 +618,10 @@ export function BuildingDetailForm({
           <DialogHeader>
             <DialogTitle>Delete Building</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{building.name}&quot;? The
-              building will be marked as inactive. This action cannot be undone
-              if there are no active activities.
+              Are you sure you want to permanently delete &quot;{building.name}&quot;?
+              This will remove all floors, rooms, activities, tasks, and
+              attendance records associated with this building. This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
