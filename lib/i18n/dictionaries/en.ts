@@ -40,7 +40,7 @@ export const en = {
   "nav.templates": "Templates",
   "nav.attendance": "Attendance",
   "nav.issues": "Issues",
-  "nav.tasks": "Tasks",
+  "nav.tasks": "One-off Tasks",
   "nav.today": "Today",
   "nav.history": "History",
   "nav.overview": "Overview",

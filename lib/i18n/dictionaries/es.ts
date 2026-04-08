@@ -42,7 +42,7 @@ const es: Dictionary = {
   "nav.templates": "Plantillas",
   "nav.attendance": "Asistencia",
   "nav.issues": "Incidencias",
-  "nav.tasks": "Tareas",
+  "nav.tasks": "Tareas puntuales",
   "nav.today": "Hoy",
   "nav.history": "Historial",
   "nav.overview": "Resumen",
