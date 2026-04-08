@@ -13,6 +13,7 @@ import { getJanitorTodayAdhocTasks } from "@/lib/queries/adhoc-tasks"
 import { Clock, MapPin, ChevronRight, QrCode, ListTodo } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
 import { AttendanceBanner } from "./attendance-banner"
+import { ClockInGate } from "./clock-in-gate"
 import { getTranslations } from "@/lib/i18n/server"
 import type { DictionaryKey } from "@/lib/i18n/get-dictionary"
 
@@ -82,6 +83,26 @@ export default async function JanitorTodayPage({
     grouped.get(key)!.tasks.push(task)
   }
 
+  // Determine if janitor has clocked in today
+  const hasClockedIn = attendance.length > 0
+  const hasWork = tasks.length > 0 || adhocTasks.length > 0
+
+  // Extract unique buildings from today's tasks for clock-in gate
+  const buildingMap = new Map<string, string>()
+  for (const task of tasks) {
+    const floor = task.cleaning_activities?.floors
+    const building = floor?.buildings
+    if (building && "id" in building) {
+      buildingMap.set(
+        (building as { id: string; name: string }).id,
+        (building as { id: string; name: string }).name
+      )
+    }
+  }
+  const assignedBuildings = Array.from(buildingMap.entries()).map(
+    ([id, name]) => ({ id, name })
+  )
+
   return (
     <div className="space-y-4">
       <RealtimeListener table="room_tasks" />
@@ -92,7 +113,13 @@ export default async function JanitorTodayPage({
         </p>
       </div>
 
-      {/* Attendance Banner */}
+      {/* Clock-in gate: must clock in before seeing tasks */}
+      {!hasClockedIn && hasWork ? (
+        <ClockInGate buildings={assignedBuildings} />
+      ) : (
+      <>
+
+      {/* Attendance Banner (shown after clocked in) */}
       <AttendanceBanner
         attendance={attendance as { id: string; clock_in_at: string; clock_out_at: string | null; geo_verified: boolean; buildings: { name: string } | null }[]}
         hasTasks={tasks.length > 0}
@@ -211,6 +238,9 @@ export default async function JanitorTodayPage({
           </Card>
         )}
         </>
+      )}
+
+      </>
       )}
     </div>
   )

@@ -47,7 +47,7 @@ export async function getJanitorTodayTasks(
   const { data, error } = await supabase
     .from("room_tasks")
     .select(
-      "*, rooms(name, room_types(name)), cleaning_activities!inner(name, scheduled_date, window_start, window_end, status, floors(floor_name, buildings(name)))"
+      "*, rooms(name, room_types(name)), cleaning_activities!inner(name, scheduled_date, window_start, window_end, status, floors(floor_name, buildings(id, name)))"
     )
     .eq("assigned_to", userId)
     .eq("cleaning_activities.scheduled_date", today)
