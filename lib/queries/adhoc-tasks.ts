@@ -37,6 +37,21 @@ export async function getJanitorAdhocTask(
   return data
 }
 
+export async function getJanitorCompletedAdhocTasks(
+  supabase: Client,
+  userId: string
+) {
+  const { data, error } = await supabase
+    .from("adhoc_tasks")
+    .select("*")
+    .eq("assigned_to", userId)
+    .eq("status", "done")
+    .order("completed_at", { ascending: false })
+
+  if (error) return []
+  return data
+}
+
 export async function getSupervisorAdhocTasks(supabase: Client) {
   const { data, error } = await supabase
     .from("adhoc_tasks")

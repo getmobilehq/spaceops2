@@ -16,8 +16,11 @@ import {
   CalendarDays,
   Flame,
   BarChart3,
+  ListTodo,
+  CheckCircle2,
 } from "lucide-react"
 import { INSPECTION_STATUS } from "@/lib/status-styles"
+import { getJanitorCompletedAdhocTasks } from "@/lib/queries/adhoc-tasks"
 
 export const metadata = {
   title: "Task History - SpaceOps",
@@ -34,10 +37,11 @@ export default async function JanitorHistoryPage() {
   const role = user.app_metadata?.role as string | undefined
   if (role !== "janitor") return notFound()
 
-  const [tasks, perfStats, perfTrend] = await Promise.all([
+  const [tasks, perfStats, perfTrend, completedAdhocTasks] = await Promise.all([
     getJanitorTaskHistory(supabase, user.id),
     getJanitorPerformanceStats(supabase, user.id),
     getJanitorPerformanceTrend(supabase, user.id),
+    getJanitorCompletedAdhocTasks(supabase, user.id),
   ])
 
   // Group by date
@@ -208,6 +212,53 @@ export default async function JanitorHistoryPage() {
                 )
               })}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Completed Ad-hoc Tasks */}
+      {completedAdhocTasks.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListTodo className="h-4 w-4" />
+              Completed Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {completedAdhocTasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center justify-between rounded-md border p-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {task.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {task.completed_at
+                        ? new Date(task.completed_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )
+                        : task.due_date}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="border-success/30 bg-success/10 text-success dark:bg-success/20"
+                >
+                  Done
+                </Badge>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
