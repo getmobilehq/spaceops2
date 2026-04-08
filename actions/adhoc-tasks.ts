@@ -77,10 +77,17 @@ export async function uploadAdhocTaskImage(
   const ext = file.name.split(".").pop() || "jpg"
   const path = `${ctx.orgId}/${taskId}.${ext}`
 
+  // Convert File to Buffer for server-side upload
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
   const admin = createAdminClient()
   const { error: uploadError } = await admin.storage
     .from("adhoc-task-images")
-    .upload(path, file, { upsert: true })
+    .upload(path, buffer, {
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    })
 
   if (uploadError) {
     return { success: false, error: "Failed to upload image" }
