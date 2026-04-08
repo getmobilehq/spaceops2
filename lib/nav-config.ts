@@ -13,6 +13,7 @@ import {
   BookTemplate,
   Clock,
   CreditCard,
+  ListTodo,
   type LucideIcon,
 } from "lucide-react"
 import type { PlanType } from "@/lib/plans"
@@ -40,6 +41,7 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
   supervisor: [
     { label: "Dashboard", labelKey: "nav.dashboard", href: "dashboard", icon: LayoutDashboard, enabled: true },
     { label: "Activities", labelKey: "nav.activities", href: "activities", icon: CalendarCheck, enabled: true },
+    { label: "Tasks", labelKey: "nav.tasks", href: "tasks", icon: ListTodo, enabled: true },
     { label: "Inspections", labelKey: "nav.inspections", href: "inspections", icon: ClipboardCheck, enabled: true },
     { label: "Templates", labelKey: "nav.templates", href: "templates", icon: BookTemplate, enabled: true },
     { label: "Attendance", labelKey: "nav.attendance", href: "attendance", icon: Clock, enabled: true },

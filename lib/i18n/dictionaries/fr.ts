@@ -42,6 +42,7 @@ const fr: Dictionary = {
   "nav.templates": "Modèles",
   "nav.attendance": "Présence",
   "nav.issues": "Incidents",
+  "nav.tasks": "Tâches",
   "nav.today": "Aujourd'hui",
   "nav.history": "Historique",
   "nav.overview": "Aperçu",

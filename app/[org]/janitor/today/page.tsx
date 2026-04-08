@@ -9,7 +9,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { getJanitorTodayTasks } from "@/lib/queries/activities"
 import { getJanitorTodayAttendance } from "@/lib/queries/attendance"
-import { Clock, MapPin, ChevronRight, QrCode } from "lucide-react"
+import { getJanitorTodayAdhocTasks } from "@/lib/queries/adhoc-tasks"
+import { Clock, MapPin, ChevronRight, QrCode, ListTodo } from "lucide-react"
 import { RealtimeListener } from "@/components/shared/RealtimeListener"
 import { AttendanceBanner } from "./attendance-banner"
 import { getTranslations } from "@/lib/i18n/server"
@@ -43,9 +44,10 @@ export default async function JanitorTodayPage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [tasks, attendance, { t }] = await Promise.all([
+  const [tasks, attendance, adhocTasks, { t }] = await Promise.all([
     user ? getJanitorTodayTasks(supabase, user.id) : Promise.resolve([]),
     user ? getJanitorTodayAttendance(supabase, user.id) : Promise.resolve([]),
+    user ? getJanitorTodayAdhocTasks(supabase, user.id) : Promise.resolve([]),
     getTranslations(),
   ])
 
@@ -96,7 +98,7 @@ export default async function JanitorTodayPage({
         hasTasks={tasks.length > 0}
       />
 
-      {tasks.length === 0 ? (
+      {tasks.length === 0 && adhocTasks.length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("janitor.today.assignedRooms")}</CardTitle>
@@ -108,7 +110,8 @@ export default async function JanitorTodayPage({
           </CardContent>
         </Card>
       ) : (
-        Array.from(grouped.entries()).map(([activityId, group]) => (
+        <>
+        {Array.from(grouped.entries()).map(([activityId, group]) => (
           <Card key={activityId}>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{group.activityName}</CardTitle>
@@ -166,7 +169,48 @@ export default async function JanitorTodayPage({
               })}
             </CardContent>
           </Card>
-        ))
+        ))}
+
+        {/* Ad-hoc Tasks */}
+        {adhocTasks.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ListTodo className="h-4 w-4" />
+                Tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {adhocTasks.map((task) => (
+                <Link
+                  key={task.id}
+                  href={`/${params.org}/janitor/task/adhoc/${task.id}`}
+                  className="flex items-center justify-between rounded-md border p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{task.title}</p>
+                    {task.due_time && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Due by {task.due_time.slice(0, 5)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-warning/30 bg-warning/10 text-warning dark:bg-warning/20"
+                    >
+                      Pending
+                    </Badge>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+        </>
       )}
     </div>
   )

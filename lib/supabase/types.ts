@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      adhoc_tasks: {
+        Row: {
+          id: string
+          org_id: string
+          title: string
+          description: string | null
+          image_url: string | null
+          due_date: string
+          due_time: string | null
+          assigned_to: string
+          created_by: string
+          status: string
+          completed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          title: string
+          description?: string | null
+          image_url?: string | null
+          due_date: string
+          due_time?: string | null
+          assigned_to: string
+          created_by: string
+          status?: string
+          completed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          title?: string
+          description?: string | null
+          image_url?: string | null
+          due_date?: string
+          due_time?: string | null
+          assigned_to?: string
+          created_by?: string
+          status?: string
+          completed_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adhoc_tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adhoc_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adhoc_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_templates: {
         Row: {
           created_at: string
