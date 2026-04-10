@@ -83,6 +83,7 @@ export default async function OrgLayout({
           userEmail: user.email || "",
           plan: org.plan || "free",
           onboardingCompleted: org.onboarding_completed ?? true,
+          isSuperAdmin: user.app_metadata?.is_super_admin === true,
         }}
       >
         {children}

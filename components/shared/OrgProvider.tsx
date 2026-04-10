@@ -16,6 +16,7 @@ interface OrgContextValue {
   userEmail: string
   plan: "free" | "pro" | "enterprise"
   onboardingCompleted: boolean
+  isSuperAdmin: boolean
 }
 
 const OrgContext = createContext<OrgContextValue | null>(null)

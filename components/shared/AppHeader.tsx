@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Menu, LogOut, User } from "lucide-react"
+import { Menu, LogOut, User, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -37,6 +37,7 @@ export function AppHeader() {
     userLastName,
     userAvatarUrl,
     userEmail,
+    isSuperAdmin,
   } = useOrg()
   const { t } = useTranslation()
   const pathname = usePathname()
@@ -118,6 +119,17 @@ export function AppHeader() {
                 {t("header.profileAndSettings")}
               </Link>
             </DropdownMenuItem>
+            {isSuperAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/platform">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Platform Admin
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
