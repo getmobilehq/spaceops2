@@ -856,6 +856,8 @@ export type Database = {
           plan: Database["public"]["Enums"]["org_plan"]
           slug: string
           stripe_customer_id: string | null
+          suspended_at: string | null
+          suspended_reason: string | null
           updated_at: string
         }
         Insert: {
@@ -868,6 +870,8 @@ export type Database = {
           plan?: Database["public"]["Enums"]["org_plan"]
           slug: string
           stripe_customer_id?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
         }
         Update: {
@@ -880,9 +884,59 @@ export type Database = {
           plan?: Database["public"]["Enums"]["org_plan"]
           slug?: string
           stripe_customer_id?: string | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      platform_audit_log: {
+        Row: {
+          id: string
+          org_id: string | null
+          performed_by: string | null
+          action_type: string
+          from_value: string | null
+          to_value: string | null
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id?: string | null
+          performed_by?: string | null
+          action_type: string
+          from_value?: string | null
+          to_value?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string | null
+          performed_by?: string | null
+          action_type?: string
+          from_value?: string | null
+          to_value?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_audit_log_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       room_checklist_overrides: {
         Row: {

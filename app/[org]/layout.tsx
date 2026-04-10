@@ -41,6 +41,11 @@ export default async function OrgLayout({
     redirect("/auth/login")
   }
 
+  // Block suspended orgs (super admins bypass via /platform routes)
+  if (org.suspended_at) {
+    redirect("/auth/suspended")
+  }
+
   const { data: userRecord } = await supabase
     .from("users")
     .select("*")

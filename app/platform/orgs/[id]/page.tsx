@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getOrgWithCounts } from "@/lib/queries/platform"
+import { getOrgWithCounts, getOrgAuditLog } from "@/lib/queries/platform"
 import {
   Card,
   CardContent,
@@ -10,15 +10,18 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import { OrgManagement } from "./org-management"
 
 export default async function PlatformOrgDetailPage({
   params,
 }: {
   params: { id: string }
 }) {
-  const { org, users, buildingCount, subscription } = await getOrgWithCounts(
-    params.id
-  )
+  const [{ org, users, buildingCount, subscription }, auditLog] =
+    await Promise.all([
+      getOrgWithCounts(params.id),
+      getOrgAuditLog(params.id),
+    ])
 
   if (!org) return notFound()
 
@@ -120,6 +123,81 @@ export default async function PlatformOrgDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Org Management */}
+      <OrgManagement
+        orgId={org.id}
+        orgName={org.name}
+        currentPlan={org.plan as "free" | "pro" | "enterprise"}
+        suspendedAt={org.suspended_at}
+        suspendedReason={org.suspended_reason}
+      />
+
+      {/* Audit Log */}
+      {auditLog.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Audit Log</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {auditLog.map((entry) => {
+                const performer = entry.users as {
+                  first_name: string
+                  last_name: string
+                } | null
+                const performerName = performer
+                  ? `${performer.first_name} ${performer.last_name}`
+                  : "Unknown"
+                let label = ""
+                switch (entry.action_type) {
+                  case "plan_change":
+                    label = `Plan changed from ${entry.from_value} to ${entry.to_value}`
+                    break
+                  case "suspend":
+                    label = "Organisation suspended"
+                    break
+                  case "unsuspend":
+                    label = "Organisation reactivated"
+                    break
+                  case "delete":
+                    label = "Organisation deleted"
+                    break
+                  default:
+                    label = entry.action_type
+                }
+                return (
+                  <div
+                    key={entry.id}
+                    className="flex items-start justify-between rounded-md border p-3"
+                  >
+                    <div className="space-y-1 flex-1">
+                      <p className="text-sm font-medium">{label}</p>
+                      {entry.note && (
+                        <p className="text-xs text-muted-foreground">
+                          {entry.note}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        by {performerName}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(entry.created_at).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Users */}
       <Card>

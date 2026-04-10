@@ -46,6 +46,20 @@ export async function getOrgWithCounts(orgId: string) {
   }
 }
 
+export async function getOrgAuditLog(orgId: string, limit = 20) {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("platform_audit_log")
+    .select(
+      "id, action_type, from_value, to_value, note, created_at, performed_by, users:performed_by(first_name, last_name)"
+    )
+    .eq("org_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  return data || []
+}
+
 export async function getAllSubscriptions() {
   const admin = createAdminClient()
   const { data } = await admin
