@@ -4,6 +4,7 @@ import {
   getReportSummary,
   getPassRatesByBuilding,
   getPassRatesByJanitor,
+  getTimeWorkedByJanitor,
   getActivityTrend,
   getActivityHistory,
   getDeficiencyBreakdown,
@@ -57,12 +58,13 @@ export default async function ReportsPage({
 
   const prevFilters = getPreviousPeriodFilters(filters)
 
-  const [summary, prevSummary, byBuilding, byJanitor, trend, history, deficiencies, buildings, allClients] =
+  const [summary, prevSummary, byBuilding, byJanitor, timeWorkedByJanitor, trend, history, deficiencies, buildings, allClients] =
     await Promise.all([
       getReportSummary(supabase, filters),
       getReportSummary(supabase, prevFilters),
       getPassRatesByBuilding(supabase, filters),
       getPassRatesByJanitor(supabase, filters),
+      getTimeWorkedByJanitor(supabase, filters),
       getActivityTrend(supabase, 30, filters),
       getActivityHistory(supabase, 50, filters),
       getDeficiencyBreakdown(supabase),
@@ -98,6 +100,7 @@ export default async function ReportsPage({
       previousSummary={prevSummary}
       byBuilding={byBuilding}
       byJanitor={byJanitor}
+      timeWorkedByJanitor={timeWorkedByJanitor}
       trend={trend}
       history={history}
       deficiencies={deficiencies}

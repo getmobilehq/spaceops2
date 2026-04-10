@@ -442,10 +442,26 @@ export async function inspectRoomTask(
 
   if (error) return { success: false, error: "Failed to inspect task" }
 
+  const isPassed = parsed.data.result === "inspected_pass"
+  const roomName = task.rooms?.name || "Room"
+
+  // Auto-create a deficiency when inspection fails
+  if (!isPassed) {
+    await ctx.supabase.from("deficiencies").insert({
+      org_id: ctx.orgId,
+      room_task_id: parsed.data.taskId,
+      reported_by: ctx.user.id,
+      assigned_to: task.assigned_to ?? null,
+      description:
+        parsed.data.note ||
+        `Inspection failed for ${roomName}. Please re-clean and address any issues.`,
+      severity: "medium",
+      status: "open",
+    })
+  }
+
   // Notify the assigned janitor of the inspection result
   if (task.assigned_to) {
-    const isPassed = parsed.data.result === "inspected_pass"
-    const roomName = task.rooms?.name || "Room"
     await createNotification(ctx.supabase, {
       orgId: ctx.orgId,
       userId: task.assigned_to,

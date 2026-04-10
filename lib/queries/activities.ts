@@ -51,7 +51,7 @@ export async function getJanitorTodayTasks(
     )
     .eq("assigned_to", userId)
     .eq("cleaning_activities.scheduled_date", today)
-    .eq("cleaning_activities.status", "active")
+    .in("cleaning_activities.status", ["draft", "active"])
 
   if (error) throw error
   return data

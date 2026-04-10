@@ -28,6 +28,14 @@ export interface ByJanitor {
   passRate: number
 }
 
+export interface TimeWorkedByJanitor {
+  name: string
+  totalMinutes: number
+  hoursWorked: number
+  shifts: number
+  avgShiftHours: number
+}
+
 export interface ByClient {
   name: string
   passed: number
@@ -94,6 +102,7 @@ export interface ReportData {
   previousSummary?: ReportSummary
   byBuilding: ByBuilding[]
   byJanitor: ByJanitor[]
+  timeWorkedByJanitor: TimeWorkedByJanitor[]
   byClient: ByClient[]
   byFloor: ByFloor[]
   issues: IssueRow[]

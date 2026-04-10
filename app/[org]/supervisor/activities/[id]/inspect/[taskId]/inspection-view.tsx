@@ -123,15 +123,12 @@ export function InspectionView({
           result === "inspected_pass"
             ? "Inspection passed"
             : "Inspection failed",
+        description:
+          result === "inspected_fail"
+            ? "An issue has been logged for this task."
+            : undefined,
       })
-      if (result === "inspected_fail") {
-        // Redirect to report issues for this failed task
-        router.push(
-          `/${orgSlug}/supervisor/issues/new?taskId=${task.id}&activityId=${activityId}`
-        )
-      } else {
-        router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
-      }
+      router.push(`/${orgSlug}/supervisor/activities/${activityId}`)
       router.refresh()
     } else {
       toast({

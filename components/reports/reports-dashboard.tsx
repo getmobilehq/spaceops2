@@ -73,6 +73,14 @@ interface ByJanitor {
   passRate: number
 }
 
+interface TimeWorkedByJanitor {
+  name: string
+  totalMinutes: number
+  hoursWorked: number
+  shifts: number
+  avgShiftHours: number
+}
+
 interface ByClient {
   name: string
   passed: number
@@ -263,6 +271,7 @@ export function ReportsDashboard({
   previousSummary,
   byBuilding,
   byJanitor,
+  timeWorkedByJanitor = [],
   trend,
   history,
   deficiencies,
@@ -281,6 +290,7 @@ export function ReportsDashboard({
   previousSummary?: Summary
   byBuilding: ByBuilding[]
   byJanitor: ByJanitor[]
+  timeWorkedByJanitor?: TimeWorkedByJanitor[]
   trend: TrendPoint[]
   history: ActivityRow[]
   deficiencies: DeficiencyBreakdown
@@ -676,6 +686,50 @@ export function ReportsDashboard({
               </CardContent>
             </Card>
           </div>
+
+          {/* Time Worked by Janitor */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Time Worked by Janitor</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Actual hours from clock-in/clock-out records
+              </p>
+            </CardHeader>
+            <CardContent>
+              {timeWorkedByJanitor.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No completed shifts in this period.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="py-2 pr-4 font-medium">Janitor</th>
+                        <th className="py-2 pr-4 font-medium text-right">Hours Worked</th>
+                        <th className="py-2 pr-4 font-medium text-right">Shifts</th>
+                        <th className="py-2 font-medium text-right">Avg / Shift</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {timeWorkedByJanitor.map((j) => (
+                        <tr key={j.name} className="border-b last:border-0">
+                          <td className="py-2 pr-4 font-medium">{j.name}</td>
+                          <td className="py-2 pr-4 text-right">{j.hoursWorked}h</td>
+                          <td className="py-2 pr-4 text-right text-muted-foreground">
+                            {j.shifts}
+                          </td>
+                          <td className="py-2 text-right text-muted-foreground">
+                            {j.avgShiftHours}h
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Deficiency breakdown */}
           {deficiencies.total > 0 && (

@@ -238,6 +238,79 @@ export async function getPassRatesByJanitor(
 }
 
 /**
+ * Total time worked by each janitor (sum of completed shifts).
+ * Returns array sorted by hours worked descending.
+ */
+export async function getTimeWorkedByJanitor(
+  supabase: SupabaseClient<Database>,
+  filters?: ReportFilters
+) {
+  let query = supabase
+    .from("attendance_records")
+    .select(
+      "user_id, clock_in_at, clock_out_at, building_id, users!attendance_records_user_id_fkey(first_name, last_name), buildings!inner(id, client_id)"
+    )
+    .not("clock_out_at", "is", null)
+
+  if (filters?.dateFrom) {
+    query = query.gte("date", filters.dateFrom)
+  }
+  if (filters?.dateTo) {
+    query = query.lte("date", filters.dateTo)
+  }
+  if (filters?.buildingId) {
+    query = query.eq("building_id", filters.buildingId)
+  }
+  if (filters?.clientId) {
+    query = query.eq("buildings.client_id", filters.clientId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+
+  const map = new Map<
+    string,
+    { name: string; totalMinutes: number; shifts: number }
+  >()
+
+  for (const record of data || []) {
+    if (!record.clock_out_at) continue
+    const user = record.users as { first_name: string; last_name: string } | null
+    if (!user) continue
+
+    const minutes =
+      (new Date(record.clock_out_at).getTime() -
+        new Date(record.clock_in_at).getTime()) /
+      60000
+
+    const key = record.user_id
+    if (!map.has(key)) {
+      map.set(key, {
+        name: `${user.first_name} ${user.last_name}`,
+        totalMinutes: 0,
+        shifts: 0,
+      })
+    }
+    const entry = map.get(key)!
+    entry.totalMinutes += minutes
+    entry.shifts += 1
+  }
+
+  return Array.from(map.values())
+    .map((j) => ({
+      name: j.name,
+      totalMinutes: Math.round(j.totalMinutes),
+      hoursWorked: Math.round((j.totalMinutes / 60) * 10) / 10,
+      shifts: j.shifts,
+      avgShiftHours:
+        j.shifts > 0
+          ? Math.round((j.totalMinutes / j.shifts / 60) * 10) / 10
+          : 0,
+    }))
+    .sort((a, b) => b.totalMinutes - a.totalMinutes)
+}
+
+/**
  * Activity trend data — pass/fail counts grouped by date.
  */
 export async function getActivityTrend(
