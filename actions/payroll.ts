@@ -127,6 +127,13 @@ export async function generatePayrollRun(
 
   const totalGrossPay = lines.reduce((sum, l) => sum + l.gross_pay, 0)
 
+  // Verify the admin exists in public.users before setting created_by
+  const { data: adminUser } = await ctx.supabase
+    .from("users")
+    .select("id")
+    .eq("id", ctx.user.id)
+    .maybeSingle()
+
   const { data: run, error: runError } = await ctx.supabase
     .from("payroll_runs")
     .insert({
@@ -137,7 +144,7 @@ export async function generatePayrollRun(
       total_gross_pay: Math.round(totalGrossPay * 100) / 100,
       employee_count: employees.length,
       notes: notes || null,
-      created_by: ctx.user.id,
+      created_by: adminUser?.id || null,
     })
     .select("id")
     .single()
@@ -175,12 +182,18 @@ export async function approvePayrollRun(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
+  const { data: adminUser } = await ctx.supabase
+    .from("users")
+    .select("id")
+    .eq("id", ctx.user.id)
+    .maybeSingle()
+
   const { error } = await ctx.supabase
     .from("payroll_runs")
     .update({
       status: "approved",
       approved_at: new Date().toISOString(),
-      approved_by: ctx.user.id,
+      approved_by: adminUser?.id || null,
     })
     .eq("id", parsed.data.runId)
     .eq("status", "draft")
