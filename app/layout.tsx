@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Public_Sans } from "next/font/google"
+import { Instrument_Serif } from "next/font/google"
 import localFont from "next/font/local"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -7,15 +7,21 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { getLocale } from "@/lib/i18n/server"
 import "./globals.css"
 
-const publicSans = Public_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-public-sans",
+const geist = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist",
+  weight: "100 900",
 })
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+})
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  variable: "--font-instrument-serif",
 })
 
 export const metadata: Metadata = {
@@ -72,7 +78,7 @@ export default function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${publicSans.variable} ${geistMono.variable} font-[family-name:var(--font-public-sans)] antialiased`}
+        className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable} font-[family-name:var(--font-geist)] antialiased`}
       >
         <ThemeProvider
           attribute="class"

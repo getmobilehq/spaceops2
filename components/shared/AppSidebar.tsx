@@ -62,26 +62,31 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col border-r bg-card transition-all duration-300",
-        collapsed ? "w-[80px]" : "w-[260px]",
+        "flex h-screen flex-col border-r bg-background transition-all duration-300",
+        collapsed ? "w-[80px]" : "w-[240px]",
         className
       )}
     >
       {/* Org header */}
       <div
         className={cn(
-          "flex items-center border-b",
-          collapsed ? "justify-center px-2 py-5" : "gap-3 px-4 py-5"
+          "flex items-center",
+          collapsed ? "justify-center px-2 py-5" : "gap-2.5 px-4 py-5"
         )}
       >
-        <Avatar className="h-9 w-9 shrink-0">
-          <AvatarImage src={orgLogoUrl || undefined} alt={orgName} />
-          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-            {orgName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        {orgLogoUrl ? (
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarImage src={orgLogoUrl} alt={orgName} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+              {orgName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src="/logo-mark.svg" alt="" width={22} height={22} className="shrink-0" />
+        )}
         {!collapsed && (
-          <span className="truncate text-sm font-semibold text-foreground">
+          <span className="truncate text-base font-semibold tracking-tight text-foreground">
             {orgName}
           </span>
         )}
@@ -147,8 +152,8 @@ export function AppSidebar({
                     ? "justify-center px-2 py-2.5"
                     : "gap-3 px-3 py-2.5",
                   isActive
-                    ? "gradient-primary text-white shadow-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-secondary text-foreground [&_svg]:text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 )}
               >
                 <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -203,21 +208,21 @@ export function AppSidebar({
             collapsed ? "justify-center p-2" : "gap-3 px-3 py-2"
           )}
         >
-          <Avatar className="h-8 w-8 shrink-0">
+          <Avatar className="h-7 w-7 shrink-0">
             <AvatarImage
               src={userAvatarUrl || undefined}
               alt={userFirstName}
             />
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+            <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-semibold font-mono tracking-wide">
               {(userFirstName.charAt(0) + userLastName.charAt(0)).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-foreground">
+              <p className="truncate text-[13px] font-medium text-foreground">
                 {userFirstName} {userLastName}
               </p>
-              <p className="truncate text-xs text-muted-foreground capitalize">
+              <p className="truncate font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                 {userRole}
               </p>
             </div>

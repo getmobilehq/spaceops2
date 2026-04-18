@@ -9,8 +9,9 @@ const config: Config = {
   ],
   theme: {
   	fontFamily: {
-  		sans: ['var(--font-public-sans)', 'Public Sans', 'sans-serif'],
-  		mono: ['var(--font-geist-mono)', 'monospace'],
+  		sans: ['var(--font-geist)', 'Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+  		mono: ['var(--font-geist-mono)', 'Geist Mono', 'ui-monospace', 'monospace'],
+  		serif: ['var(--font-instrument-serif)', 'Instrument Serif', 'Times New Roman', 'serif'],
   	},
   	fontSize: {
   		'xs': ['0.75rem', { lineHeight: '1.16667' }],
@@ -26,19 +27,19 @@ const config: Config = {
   	extend: {
   		colors: {
   			brand: {
-  				DEFAULT: '#7367F0',
-  				light: '#8F85F3',
-  				dark: '#675DD8',
+  				DEFAULT: '#4338CA',
+  				light: '#EEF2FF',
+  				dark: '#1E1B4B',
   			},
   			surface: 'hsl(var(--background))',
   			status: {
   				unassigned: '#94A3B8',
   				'not-started': '#CBD5E1',
-  				'in-progress': '#F59E0B',
-  				done: '#10B981',
-  				'inspected-pass': '#059669',
-  				'inspected-fail': '#DC2626',
-  				'has-issues': '#EF4444',
+  				'in-progress': '#A16207',
+  				done: '#166534',
+  				'inspected-pass': '#166534',
+  				'inspected-fail': '#991B1B',
+  				'has-issues': '#991B1B',
   			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -99,16 +100,19 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		boxShadow: {
-  			'xs': '0 1px 2px 0 rgb(0 0 0 / 0.04)',
-  			'sm': '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-  			'md': '0 4px 8px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06)',
-  			'lg': '0 8px 16px -4px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)',
-  			'xl': '0 20px 24px -8px rgb(0 0 0 / 0.12), 0 8px 8px -4px rgb(0 0 0 / 0.04)',
+  			'xs': '0 1px 2px rgba(10, 10, 10, 0.04)',
+  			'sm': '0 1px 2px rgba(10, 10, 10, 0.04)',
+  			'md': '0 4px 16px rgba(10, 10, 10, 0.06), 0 1px 2px rgba(10, 10, 10, 0.04)',
+  			'lg': '0 12px 40px rgba(10, 10, 10, 0.08)',
+  			'xl': '0 12px 40px rgba(10, 10, 10, 0.08)',
   		},
   		spacing: {
   			'sidebar': 'var(--sidebar-width)',
   			'sidebar-collapsed': 'var(--sidebar-collapsed-width)',
   			'header': 'var(--header-height)',
+  		},
+  		transitionTimingFunction: {
+  			'brand': 'cubic-bezier(0.2, 0.6, 0.2, 1)',
   		},
   	}
   },
