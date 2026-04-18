@@ -81,16 +81,19 @@ export async function getPayrollSettings(
 
   if (error) throw error
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    userId: row.user_id,
-    firstName: row.users?.first_name || "",
-    lastName: row.users?.last_name || "",
-    role: row.users?.role || "",
-    hourlyRate: Number(row.hourly_rate),
-    overtimeThresholdHours: Number(row.overtime_threshold_hours),
-    overtimeMultiplier: Number(row.overtime_multiplier),
-  }))
+  return (data || []).map((row) => {
+    const user = row.users as { first_name: string; last_name: string; role: string } | null
+    return {
+      id: row.id,
+      userId: row.user_id,
+      firstName: user?.first_name || "",
+      lastName: user?.last_name || "",
+      role: user?.role || "",
+      hourlyRate: Number(row.hourly_rate),
+      overtimeThresholdHours: Number(row.overtime_threshold_hours),
+      overtimeMultiplier: Number(row.overtime_multiplier),
+    }
+  })
 }
 
 export async function getPayrollRuns(
@@ -105,19 +108,22 @@ export async function getPayrollRuns(
 
   if (error) throw error
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    periodStart: row.period_start,
-    periodEnd: row.period_end,
-    status: row.status,
-    totalGrossPay: Number(row.total_gross_pay),
-    employeeCount: row.employee_count,
-    notes: row.notes,
-    createdAt: row.created_at,
-    createdByName: row.users
-      ? `${row.users.first_name} ${row.users.last_name}`
-      : null,
-  }))
+  return (data || []).map((row) => {
+    const creator = row.users as { first_name: string; last_name: string } | null
+    return {
+      id: row.id,
+      periodStart: row.period_start,
+      periodEnd: row.period_end,
+      status: row.status,
+      totalGrossPay: Number(row.total_gross_pay),
+      employeeCount: row.employee_count,
+      notes: row.notes,
+      createdAt: row.created_at,
+      createdByName: creator
+        ? `${creator.first_name} ${creator.last_name}`
+        : null,
+    }
+  })
 }
 
 export async function getPayrollRunDetail(
@@ -144,25 +150,27 @@ export async function getPayrollRunDetail(
 
   if (linesError) throw linesError
 
-  const r = run as any
+  type UserName = { first_name: string; last_name: string } | null
+  const creator = (run as Record<string, unknown>).creator as UserName
+  const approver = (run as Record<string, unknown>).approver as UserName
 
   return {
-    id: r.id,
-    periodStart: r.period_start,
-    periodEnd: r.period_end,
-    status: r.status,
-    totalGrossPay: Number(r.total_gross_pay),
-    employeeCount: r.employee_count,
-    notes: r.notes,
-    createdAt: r.created_at,
-    createdByName: r.creator
-      ? `${r.creator.first_name} ${r.creator.last_name}`
+    id: run.id,
+    periodStart: run.period_start,
+    periodEnd: run.period_end,
+    status: run.status,
+    totalGrossPay: Number(run.total_gross_pay),
+    employeeCount: run.employee_count,
+    notes: run.notes,
+    createdAt: run.created_at,
+    createdByName: creator
+      ? `${creator.first_name} ${creator.last_name}`
       : null,
-    approvedAt: r.approved_at,
-    approvedByName: r.approver
-      ? `${r.approver.first_name} ${r.approver.last_name}`
+    approvedAt: run.approved_at,
+    approvedByName: approver
+      ? `${approver.first_name} ${approver.last_name}`
       : null,
-    lines: (lines || []).map((l: any) => ({
+    lines: (lines || []).map((l) => ({
       id: l.id,
       userId: l.user_id,
       employeeName: l.employee_name,
