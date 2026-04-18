@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   UserCircle,
   BarChart3,
+  Banknote,
   CalendarCheck,
   CalendarDays,
   Eye,
@@ -36,6 +37,7 @@ export const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: "Checklists", labelKey: "nav.checklists", href: "checklists", icon: ClipboardCheck, enabled: true },
     { label: "Settings", labelKey: "nav.settings", href: "settings", icon: Settings, enabled: true },
     { label: "Reports", labelKey: "nav.reports", href: "reports", icon: BarChart3, enabled: true },
+    { label: "Payroll", labelKey: "nav.payroll", href: "payroll", icon: Banknote, enabled: true },
     { label: "Billing", labelKey: "nav.billing", href: "billing", icon: CreditCard, enabled: true },
   ],
   supervisor: [

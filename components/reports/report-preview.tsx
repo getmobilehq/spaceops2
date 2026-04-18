@@ -287,6 +287,51 @@ export function ReportPreview({ data }: { data: ReportData }) {
         </Card>
       )}
 
+      {/* === STAFF HOURS === */}
+      {data.timeWorkedByJanitor.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Staff Hours</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4 font-medium">Staff Member</th>
+                    <th className="pb-2 pr-4 font-medium text-right">Hours Worked</th>
+                    <th className="pb-2 pr-4 font-medium text-right">Shifts</th>
+                    <th className="pb-2 font-medium text-right">Avg Hours / Shift</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.timeWorkedByJanitor.map((tw) => (
+                    <tr key={tw.name} className="border-b last:border-0">
+                      <td className="py-2 pr-4 font-medium">{tw.name}</td>
+                      <td className="py-2 pr-4 text-right">{tw.hoursWorked}</td>
+                      <td className="py-2 pr-4 text-right">{tw.shifts}</td>
+                      <td className="py-2 text-right">{tw.avgShiftHours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t font-medium">
+                    <td className="pt-2 pr-4">Total</td>
+                    <td className="pt-2 pr-4 text-right">
+                      {data.timeWorkedByJanitor.reduce((sum, tw) => sum + tw.hoursWorked, 0).toFixed(1)}
+                    </td>
+                    <td className="pt-2 pr-4 text-right">
+                      {data.timeWorkedByJanitor.reduce((sum, tw) => sum + tw.shifts, 0)}
+                    </td>
+                    <td className="pt-2 text-right">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* === ACTIVITY HISTORY === */}
       {data.history.length > 0 && (
         <Card>

@@ -1405,6 +1405,197 @@ export type Database = {
           },
         ]
       }
+      payroll_settings: {
+        Row: {
+          id: string
+          org_id: string
+          user_id: string
+          hourly_rate: number
+          overtime_threshold_hours: number
+          overtime_multiplier: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          user_id: string
+          hourly_rate?: number
+          overtime_threshold_hours?: number
+          overtime_multiplier?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          user_id?: string
+          hourly_rate?: number
+          overtime_threshold_hours?: number
+          overtime_multiplier?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_settings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          id: string
+          org_id: string
+          period_start: string
+          period_end: string
+          status: string
+          total_gross_pay: number
+          employee_count: number
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          approved_at: string | null
+          approved_by: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          period_start: string
+          period_end: string
+          status?: string
+          total_gross_pay?: number
+          employee_count?: number
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          approved_at?: string | null
+          approved_by?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          period_start?: string
+          period_end?: string
+          status?: string
+          total_gross_pay?: number
+          employee_count?: number
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          approved_at?: string | null
+          approved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_run_lines: {
+        Row: {
+          id: string
+          payroll_run_id: string
+          org_id: string
+          user_id: string
+          employee_name: string
+          hourly_rate: number
+          total_hours: number
+          regular_hours: number
+          overtime_hours: number
+          overtime_multiplier: number
+          regular_pay: number
+          overtime_pay: number
+          gross_pay: number
+          shifts: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          payroll_run_id: string
+          org_id: string
+          user_id: string
+          employee_name: string
+          hourly_rate: number
+          total_hours?: number
+          regular_hours?: number
+          overtime_hours?: number
+          overtime_multiplier?: number
+          regular_pay?: number
+          overtime_pay?: number
+          gross_pay?: number
+          shifts?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          payroll_run_id?: string
+          org_id?: string
+          user_id?: string
+          employee_name?: string
+          hourly_rate?: number
+          total_hours?: number
+          regular_hours?: number
+          overtime_hours?: number
+          overtime_multiplier?: number
+          regular_pay?: number
+          overtime_pay?: number
+          gross_pay?: number
+          shifts?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_lines_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_lines_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_lines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

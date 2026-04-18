@@ -44,6 +44,7 @@ export const en = {
   "nav.today": "Today",
   "nav.history": "History",
   "nav.overview": "Overview",
+  "nav.payroll": "Payroll",
 
   // ─── Sidebar ───
   "sidebar.collapse": "Collapse",

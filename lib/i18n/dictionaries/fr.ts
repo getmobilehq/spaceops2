@@ -46,6 +46,7 @@ const fr: Dictionary = {
   "nav.today": "Aujourd'hui",
   "nav.history": "Historique",
   "nav.overview": "Aperçu",
+  "nav.payroll": "Paie",
 
   // ─── Sidebar ───
   "sidebar.collapse": "Réduire",

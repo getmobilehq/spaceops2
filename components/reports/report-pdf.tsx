@@ -622,6 +622,39 @@ export function ReportPDF({ data }: { data: ReportData }) {
         </PageTemplate>
       )}
 
+      {/* === STAFF HOURS === */}
+      {data.timeWorkedByJanitor.length > 0 && (
+        <PageTemplate orgName={data.orgName} section="Staff Hours">
+          <Text style={s.sectionTitle}>Staff Hours</Text>
+          <Text style={s.sectionSubtitle}>Time worked by staff member based on clock-in / clock-out records</Text>
+
+          <View style={s.tableHeader}>
+            <Text style={{ ...s.tableHeaderCell, width: "40%" }}>Staff Member</Text>
+            <Text style={{ ...s.tableHeaderCell, width: "20%", textAlign: "right" }}>Hours Worked</Text>
+            <Text style={{ ...s.tableHeaderCell, width: "20%", textAlign: "right" }}>Shifts</Text>
+            <Text style={{ ...s.tableHeaderCell, width: "20%", textAlign: "right" }}>Avg Hrs / Shift</Text>
+          </View>
+          {data.timeWorkedByJanitor.map((tw) => (
+            <View key={tw.name} style={s.tableRow} wrap={false}>
+              <Text style={{ ...s.tableCell, width: "40%", fontWeight: 500 }}>{tw.name}</Text>
+              <Text style={{ ...s.tableCell, width: "20%", textAlign: "right" }}>{tw.hoursWorked}</Text>
+              <Text style={{ ...s.tableCell, width: "20%", textAlign: "right" }}>{tw.shifts}</Text>
+              <Text style={{ ...s.tableCell, width: "20%", textAlign: "right" }}>{tw.avgShiftHours}</Text>
+            </View>
+          ))}
+          <View style={{ ...s.tableRow, borderBottomWidth: 0 }} wrap={false}>
+            <Text style={{ ...s.tableCell, width: "40%", fontWeight: 700 }}>Total</Text>
+            <Text style={{ ...s.tableCell, width: "20%", textAlign: "right", fontWeight: 700 }}>
+              {data.timeWorkedByJanitor.reduce((sum, tw) => sum + tw.hoursWorked, 0).toFixed(1)}
+            </Text>
+            <Text style={{ ...s.tableCell, width: "20%", textAlign: "right", fontWeight: 700 }}>
+              {data.timeWorkedByJanitor.reduce((sum, tw) => sum + tw.shifts, 0)}
+            </Text>
+            <Text style={{ ...s.tableCell, width: "20%", textAlign: "right", color: C.muted }}>—</Text>
+          </View>
+        </PageTemplate>
+      )}
+
       {/* === ACTIVITY HISTORY === */}
       {data.history.length > 0 && (
         <PageTemplate orgName={data.orgName} section="Activity History">
