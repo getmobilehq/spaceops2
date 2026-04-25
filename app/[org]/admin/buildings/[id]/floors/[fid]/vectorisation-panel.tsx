@@ -358,9 +358,20 @@ export function VectorisationPanel({
         </CardHeader>
         <CardContent className="space-y-3">
           {extractionError && (
-            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3">
-              <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-              <p className="text-sm text-destructive">{extractionError}</p>
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <p className="text-sm text-destructive">{extractionError}</p>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-1 pl-6">
+                <p className="font-medium text-foreground">You can try:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>Re-uploading a cleaner, higher-contrast image</li>
+                  <li>Cropping the image to just the floor layout (remove legends and margins)</li>
+                  <li>Using a scanned PDF or digital export instead of a photo</li>
+                  <li>Adding rooms manually using the room management section below</li>
+                </ul>
+              </div>
             </div>
           )}
 

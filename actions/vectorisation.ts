@@ -125,6 +125,18 @@ export async function vectoriseFloorPlan(
       })
       .eq("id", plan.id)
 
+    // Track failed vectorisation attempts for monitoring
+    const { recordUsageEvent } = await import("@/lib/usage")
+    recordUsageEvent({
+      orgId: ctx.orgId,
+      eventType: "ai_vectorisation",
+      metadata: {
+        floorId: parsed.data.floorId as string,
+        status: "failed",
+        error: message.slice(0, 200),
+      },
+    })
+
     return { success: false, error: message }
   }
 }

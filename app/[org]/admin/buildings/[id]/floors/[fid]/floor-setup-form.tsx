@@ -204,6 +204,21 @@ export function FloorSetupForm({
                   : "Re-upload"}
             </Button>
           </div>
+
+          {floor.plan_status === "none" && (
+            <div className="rounded-md border border-border bg-secondary p-3 space-y-1.5">
+              <p className="text-xs font-medium text-foreground">Tips for best AI room detection:</p>
+              <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                <li>Use high-contrast images with clearly visible walls and room labels</li>
+                <li>Scanned PDFs or digital exports work best — avoid photos of printed plans</li>
+                <li>Crop to just the floor layout — remove legends, title blocks, and margins</li>
+                <li>Accepted formats: JPEG, PNG, WebP, or PDF (max 10 MB)</li>
+              </ul>
+              <p className="text-xs text-muted-foreground">
+                You can always add rooms manually if AI detection doesn&apos;t suit your floor plan.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
