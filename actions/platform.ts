@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { z } from "zod"
@@ -99,6 +100,9 @@ export async function updateOrgPlan(
     parsed.data.note
   )
 
+  revalidatePath(`/platform/orgs/${parsed.data.orgId}`)
+  revalidatePath("/platform/orgs")
+
   return { success: true }
 }
 
@@ -145,6 +149,9 @@ export async function suspendOrg(
     parsed.data.reason
   )
 
+  revalidatePath(`/platform/orgs/${parsed.data.orgId}`)
+  revalidatePath("/platform/orgs")
+
   return { success: true }
 }
 
@@ -172,6 +179,9 @@ export async function unsuspendOrg(
   if (error) return { success: false, error: "Failed to unsuspend organisation" }
 
   await logAction(parsed.data.orgId, ctx.user.id, "unsuspend", null, null)
+
+  revalidatePath(`/platform/orgs/${parsed.data.orgId}`)
+  revalidatePath("/platform/orgs")
 
   return { success: true }
 }
@@ -227,6 +237,9 @@ export async function deleteOrg(
   if (error) {
     return { success: false, error: `Failed to delete organisation: ${error.message}` }
   }
+
+  revalidatePath("/platform/orgs")
+  revalidatePath("/platform")
 
   return { success: true }
 }
