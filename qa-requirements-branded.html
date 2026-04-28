@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpaceOps — QA Requirements & Test Scenarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --bg-tint: #F3F3EE;
+    --bg-card: #FFFFFF;
+    --bg-invert: #0A0A0A;
+    --ink: #0A0A0A;
+    --ink-2: #262626;
+    --ink-3: #525252;
+    --ink-4: #737373;
+    --ink-on-dark: #FAFAF7;
+    --line: #E7E5E0;
+    --line-strong: #D4D1C9;
+    --indigo: #1E1B4B;
+    --indigo-2: #312E81;
+    --indigo-3: #4338CA;
+    --indigo-soft: #EEF2FF;
+    --success: #166534;
+    --success-bg: #DCFCE7;
+    --warn: #A16207;
+    --warn-bg: #FEF3C7;
+    --danger: #991B1B;
+    --danger-bg: #FEE2E2;
+    --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background: var(--bg);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  /* ── Cover ── */
+  .cover {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 80px 48px;
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--indigo-3);
+  }
+  .cover-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--indigo-3);
+    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cover-eyebrow::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--indigo-3);
+  }
+  .cover-eyebrow::after {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--indigo-3);
+  }
+  .cover h1 {
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .cover h1 em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+  }
+  .cover-sub {
+    font-size: 16px;
+    color: var(--ink-3);
+    margin-bottom: 32px;
+  }
+  .cover-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+    letter-spacing: 0.04em;
+  }
+  .cover-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 32px;
+  }
+  .cover-logo em {
+    font-style: normal;
+    color: var(--indigo-3);
+  }
+  .cover-logo svg { flex-shrink: 0; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 32px 40px;
+    margin-bottom: 48px;
+  }
+  .toc h2 {
+    font-size: 13px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 16px;
+  }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    padding: 0;
+  }
+  .toc li {
+    counter-increment: toc;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 0;
+  }
+  .toc li:last-child { border-bottom: none; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: color 0.15s;
+  }
+  .toc a:hover { color: var(--indigo-3); }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+    width: 24px;
+    flex-shrink: 0;
+  }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 48px;
+    page-break-inside: avoid;
+  }
+  .section-number {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--indigo-3);
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-number::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--indigo-3);
+  }
+  h2.section-title {
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  h2.section-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .section-lead {
+    font-size: 15px;
+    color: var(--ink-3);
+    margin-bottom: 24px;
+    max-width: 640px;
+  }
+
+  /* ── Subsections ── */
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 32px 0 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  h3:first-of-type { border-top: none; padding-top: 0; }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 20px 0 6px;
+  }
+
+  p { margin-bottom: 12px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  .card-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 12px;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-tint);
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child { border-radius: 0 6px 0 0; }
+  tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-tint); }
+  td code, th code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--bg-tint);
+    border: 1px solid var(--line);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--ink-2);
+  }
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .table-wrap table { margin: 0; }
+
+  /* ── Checklists ── */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── Pills ── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill--ok { background: var(--success-bg); color: var(--success); }
+  .pill--warn { background: var(--warn-bg); color: var(--warn); }
+  .pill--danger { background: var(--danger-bg); color: var(--danger); }
+  .pill--ink { background: var(--ink); color: var(--bg); }
+  .pill--line { background: transparent; color: var(--ink-3); border: 1px solid var(--line-strong); }
+
+  /* ── Priority badges ── */
+  .priority {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .priority--high { background: var(--danger-bg); color: var(--danger); }
+  .priority--medium { background: var(--warn-bg); color: var(--warn); }
+  .priority--low { background: var(--bg-tint); color: var(--ink-4); }
+
+  /* ── User story card ── */
+  .story {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .story-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .story-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .story-url {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-4);
+    letter-spacing: 0.02em;
+  }
+  .story-body { padding: 16px 20px; }
+  .story-body p {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  /* ── Code blocks ── */
+  .code-block {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: var(--bg-tint);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    color: var(--ink-2);
+    line-height: 1.7;
+    margin: 12px 0;
+  }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 48px 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    margin-top: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-4);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .footer-right em { font-style: normal; color: var(--indigo-3); }
+
+  /* ── Mono numbers ── */
+  .mono { font-family: var(--font-mono); }
+
+  /* ── Print ── */
+  @media print {
+    body { background: white; font-size: 12px; }
+    .page { padding: 24px 0; max-width: 100%; }
+    .cover { break-after: page; }
+    .toc { break-after: page; }
+    .section { break-inside: avoid; }
+    h2.section-title { break-after: avoid; }
+    h3 { break-after: avoid; }
+    .story { break-inside: avoid; }
+    .table-wrap { break-inside: avoid; }
+    table { font-size: 11px; }
+    thead th { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ════════════════════════════════════════════════════════════
+     COVER
+     ════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect width="10" height="10" rx="1.5" fill="#0A0A0A"/><rect x="12" width="10" height="10" rx="1.5" fill="#4338CA"/><rect y="12" width="10" height="10" rx="1.5" fill="#0A0A0A"/><rect x="12" y="12" width="10" height="10" rx="1.5" fill="#0A0A0A"/></svg>
+    Space<em>OPS</em>
+  </div>
+  <br><br>
+  <div class="cover-eyebrow">Confidential</div>
+  <h1>QA Requirements &amp; <em>Test Scenarios</em></h1>
+  <p class="cover-sub">Comprehensive test coverage for external QA engagement</p>
+  <div class="cover-meta">
+    PLATFORM: RESPONSIVE WEB APP &middot; NEXT.JS 14 / SUPABASE / STRIPE<br>
+    DOCUMENT VERSION: 1.0 &middot; 27 APRIL 2026
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     ════════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">Product Overview</a></li>
+    <li><a href="#environments">Environments &amp; Access</a></li>
+    <li><a href="#roles">User Roles</a></li>
+    <li><a href="#auth">Auth Flows</a></li>
+    <li><a href="#admin">Admin Flows</a></li>
+    <li><a href="#supervisor">Supervisor Flows</a></li>
+    <li><a href="#janitor">Janitor Flows</a></li>
+    <li><a href="#client">Client Flows</a></li>
+    <li><a href="#platform">Platform Admin Flows</a></li>
+    <li><a href="#qr">QR Scanning (Public)</a></li>
+    <li><a href="#plans">Plan Gating Matrix</a></li>
+    <li><a href="#validation">Validation Rules Reference</a></li>
+    <li><a href="#security">Security Test Scenarios</a></li>
+    <li><a href="#paths">Recommended Test Paths</a></li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     1. PRODUCT OVERVIEW
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="overview">
+  <div class="section-number">01</div>
+  <h2 class="section-title">Product <em>overview</em></h2>
+  <p class="section-lead">SpaceOps is a facility management platform for commercial cleaning operations. It handles scheduling, GPS-verified attendance, quality inspections, issue tracking, reporting, payroll, and client transparency.</p>
+
+  <div class="card">
+    <div class="card-label">Tech Stack</div>
+    <p><strong>Frontend:</strong> Next.js 14 (React), TailwindCSS, shadcn/ui components</p>
+    <p><strong>Backend:</strong> Supabase (PostgreSQL + Auth + Storage + RLS)</p>
+    <p><strong>Payments:</strong> Stripe (subscriptions, checkout, customer portal)</p>
+    <p><strong>AI:</strong> Anthropic Claude (floor plan detection, report summaries)</p>
+    <p><strong>Languages:</strong> English, Spanish, French (auto-detected, switchable)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Access Method</div>
+    <p>Responsive web application. No native mobile app. Janitors use mobile browsers. Supervisors and admins use desktop or tablet. GPS and camera access are requested via browser APIs for clock-in verification and QR scanning.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     2. ENVIRONMENTS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="environments">
+  <div class="section-number">02</div>
+  <h2 class="section-title">Environments &amp; <em>access</em></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Environment</th><th>URL</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Production</td><td><code>TBD</code></td><td>Live environment</td></tr>
+        <tr><td>Staging</td><td><code>TBD</code></td><td>QA testing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Test accounts will be provided for each role. Each account belongs to a test organisation pre-populated with buildings, floors, rooms, activities, and attendance records.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     3. USER ROLES
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="roles">
+  <div class="section-number">03</div>
+  <h2 class="section-title">User <em>roles</em></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Role</th><th>Access Level</th><th>Primary Device</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Admin</strong></td><td>Full org control &mdash; buildings, users, checklists, reports, payroll, billing, settings</td><td>Desktop</td></tr>
+        <tr><td><strong>Supervisor</strong></td><td>Day-to-day ops &mdash; activities, inspections, templates, attendance, issues (scoped to assigned buildings)</td><td>Desktop / Tablet</td></tr>
+        <tr><td><strong>Janitor</strong></td><td>Task execution &mdash; clock in/out, today&rsquo;s tasks, issue reporting</td><td>Mobile browser</td></tr>
+        <tr><td><strong>Client</strong></td><td>Read-only &mdash; building overview, pass rates, SLA metrics, issues</td><td>Desktop</td></tr>
+        <tr><td><strong>Platform Admin</strong></td><td>Cross-org management &mdash; org plans, suspend, delete, usage stats</td><td>Desktop</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     4. AUTH FLOWS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="auth">
+  <div class="section-number">04</div>
+  <h2 class="section-title">Auth <em>flows</em></h2>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">4.1 Registration</span>
+      <span class="story-url">/register</span>
+    </div>
+    <div class="story-body">
+      <p>As a new user, I want to create an organisation account so I can start managing my cleaning operations.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Validation</th><th>Required</th></tr></thead>
+          <tbody>
+            <tr><td>Organisation Name</td><td>text</td><td>2&ndash;100 characters</td><td>Yes</td></tr>
+            <tr><td>First Name</td><td>text</td><td>1&ndash;50 characters</td><td>Yes</td></tr>
+            <tr><td>Last Name</td><td>text</td><td>1&ndash;50 characters</td><td>Yes</td></tr>
+            <tr><td>Email</td><td>email</td><td>Valid email format</td><td>Yes</td></tr>
+            <tr><td>Password</td><td>text</td><td>8+ chars, uppercase + lowercase + digit</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Account is created and user is auto-signed in</li>
+        <li><span class="check-box"></span>User lands on the onboarding wizard</li>
+        <li><span class="check-box"></span>Organisation is created on the Free plan</li>
+        <li><span class="check-box"></span>Duplicate email shows a generic error (no email enumeration)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">4.2 Login</span>
+      <span class="story-url">/auth/login</span>
+    </div>
+    <div class="story-body">
+      <p>As an existing user, I want to sign in to access my role-appropriate dashboard.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Validation</th><th>Required</th></tr></thead>
+          <tbody>
+            <tr><td>Email</td><td>email</td><td>Valid email</td><td>Yes</td></tr>
+            <tr><td>Password</td><td>text</td><td>6+ characters</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Valid credentials redirect to role-appropriate dashboard</li>
+        <li><span class="check-box"></span>Invalid credentials show generic error (no email enumeration)</li>
+        <li><span class="check-box"></span>&ldquo;Forgot your password?&rdquo; link navigates to reset page</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">4.3 Password Reset</span>
+      <span class="story-url">/auth/reset-password</span>
+    </div>
+    <div class="story-body">
+      <p>As a user who forgot my password, I want to reset it securely via email.</p>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Always shows &ldquo;Check your email&rdquo; (prevents email enumeration)</li>
+        <li><span class="check-box"></span>Valid email receives a reset link</li>
+        <li><span class="check-box"></span>New password must meet strength requirements (8+ chars, mixed case + digit)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">4.4 Invite Acceptance</span>
+      <span class="story-url">/auth/invite</span>
+    </div>
+    <div class="story-body">
+      <p>As an invited user, I want to set my password and access the platform.</p>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Invited user can set their password (8+ chars, mixed case + digit)</li>
+        <li><span class="check-box"></span>After setting password, user is redirected to their dashboard</li>
+        <li><span class="check-box"></span><code>must_change_password</code> flag is cleared</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     5. ADMIN FLOWS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="admin">
+  <div class="section-number">05</div>
+  <h2 class="section-title">Admin <em>flows</em></h2>
+  <p class="section-lead">Full organisation control &mdash; buildings, users, checklists, reports, payroll, billing, and settings.</p>
+
+  <h3>5.1 Buildings</h3>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Create Building</span>
+      <span class="story-url">/{org}/admin/buildings/new</span>
+    </div>
+    <div class="story-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Validation</th><th>Required</th></tr></thead>
+          <tbody>
+            <tr><td>Building Name</td><td>text</td><td>1&ndash;100 chars</td><td>Yes</td></tr>
+            <tr><td>Street Address</td><td>text</td><td>1&ndash;200 chars</td><td>Yes</td></tr>
+            <tr><td>City</td><td>text</td><td>1&ndash;100 chars</td><td>Yes</td></tr>
+            <tr><td>State</td><td>text</td><td>1&ndash;100 chars</td><td>Yes</td></tr>
+            <tr><td>ZIP Code</td><td>text</td><td>1&ndash;20 chars</td><td>Yes</td></tr>
+            <tr><td>Country</td><td>text</td><td>1&ndash;100 chars</td><td>Yes</td></tr>
+            <tr><td>Floors</td><td>array</td><td>Min 1 (number + name)</td><td>Yes</td></tr>
+            <tr><td>Client</td><td>select</td><td>UUID or none</td><td>No</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Building is created with specified floors</li>
+        <li><span class="check-box"></span>Free plan: 2nd building blocked with upgrade prompt</li>
+        <li><span class="check-box"></span>Pro/Enterprise: unlimited buildings</li>
+        <li><span class="check-box"></span>Redirect to building detail page</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Edit Building</span>
+      <span class="story-url">/{org}/admin/buildings/{id}</span>
+    </div>
+    <div class="story-body">
+      <ul class="checklist">
+        <li><span class="check-box"></span>Name, address, status (setup/active/inactive) can be updated</li>
+        <li><span class="check-box"></span>Latitude (-90 to 90), longitude (-180 to 180), geofence radius (10&ndash;5000m) save correctly</li>
+        <li><span class="check-box"></span>Supervisors can be assigned/removed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Floor Plan &amp; AI Room Detection</span>
+      <span class="story-url">/{org}/admin/buildings/{id}/floors/{fid}</span>
+    </div>
+    <div class="story-body">
+      <ul class="checklist">
+        <li><span class="check-box"></span>Floor plan uploads (JPEG, PNG, WebP, PDF &mdash; max 10 MB)</li>
+        <li><span class="check-box"></span>AI detection blocked on Free plan with upgrade prompt</li>
+        <li><span class="check-box"></span>AI detects rooms from uploaded floor plan (Pro/Enterprise)</li>
+        <li><span class="check-box"></span>Detected rooms can be matched, created, or skipped</li>
+        <li><span class="check-box"></span>Rooms can be merged or split in the review UI</li>
+        <li><span class="check-box"></span>AI failure shows actionable guidance with retry option</li>
+        <li><span class="check-box"></span>Image tips are visible near the upload button</li>
+        <li><span class="check-box"></span>Rooms can always be added manually</li>
+        <li><span class="check-box"></span>QR code is auto-generated for each new room</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.2 Users</h3>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Invite User</span>
+      <span class="story-url">/{org}/admin/users/invite</span>
+    </div>
+    <div class="story-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Validation</th><th>Required</th></tr></thead>
+          <tbody>
+            <tr><td>Email</td><td>email</td><td>Valid, must not exist</td><td>Yes</td></tr>
+            <tr><td>First Name</td><td>text</td><td>1&ndash;50 chars</td><td>Yes</td></tr>
+            <tr><td>Last Name</td><td>text</td><td>1&ndash;50 chars</td><td>Yes</td></tr>
+            <tr><td>Role</td><td>select</td><td>admin / supervisor / janitor / client</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Free plan: blocked after 5 users with upgrade prompt</li>
+        <li><span class="check-box"></span>User receives invitation email</li>
+        <li><span class="check-box"></span>User appears in list immediately</li>
+        <li><span class="check-box"></span>Duplicate email shows error</li>
+        <li><span class="check-box"></span>User can be deactivated and reactivated</li>
+        <li><span class="check-box"></span>Deactivated users cannot log in</li>
+        <li><span class="check-box"></span>User can be permanently deleted</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.3 Checklists, Clients &amp; Settings</h3>
+
+  <ul class="checklist">
+    <li><span class="check-box"></span>Checklist templates: CRUD, item reorder, photo/note flags, set default per room type</li>
+    <li><span class="check-box"></span>Clients: CRUD (company name, contact, email). Delete unlinks buildings.</li>
+    <li><span class="check-box"></span>Settings: org name (1&ndash;100), pass threshold (0&ndash;100), logo upload (max 2 MB)</li>
+    <li><span class="check-box"></span>Logo appears on PDF reports and sidebar</li>
+  </ul>
+
+  <h3>5.4 Reports</h3>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Generate Report</span>
+      <span class="story-url">/{org}/admin/reports/generate</span>
+    </div>
+    <div class="story-body">
+      <ul class="checklist">
+        <li><span class="check-box"></span>Dashboard shows KPIs: pass rate, activities, passed/failed, deficiencies</li>
+        <li><span class="check-box"></span>Filters: date range, building, client, floor</li>
+        <li><span class="check-box"></span>PDF includes: cover, AI summary, KPIs, building/client/floor performance, issues, activities, staff hours</li>
+        <li><span class="check-box"></span>AI summary available on Pro/Enterprise only</li>
+        <li><span class="check-box"></span>CSV export works for each data view</li>
+        <li><span class="check-box"></span>Org logo appears on PDF</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.5 Payroll</h3>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Pay Rates &amp; Payroll Runs</span>
+      <span class="story-url">/{org}/admin/payroll</span>
+    </div>
+    <div class="story-body">
+      <div class="card">
+        <div class="card-label">Calculation Formula</div>
+        <div class="code-block">regularHours = min(totalHours, overtimeThreshold)
+overtimeHours = max(0, totalHours - overtimeThreshold)
+regularPay = regularHours &times; hourlyRate
+overtimePay = overtimeHours &times; hourlyRate &times; overtimeMultiplier
+grossPay = regularPay + overtimePay</div>
+      </div>
+      <ul class="checklist">
+        <li><span class="check-box"></span>Per-employee rates: hourly (max 9999), OT threshold (0&ndash;168h), OT multiplier (1&ndash;5x)</li>
+        <li><span class="check-box"></span>Defaults shown for unconfigured employees ($15/hr, 40h, 1.5x)</li>
+        <li><span class="check-box"></span>Generate payroll: pick date range, system pulls attendance records</li>
+        <li><span class="check-box"></span>Employees with no attendance show $0</li>
+        <li><span class="check-box"></span>Run created in &ldquo;Draft&rdquo; status</li>
+        <li><span class="check-box"></span>&ldquo;Approve&rdquo; locks the run &mdash; cannot be deleted after</li>
+        <li><span class="check-box"></span>Draft runs can be deleted</li>
+        <li><span class="check-box"></span>CSV export downloads correct data</li>
+        <li><span class="check-box"></span>Totals row sums correctly</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.6 Billing</h3>
+
+  <ul class="checklist">
+    <li><span class="check-box"></span>Current plan displayed with usage metrics</li>
+    <li><span class="check-box"></span>Free plan shows upgrade cards (Pro, Enterprise)</li>
+    <li><span class="check-box"></span>Monthly and yearly options (yearly saves 17%)</li>
+    <li><span class="check-box"></span>Upgrade redirects to Stripe Checkout</li>
+    <li><span class="check-box"></span>Successful checkout updates plan in the app</li>
+    <li><span class="check-box"></span>&ldquo;Manage Subscription&rdquo; opens Stripe Customer Portal</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     6. SUPERVISOR FLOWS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="supervisor">
+  <div class="section-number">06</div>
+  <h2 class="section-title">Supervisor <em>flows</em></h2>
+  <p class="section-lead">Day-to-day operations &mdash; scheduling, inspections, attendance, and issue management, scoped to assigned buildings.</p>
+
+  <h3>6.1 Activities</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Create activity: floor, name, date, time window, notes</li>
+    <li><span class="check-box"></span>Room tasks auto-created for all active rooms on selected floor</li>
+    <li><span class="check-box"></span>Assign janitors to room tasks individually or in bulk</li>
+    <li><span class="check-box"></span>Publish activity &rarr; visible to janitors in &ldquo;Today&rdquo;</li>
+    <li><span class="check-box"></span>Cancel, close, and delete (draft only) activities</li>
+    <li><span class="check-box"></span>Room task inspection: mark pass/fail with notes</li>
+  </ul>
+
+  <h3>6.2 Inspections</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Create inspection for room in assigned building</li>
+    <li><span class="check-box"></span>QR scanning opens inspection checklist for correct room</li>
+    <li><span class="check-box"></span>Checklist items: completed + optional notes + optional photos</li>
+    <li><span class="check-box"></span>Room must be scanned before completing inspection</li>
+    <li><span class="check-box"></span>Pass rate calculated from checklist vs. org threshold</li>
+    <li><span class="check-box"></span>Failed inspection can trigger deficiency creation</li>
+  </ul>
+
+  <h3>6.3 Activity Templates</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Create template: name, floor, time window, optional recurring config</li>
+    <li><span class="check-box"></span>Recurring: select days (Mon&ndash;Sun), time slots, preset (daily, twice daily, etc.)</li>
+    <li><span class="check-box"></span>Recurring templates auto-generate activities</li>
+    <li><span class="check-box"></span>Toggle recurring active/inactive</li>
+    <li><span class="check-box"></span>Save existing activity as template</li>
+  </ul>
+
+  <h3>6.4 One-Off Tasks</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Create: title (1&ndash;200), description, due date/time, assign to janitor, optional image</li>
+    <li><span class="check-box"></span>Appears in janitor&rsquo;s &ldquo;Today&rdquo; view on due date</li>
+    <li><span class="check-box"></span>Janitor can mark as done</li>
+  </ul>
+
+  <h3>6.5 Issues &amp; Deficiencies</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Create: description (1&ndash;500), severity (low/medium/high), optional assignee</li>
+    <li><span class="check-box"></span>Status workflow: open &rarr; in progress &rarr; resolved</li>
+    <li><span class="check-box"></span>SLA timers: high 24h, medium 48h, low 168h</li>
+    <li><span class="check-box"></span>Visible in client portal</li>
+  </ul>
+
+  <h3>6.6 Attendance &amp; Reports</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Today&rsquo;s attendance for assigned buildings (read-only)</li>
+    <li><span class="check-box"></span>Reports: same as admin but scoped to assigned buildings</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     7. JANITOR FLOWS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="janitor">
+  <div class="section-number">07</div>
+  <h2 class="section-title">Janitor <em>flows</em></h2>
+  <p class="section-lead">Mobile-first task execution &mdash; clock in, complete rooms, report issues, clock out.</p>
+
+  <h3>7.1 Clock In</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Must clock in before seeing tasks</li>
+    <li><span class="check-box"></span>GPS coordinates captured at clock-in</li>
+    <li><span class="check-box"></span>Within geofence (default 150m) = <span class="pill pill--ok">&bull; Verified</span></li>
+    <li><span class="check-box"></span>Outside geofence = <span class="pill pill--warn">&bull; Unverified</span> (still allowed)</li>
+    <li><span class="check-box"></span>GPS permission denied: clock-in works, geo_verified = false</li>
+    <li><span class="check-box"></span>Cannot clock in twice same day same building</li>
+  </ul>
+
+  <h3>7.2 Today&rsquo;s Tasks</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Shows only today&rsquo;s active tasks and ad-hoc tasks</li>
+    <li><span class="check-box"></span>Tap room &rarr; checklist items (optional notes + photos)</li>
+    <li><span class="check-box"></span>Mark task &ldquo;Done&rdquo; or &ldquo;Has Issues&rdquo;</li>
+  </ul>
+
+  <h3>7.3 Issue Reporting</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Report from within a task or standalone</li>
+    <li><span class="check-box"></span>Fields: room, description (1&ndash;500), severity</li>
+    <li><span class="check-box"></span>Supervisor is notified</li>
+  </ul>
+
+  <h3>7.4 Clock Out &amp; History</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Clock-out records timestamp, duration calculated</li>
+    <li><span class="check-box"></span>Hours feed into reports and payroll</li>
+    <li><span class="check-box"></span>Attendance history shows past records with GPS status</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     8. CLIENT FLOWS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="client">
+  <div class="section-number">08</div>
+  <h2 class="section-title">Client <em>flows</em></h2>
+  <p class="section-lead">Read-only transparency dashboard for building owners.</p>
+
+  <ul class="checklist">
+    <li><span class="check-box"></span>Overview: buildings, pass rates, SLA compliance (on-track / at-risk / breached)</li>
+    <li><span class="check-box"></span>Activities: cleaning history with pass rates (read-only)</li>
+    <li><span class="check-box"></span>Issues: open/in-progress/resolved deficiencies (read-only)</li>
+    <li><span class="check-box"></span>Cannot create, edit, or delete any resources</li>
+    <li><span class="check-box"></span>Cannot see other clients&rsquo; buildings or data</li>
+    <li><span class="check-box"></span>Cannot see payroll, billing, or user management</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     9. PLATFORM ADMIN
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="platform">
+  <div class="section-number">09</div>
+  <h2 class="section-title">Platform admin <em>flows</em></h2>
+  <p class="section-lead">Super admin cross-organisation management. Requires <code>is_super_admin = true</code>.</p>
+
+  <ul class="checklist">
+    <li><span class="check-box"></span>Orgs list: all organisations with name, plan, created date</li>
+    <li><span class="check-box"></span>Change plan (free/pro/enterprise) with audit log</li>
+    <li><span class="check-box"></span>Suspend org with reason &mdash; users blocked from accessing</li>
+    <li><span class="check-box"></span>Unsuspend org &mdash; access restored</li>
+    <li><span class="check-box"></span>Delete org (type name to confirm) &mdash; cascades all data</li>
+    <li><span class="check-box"></span>Org disappears from list immediately after deletion</li>
+    <li><span class="check-box"></span>All actions logged in platform audit trail</li>
+    <li><span class="check-box"></span>Usage stats: AI vectorisation, AI reports, API calls by org</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     10. QR SCANNING
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="qr">
+  <div class="section-number">10</div>
+  <h2 class="section-title">QR scanning <em>(public)</em></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Route</th><th>Unauthenticated</th><th>Janitor</th><th>Supervisor / Admin</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>/scan/{roomId}</code></td>
+          <td>Room info + login link</td>
+          <td>Auto check-in to room task</td>
+          <td>Creates inspection</td>
+        </tr>
+        <tr>
+          <td><code>/scan/building/{buildingId}</code></td>
+          <td>Building info + login link</td>
+          <td>Clock-in form (GPS)</td>
+          <td>Redirect to attendance</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="checklist">
+    <li><span class="check-box"></span>Wrong org: access denied</li>
+    <li><span class="check-box"></span>Invalid ID: 404</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     11. PLAN GATING
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="plans">
+  <div class="section-number">11</div>
+  <h2 class="section-title">Plan gating <em>matrix</em></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Enterprise</th></tr></thead>
+      <tbody>
+        <tr><td>Buildings</td><td class="mono">1</td><td class="mono">Unlimited</td><td class="mono">Unlimited</td></tr>
+        <tr><td>Team Members</td><td class="mono">5</td><td class="mono">Unlimited</td><td class="mono">Unlimited</td></tr>
+        <tr><td>Activities &amp; Inspections</td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>GPS Attendance</td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>Reports (non-AI)</td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>Client Portal</td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>Payroll</td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>AI Floor Plan Detection</td><td><span class="pill pill--line">&mdash;</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>AI Report Summaries</td><td><span class="pill pill--line">&mdash;</span></td><td><span class="pill pill--ok">&bull; Yes</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+        <tr><td>REST API</td><td><span class="pill pill--line">&mdash;</span></td><td><span class="pill pill--line">&mdash;</span></td><td><span class="pill pill--ok">&bull; Yes</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     12. VALIDATION RULES
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="validation">
+  <div class="section-number">12</div>
+  <h2 class="section-title">Validation rules <em>reference</em></h2>
+
+  <h3>Password Requirements</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Context</th><th>Min Length</th><th>Uppercase</th><th>Lowercase</th><th>Digit</th></tr></thead>
+      <tbody>
+        <tr><td>Login</td><td class="mono">6</td><td>No</td><td>No</td><td>No</td></tr>
+        <tr><td>Registration</td><td class="mono">8</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Set Password (invite/reset)</td><td class="mono">8</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Change Password</td><td class="mono">8</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Common Field Limits</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Min</th><th>Max</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td>Organisation Name</td><td class="mono">2</td><td class="mono">100</td><td>text</td></tr>
+        <tr><td>First / Last Name</td><td class="mono">1</td><td class="mono">50</td><td>text</td></tr>
+        <tr><td>Building Name</td><td class="mono">1</td><td class="mono">100</td><td>text</td></tr>
+        <tr><td>Address</td><td class="mono">1</td><td class="mono">200</td><td>text</td></tr>
+        <tr><td>Activity Name</td><td class="mono">1</td><td class="mono">100</td><td>text</td></tr>
+        <tr><td>Description / Notes</td><td class="mono">0</td><td class="mono">500</td><td>text</td></tr>
+        <tr><td>Checklist Item</td><td class="mono">1</td><td class="mono">200</td><td>text</td></tr>
+        <tr><td>Ad-hoc Task Title</td><td class="mono">1</td><td class="mono">200</td><td>text</td></tr>
+        <tr><td>Hourly Rate</td><td class="mono">0.01</td><td class="mono">9999</td><td>number</td></tr>
+        <tr><td>OT Threshold</td><td class="mono">0</td><td class="mono">168</td><td>hours</td></tr>
+        <tr><td>OT Multiplier</td><td class="mono">1</td><td class="mono">5</td><td>number</td></tr>
+        <tr><td>Geofence Radius</td><td class="mono">10</td><td class="mono">5000</td><td>metres</td></tr>
+        <tr><td>Pass Threshold</td><td class="mono">0</td><td class="mono">100</td><td>integer</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>File Upload Limits</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Upload</th><th>Formats</th><th>Max Size</th></tr></thead>
+      <tbody>
+        <tr><td>Floor Plan</td><td>JPEG, PNG, WebP, PDF</td><td class="mono">10 MB</td></tr>
+        <tr><td>Org Logo</td><td>JPEG, PNG, WebP, SVG</td><td class="mono">2 MB</td></tr>
+        <tr><td>Avatar</td><td>JPEG, PNG, WebP</td><td class="mono">2 MB</td></tr>
+        <tr><td>Task / Inspection Photo</td><td>JPEG, PNG, WebP</td><td class="mono">2 MB</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     13. SECURITY
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="security">
+  <div class="section-number">13</div>
+  <h2 class="section-title">Security test <em>scenarios</em></h2>
+
+  <h3>Organisation Isolation</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>User in Org A cannot see buildings, users, or data from Org B</li>
+    <li><span class="check-box"></span>Manually crafting URLs with another org&rsquo;s slug returns 404</li>
+  </ul>
+
+  <h3>Role-Based Access</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Janitor cannot access <code>/{org}/admin/*</code></li>
+    <li><span class="check-box"></span>Client cannot access supervisor routes</li>
+    <li><span class="check-box"></span>Supervisor can only see assigned buildings</li>
+    <li><span class="check-box"></span>Janitor can only see their own tasks</li>
+  </ul>
+
+  <h3>Email Enumeration Prevention</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Password reset always shows success regardless of email validity</li>
+    <li><span class="check-box"></span>Registration error for duplicate email is generic</li>
+  </ul>
+
+  <h3>Session &amp; Account Security</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Expired sessions redirect to login</li>
+    <li><span class="check-box"></span>Deactivated users are signed out and blocked</li>
+    <li><span class="check-box"></span>Suspended org users cannot access the app</li>
+  </ul>
+
+  <h3>Data Integrity</h3>
+  <ul class="checklist">
+    <li><span class="check-box"></span>Deleting building cascades to floors, rooms, and related data</li>
+    <li><span class="check-box"></span>Deleting client unlinks (does not delete) buildings</li>
+    <li><span class="check-box"></span>Approved payroll runs cannot be deleted</li>
+    <li><span class="check-box"></span>Closed/cancelled activities cannot be edited</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     14. RECOMMENDED TEST PATHS
+     ════════════════════════════════════════════════════════════ -->
+<div class="section" id="paths">
+  <div class="section-number">14</div>
+  <h2 class="section-title">Recommended test <em>paths</em></h2>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path A &mdash; Admin Full Onboarding</span>
+      <span class="priority priority--high">High Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Register a new organisation</li>
+        <li>Complete onboarding wizard (building + invite)</li>
+        <li>Add floors and rooms to the building</li>
+        <li>Upload floor plan and run AI detection (Pro plan)</li>
+        <li>Create checklist template and set as default</li>
+        <li>Invite a supervisor, janitor, and client</li>
+        <li>Assign supervisor to the building</li>
+        <li>Update settings (pass threshold, logo)</li>
+        <li>View billing and upgrade plan</li>
+        <li>Generate payroll run and approve</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path B &mdash; Supervisor Daily Operations</span>
+      <span class="priority priority--high">High Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Log in as supervisor</li>
+        <li>Create an activity for today</li>
+        <li>Assign janitors to rooms</li>
+        <li>Publish the activity</li>
+        <li>Create a one-off ad-hoc task</li>
+        <li>Run an inspection (scan QR, complete checklist)</li>
+        <li>Record a pass and a fail</li>
+        <li>Create a deficiency from the failed inspection</li>
+        <li>View attendance dashboard</li>
+        <li>Generate a report</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path C &mdash; Janitor Shift</span>
+      <span class="priority priority--high">High Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Scan building QR code to clock in</li>
+        <li>Verify GPS verification status</li>
+        <li>View today&rsquo;s tasks</li>
+        <li>Scan room QR to start a task</li>
+        <li>Complete checklist items (with photos on required items)</li>
+        <li>Mark task as done</li>
+        <li>Report an issue on a different room</li>
+        <li>Complete an ad-hoc task</li>
+        <li>Clock out</li>
+        <li>View attendance history</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path D &mdash; Client Portal</span>
+      <span class="priority priority--medium">Medium Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Log in as client</li>
+        <li>View building overview and SLA metrics</li>
+        <li>View recent activities and pass rates</li>
+        <li>View open issues</li>
+        <li>Confirm client cannot create or modify anything</li>
+        <li>Confirm client cannot see other clients&rsquo; data</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path E &mdash; Payroll End-to-End</span>
+      <span class="priority priority--medium">Medium Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Set pay rates for 3 employees (different rates and thresholds)</li>
+        <li>Ensure attendance records exist for a date range</li>
+        <li>Generate payroll run for that period</li>
+        <li>Verify calculations: regular hours, overtime, gross pay</li>
+        <li>Verify employee with no attendance shows $0</li>
+        <li>Export CSV and verify data matches UI</li>
+        <li>Approve the run</li>
+        <li>Confirm approved run cannot be deleted</li>
+        <li>Generate another draft run and delete it</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path F &mdash; Platform Admin</span>
+      <span class="priority priority--low">Low Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Log in as super admin</li>
+        <li>View orgs list</li>
+        <li>Change an org&rsquo;s plan</li>
+        <li>Suspend an org &mdash; verify its users cannot log in</li>
+        <li>Unsuspend &mdash; verify access restored</li>
+        <li>Delete a test org &mdash; verify data removed</li>
+        <li>View usage stats</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="story">
+    <div class="story-head">
+      <span class="story-title">Path G &mdash; Edge Cases &amp; Negative Testing</span>
+      <span class="priority priority--medium">Medium Priority</span>
+    </div>
+    <div class="story-body">
+      <ol style="padding-left:20px; font-size:14px; color:var(--ink-2); line-height:1.8">
+        <li>Submit all forms with empty required fields &mdash; verify validation messages</li>
+        <li>Submit with values exceeding max lengths</li>
+        <li>Attempt to access another org&rsquo;s data via URL manipulation</li>
+        <li>Upload oversized files (&gt;10 MB floor plan, &gt;2 MB logo)</li>
+        <li>Upload unsupported file types</li>
+        <li>Clock in twice on the same day &mdash; verify error</li>
+        <li>Try to delete an approved payroll run &mdash; verify blocked</li>
+        <li>Try to edit a closed activity &mdash; verify blocked</li>
+        <li>Navigate as a deactivated user &mdash; verify redirect to login</li>
+        <li>Test in Spanish and French &mdash; verify all labels translate</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <span class="footer-left">Confidential &middot; SpaceOps QA Requirements &middot; v1.0 &middot; 27 April 2026</span>
+  <span class="footer-right">
+    <svg width="16" height="16" viewBox="0 0 22 22" fill="none"><rect width="10" height="10" rx="1.5" fill="#0A0A0A"/><rect x="12" width="10" height="10" rx="1.5" fill="#4338CA"/><rect y="12" width="10" height="10" rx="1.5" fill="#0A0A0A"/><rect x="12" y="12" width="10" height="10" rx="1.5" fill="#0A0A0A"/></svg>
+    Space<em>OPS</em>
+  </span>
+</div>
+
+</div><!-- /.page -->
+</body>
+</html>
