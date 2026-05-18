@@ -17,7 +17,19 @@ export async function ProfilePage() {
     .eq("id", user.id)
     .single()
 
-  if (!userRecord) return notFound()
+  // The public.users profile row can be absent for an otherwise-valid
+  // authenticated user (e.g. created in auth without a profile row). Fall
+  // back to auth metadata instead of 404-ing, matching how OrgLayout /
+  // OrgProvider tolerate a missing row everywhere else in the app.
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>
+  const firstName =
+    userRecord?.first_name ?? (meta.first_name as string) ?? ""
+  const lastName = userRecord?.last_name ?? (meta.last_name as string) ?? ""
+  const role =
+    userRecord?.role ?? (user.app_metadata?.role as string) ?? ""
+  const avatarUrl =
+    userRecord?.avatar_url ?? (meta.avatar_url as string) ?? null
+  const createdAt = userRecord?.created_at ?? user.created_at
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -30,15 +42,16 @@ export async function ProfilePage() {
         </p>
       </div>
       <ProfileForm
-        firstName={userRecord.first_name}
-        lastName={userRecord.last_name}
+        firstName={firstName}
+        lastName={lastName}
         email={user.email || ""}
-        role={userRecord.role}
-        avatarUrl={userRecord.avatar_url}
-        memberSince={new Date(userRecord.created_at).toLocaleDateString(
-          "en-GB",
-          { day: "numeric", month: "long", year: "numeric" }
-        )}
+        role={role}
+        avatarUrl={avatarUrl}
+        memberSince={new Date(createdAt).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })}
       />
     </div>
   )

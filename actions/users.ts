@@ -105,14 +105,19 @@ export async function inviteUser(
     return { success: false, error: authError.message }
   }
 
-  // 2. Insert into public.users
-  const { error: insertError } = await admin.from("users").insert({
-    id: authData.user.id,
-    org_id: ctx.orgId,
-    first_name: parsed.data.firstName,
-    last_name: parsed.data.lastName,
-    role: parsed.data.role,
-  })
+  // 2. Insert into public.users.
+  // Upsert so it stays correct even if the on_auth_user_created trigger
+  // already seeded the row from auth metadata.
+  const { error: insertError } = await admin.from("users").upsert(
+    {
+      id: authData.user.id,
+      org_id: ctx.orgId,
+      first_name: parsed.data.firstName,
+      last_name: parsed.data.lastName,
+      role: parsed.data.role,
+    },
+    { onConflict: "id" }
+  )
 
   if (insertError) {
     // Rollback: delete the auth user we just created

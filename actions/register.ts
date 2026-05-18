@@ -87,14 +87,19 @@ export async function registerOrg(
     }
   }
 
-  // 3. Insert into public.users (triggers metadata sync)
-  const { error: userError } = await admin.from("users").insert({
-    id: authData.user.id,
-    org_id: org.id,
-    first_name: firstName,
-    last_name: lastName,
-    role: "admin",
-  })
+  // 3. Insert into public.users (triggers metadata sync).
+  // Upsert so it stays correct even if the on_auth_user_created trigger
+  // already seeded the row from auth metadata.
+  const { error: userError } = await admin.from("users").upsert(
+    {
+      id: authData.user.id,
+      org_id: org.id,
+      first_name: firstName,
+      last_name: lastName,
+      role: "admin",
+    },
+    { onConflict: "id" }
+  )
 
   if (userError) {
     await admin.auth.admin.deleteUser(authData.user.id)
