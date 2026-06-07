@@ -179,8 +179,11 @@ export async function updateUser(
     return { success: false, error: "Unauthorized" }
   }
 
-  // Update public.users (trigger will sync role to JWT metadata)
-  const { error: updateError } = await ctx.supabase
+  // Update public.users via the service-role client (trigger syncs role to JWT
+  // metadata). RLS restricts UPDATE to a user's own row, so editing another
+  // user through the request-scoped client would silently no-op.
+  const admin = createAdminClient()
+  const { error: updateError } = await admin
     .from("users")
     .update({
       first_name: parsed.data.firstName,
@@ -194,7 +197,6 @@ export async function updateUser(
   }
 
   // Also update auth user metadata so it's consistent
-  const admin = createAdminClient()
   await admin.auth.admin.updateUserById(parsed.data.userId, {
     user_metadata: {
       role: parsed.data.role,
@@ -241,8 +243,14 @@ export async function toggleUserActive(
 
   const newActiveState = !targetUser.is_active
 
-  // Toggle in public.users
-  const { error: updateError } = await ctx.supabase
+  // Toggle in public.users via the service-role client. RLS only allows a user
+  // to update their OWN row (id = auth.uid()), so an admin toggling another
+  // user through the request-scoped client silently updates 0 rows and the
+  // change never persists — yet the auth ban below DOES apply, leaving the
+  // account banned while the UI still shows it active (UAT 05.23/05.24 and the
+  // resulting User_banned on password reset, Bug-04.22).
+  const admin = createAdminClient()
+  const { error: updateError } = await admin
     .from("users")
     .update({ is_active: newActiveState })
     .eq("id", parsed.data.userId)
@@ -252,7 +260,6 @@ export async function toggleUserActive(
   }
 
   // Ban/unban auth user
-  const admin = createAdminClient()
   await admin.auth.admin.updateUserById(parsed.data.userId, {
     ban_duration: newActiveState ? "none" : "876600h", // ~100 years
   })
