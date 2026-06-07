@@ -55,13 +55,18 @@ export default async function OrgLayout({
   const locale = getLocale()
   const dict = await getDictionary(locale)
 
-  // Redirect admin to onboarding if not completed
+  // Guide brand-new admins to the onboarding wizard, but ONLY from the dashboard
+  // landing — never from deep pages. A blanket redirect here re-fires on every
+  // router.refresh() after a mutation (Next.js caches this layout across SPA
+  // navigations but re-runs it on a refresh), which surfaced as the
+  // "Something went wrong" / white-screen bounce-to-onboarding reported across
+  // every admin CRUD flow even though the underlying writes succeeded.
   const headerList = headers()
   const pathname = headerList.get("x-pathname") || ""
   if (
     org.onboarding_completed === false &&
     userRecord?.role === "admin" &&
-    !pathname.includes("/onboarding")
+    pathname.endsWith("/admin/dashboard")
   ) {
     redirect(`/${org.slug}/admin/onboarding`)
   }
