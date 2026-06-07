@@ -16,14 +16,17 @@ import {
 } from "@react-pdf/renderer"
 import type { ReportData } from "./report-types"
 
-// Register Public Sans font
+// Register Public Sans font.
+// @react-pdf/renderer only supports TTF/WOFF (not WOFF2), so we serve static
+// TTF files from the app's own /public directory rather than the Google Fonts
+// CDN, which returned 404s and "Unknown font format" errors for woff2 sources.
 Font.register({
   family: "PublicSans",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/publicsans/v15/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymu.woff2", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/publicsans/v15/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymufp8.woff2", fontWeight: 500 },
-    { src: "https://fonts.gstatic.com/s/publicsans/v15/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymukJ0.woff2", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/publicsans/v15/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymuj50.woff2", fontWeight: 700 },
+    { src: "/fonts/PublicSans-Regular.ttf", fontWeight: 400 },
+    { src: "/fonts/PublicSans-Medium.ttf", fontWeight: 500 },
+    { src: "/fonts/PublicSans-SemiBold.ttf", fontWeight: 600 },
+    { src: "/fonts/PublicSans-Bold.ttf", fontWeight: 700 },
   ],
 })
 
