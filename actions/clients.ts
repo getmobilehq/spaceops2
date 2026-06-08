@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import {
   createClientSchema,
   updateClientSchema,
@@ -95,16 +96,24 @@ export async function deleteClient(
   const ctx = await getAdminContext()
   if (!ctx) return { success: false, error: "Unauthorized" }
 
-  // Unlink any buildings associated with this client
-  await ctx.supabase
+  // Use the service-role client: the clients table has no DELETE RLS policy, so
+  // a delete through the request-scoped client silently affects 0 rows and the
+  // client is never removed (UAT 05.33). Scope every write to the caller's org.
+  const admin = createAdminClient()
+
+  // Unlink any buildings associated with this client (the building survives,
+  // unassigned — per product decision: delete the client, keep the building).
+  await admin
     .from("buildings")
     .update({ client_id: null })
     .eq("client_id", parsed.data.clientId)
+    .eq("org_id", ctx.orgId)
 
-  const { error } = await ctx.supabase
+  const { error } = await admin
     .from("clients")
     .delete()
     .eq("id", parsed.data.clientId)
+    .eq("org_id", ctx.orgId)
 
   if (error) return { success: false, error: "Failed to delete client" }
   return { success: true }
