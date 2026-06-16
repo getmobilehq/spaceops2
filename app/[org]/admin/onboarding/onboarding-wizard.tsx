@@ -44,7 +44,11 @@ const buildingSchema = z.object({
   city: z.string().min(1, "City is required").max(100),
   state: z.string().min(1, "State is required").max(100),
   zipCode: z.string().min(1, "ZIP code is required").max(20),
-  country: z.string().min(1, "Country is required").max(100),
+  country: z
+    .string()
+    .min(1, "Country is required")
+    .max(100)
+    .regex(/^[\p{L}\s.,'-]+$/u, "Country must not contain numbers"),
 })
 
 const inviteSchema = z.object({
