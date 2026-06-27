@@ -2,6 +2,11 @@ import { z } from "zod"
 
 const buildingStatusEnum = z.enum(["active", "inactive", "setup"])
 
+// Country names are letters/spaces/punctuation — never digits. Rejecting digits
+// stops a ZIP code (or other numeric input) being saved as the country (UAT 05.12).
+const COUNTRY_REGEX = /^[\p{L}\s.,'-]+$/u
+const COUNTRY_ERROR = "Country must not contain numbers"
+
 export const buildingDetailsSchema = z.object({
   name: z
     .string()
@@ -26,7 +31,8 @@ export const buildingDetailsSchema = z.object({
   country: z
     .string()
     .min(1, "Country is required")
-    .max(100),
+    .max(100)
+    .regex(COUNTRY_REGEX, COUNTRY_ERROR),
 })
 
 export type BuildingDetailsInput = z.infer<typeof buildingDetailsSchema>
@@ -58,7 +64,7 @@ export const createBuildingSchema = z.object({
   city: z.string().min(1).max(100),
   state: z.string().min(1).max(100),
   zipCode: z.string().min(1).max(20),
-  country: z.string().min(1).max(100),
+  country: z.string().min(1).max(100).regex(COUNTRY_REGEX, COUNTRY_ERROR),
   clientId: z.string().uuid().nullable(),
   floors: z.array(floorEntrySchema).min(1),
 })
@@ -72,7 +78,7 @@ export const updateBuildingSchema = z.object({
   city: z.string().min(1).max(100).optional(),
   state: z.string().min(1).max(100).optional(),
   zipCode: z.string().min(1).max(20).optional(),
-  country: z.string().max(100).optional(),
+  country: z.string().max(100).regex(COUNTRY_REGEX, COUNTRY_ERROR).optional(),
   clientId: z.string().uuid().nullable().optional(),
   status: buildingStatusEnum.optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),

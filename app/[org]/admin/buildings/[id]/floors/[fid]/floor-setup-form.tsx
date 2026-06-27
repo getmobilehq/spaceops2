@@ -46,6 +46,31 @@ export function FloorSetupForm({
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Validate size/type client-side. Files larger than the server action body
+    // limit (10MB) are rejected by the framework BEFORE our action runs, leaving
+    // the UI stuck on "Uploading" with no error (UAT 05.19). Catch it here so the
+    // user gets immediate, clear feedback and we never send an oversized body.
+    const MAX_SIZE = 10 * 1024 * 1024
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({
+        title: "Unsupported file",
+        description: "Upload a JPEG, PNG, WebP, or PDF.",
+        variant: "destructive",
+      })
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
+    }
+    if (file.size > MAX_SIZE) {
+      toast({
+        title: "File too large",
+        description: "Floor plans must be smaller than 10MB.",
+        variant: "destructive",
+      })
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
+    }
+
     setIsUploading(true)
     const formData = new FormData()
     formData.append("plan", file)

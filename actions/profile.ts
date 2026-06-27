@@ -28,21 +28,38 @@ export async function updateProfile(
     return { success: false, error: "Unauthorized" }
   }
 
-  // Update public.users
-  const { error } = await supabase
-    .from("users")
-    .update({
+  const orgId = user.app_metadata?.org_id as string | undefined
+  const role = user.app_metadata?.role as
+    | "admin"
+    | "supervisor"
+    | "janitor"
+    | "client"
+    | undefined
+  if (!orgId || !role) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const admin = createAdminClient()
+
+  // Upsert so the write self-heals if the public.users row is missing.
+  // org_id/role come from the verified JWT to satisfy NOT NULL columns
+  // on a fresh insert; ON CONFLICT updates the existing row in place.
+  const { error } = await admin.from("users").upsert(
+    {
+      id: user.id,
+      org_id: orgId,
+      role,
       first_name: parsed.data.firstName,
       last_name: parsed.data.lastName,
-    })
-    .eq("id", user.id)
+    },
+    { onConflict: "id" }
+  )
 
   if (error) {
     return { success: false, error: "Failed to update profile" }
   }
 
   // Sync to auth metadata
-  const admin = createAdminClient()
   await admin.auth.admin.updateUserById(user.id, {
     user_metadata: {
       first_name: parsed.data.firstName,
@@ -105,14 +122,43 @@ export async function uploadAvatar(
     data: { publicUrl },
   } = admin.storage.from("org-assets").getPublicUrl(filePath)
 
-  // Update public.users avatar_url
-  const { error: updateError } = await supabase
+  // Update public.users avatar_url (admin client; RLS already enforced
+  // above via the authenticated session + org scoping).
+  const { data: updatedRows, error: updateError } = await admin
     .from("users")
     .update({ avatar_url: publicUrl })
     .eq("id", user.id)
+    .select("id")
 
   if (updateError) {
     return { success: false, error: "Failed to save avatar URL" }
+  }
+
+  // Self-heal: create the profile row if it was missing (preserves any
+  // existing name rather than clobbering it via blind upsert).
+  if (!updatedRows || updatedRows.length === 0) {
+    const role = user.app_metadata?.role as
+      | "admin"
+      | "supervisor"
+      | "janitor"
+      | "client"
+      | undefined
+    if (!role) {
+      return { success: false, error: "Unauthorized" }
+    }
+    const { error: insertError } = await admin.from("users").insert({
+      id: user.id,
+      org_id: orgId,
+      role,
+      first_name:
+        (user.user_metadata?.first_name as string) ||
+        (user.email ?? "user").split("@")[0],
+      last_name: (user.user_metadata?.last_name as string) || "User",
+      avatar_url: publicUrl,
+    })
+    if (insertError) {
+      return { success: false, error: "Failed to save avatar URL" }
+    }
   }
 
   // Sync to auth metadata
