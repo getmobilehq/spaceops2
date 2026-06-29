@@ -313,5 +313,31 @@ export async function completeRoomTask(
     .eq("id", parsed.data.roomTaskId)
 
   if (error) return { success: false, error: "Failed to complete task" }
+
+  // Flagging an issue must create a deficiency so it surfaces on the
+  // supervisor's Issues dashboard (which reads exclusively from deficiencies).
+  // Previously this only flipped the task to has_issues and silently dropped
+  // the janitor's note, so the issue never reached the dashboard (UAT 06.51).
+  if (parsed.data.status === "has_issues") {
+    const { error: deficiencyError } = await ctx.supabase
+      .from("deficiencies")
+      .insert({
+        org_id: ctx.orgId,
+        room_task_id: parsed.data.roomTaskId,
+        reported_by: ctx.user.id,
+        // Leave unassigned so the supervisor triages it.
+        assigned_to: null,
+        description:
+          parsed.data.issueNote ||
+          "Issue flagged by janitor during task. No description provided.",
+        severity: "medium",
+        status: "open",
+      })
+
+    if (deficiencyError) {
+      return { success: false, error: "Failed to record the flagged issue" }
+    }
+  }
+
   return { success: true }
 }

@@ -112,7 +112,7 @@ export async function completeInspection(
 
   const { data: inspection } = await ctx.supabase
     .from("inspections")
-    .select("id, status, inspection_scan_at")
+    .select("id, status, inspection_scan_at, rooms(name)")
     .eq("id", parsed.data.inspectionId)
     .single()
 
@@ -137,5 +137,31 @@ export async function completeInspection(
     .eq("id", parsed.data.inspectionId)
 
   if (error) return { success: false, error: "Failed to complete inspection" }
+
+  // A failed standalone inspection must raise a deficiency so it appears on the
+  // Issues dashboard (which reads only from deficiencies). Linked via
+  // inspection_id since there is no room_task here (UAT 06.52).
+  if (parsed.data.result === "failed") {
+    const roomName = inspection.rooms?.name || "Room"
+    const { error: deficiencyError } = await ctx.supabase
+      .from("deficiencies")
+      .insert({
+        org_id: ctx.orgId,
+        inspection_id: parsed.data.inspectionId,
+        reported_by: ctx.user.id,
+        // Leave unassigned — the supervisor triages from the Issues dashboard.
+        assigned_to: null,
+        description:
+          parsed.data.notes ||
+          `Inspection failed for ${roomName}. Please address any issues.`,
+        severity: "medium",
+        status: "open",
+      })
+
+    if (deficiencyError) {
+      return { success: false, error: "Failed to record the inspection failure" }
+    }
+  }
+
   return { success: true }
 }

@@ -590,13 +590,14 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          inspection_id: string | null
           org_id: string
           photo_url: string | null
           reported_by: string
           resolution_note: string | null
           resolved_at: string | null
           resolved_by: string | null
-          room_task_id: string
+          room_task_id: string | null
           severity: string
           status: Database["public"]["Enums"]["deficiency_status"]
           updated_at: string
@@ -606,13 +607,14 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          inspection_id?: string | null
           org_id: string
           photo_url?: string | null
           reported_by: string
           resolution_note?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
-          room_task_id: string
+          room_task_id?: string | null
           severity?: string
           status?: Database["public"]["Enums"]["deficiency_status"]
           updated_at?: string
@@ -622,13 +624,14 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          inspection_id?: string | null
           org_id?: string
           photo_url?: string | null
           reported_by?: string
           resolution_note?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
-          room_task_id?: string
+          room_task_id?: string | null
           severity?: string
           status?: Database["public"]["Enums"]["deficiency_status"]
           updated_at?: string
@@ -667,6 +670,13 @@ export type Database = {
             columns: ["room_task_id"]
             isOneToOne: false
             referencedRelation: "room_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deficiencies_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
         ]

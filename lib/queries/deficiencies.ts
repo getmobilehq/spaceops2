@@ -11,7 +11,7 @@ export async function getOrgDeficiencies(
   let query = supabase
     .from("deficiencies")
     .select(
-      "*, room_tasks(id, rooms(name, room_types(name)), cleaning_activities(name, scheduled_date)), reporter:users!deficiencies_reported_by_fkey(first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(first_name, last_name)"
+      "*, room_tasks(id, rooms(name, room_types(name)), cleaning_activities(name, scheduled_date)), inspections(id, rooms(name, room_types(name))), reporter:users!deficiencies_reported_by_fkey(first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(first_name, last_name)"
     )
     .order("created_at", { ascending: false })
 
@@ -54,7 +54,7 @@ export async function getDeficiencyById(
   const { data, error } = await supabase
     .from("deficiencies")
     .select(
-      "*, room_tasks(id, rooms(name, room_types(name)), cleaning_activities(id, name, scheduled_date)), reporter:users!deficiencies_reported_by_fkey(id, first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(id, first_name, last_name), resolver:users!deficiencies_resolved_by_fkey(first_name, last_name)"
+      "*, room_tasks(id, rooms(name, room_types(name)), cleaning_activities(id, name, scheduled_date)), inspections(id, inspected_at, rooms(name, room_types(name))), reporter:users!deficiencies_reported_by_fkey(id, first_name, last_name), assignee:users!deficiencies_assigned_to_fkey(id, first_name, last_name), resolver:users!deficiencies_resolved_by_fkey(first_name, last_name)"
     )
     .eq("id", deficiencyId)
     .single()
