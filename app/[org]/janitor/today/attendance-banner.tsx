@@ -1,9 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { clockOut } from "@/actions/attendance"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { AttendanceQrScanner } from "@/components/shared/AttendanceQrScanner"
-import { Camera, CheckCircle2, AlertTriangle } from "lucide-react"
+import { Camera, CheckCircle2, AlertTriangle, LogOut, Loader2 } from "lucide-react"
 
 interface AttendanceRecord {
   id: string
@@ -21,9 +24,27 @@ export function AttendanceBanner({
   hasTasks: boolean
 }) {
   const [scannerOpen, setScannerOpen] = useState(false)
+  const [clockingOutId, setClockingOutId] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const router = useRouter()
 
   const openAttendance = attendance.filter((a) => !a.clock_out_at)
   const hasAttendance = attendance.length > 0
+
+  async function handleClockOut(attendanceId: string) {
+    setClockingOutId(attendanceId)
+    setMessage(null)
+    const res = await clockOut({ attendanceId })
+    if (res.success) {
+      // Refresh so the now-closed shift drops out of the banner and the
+      // recorded hours flow through to attendance/payroll reporting.
+      setMessage({ type: "success", text: "Clocked out — your shift has been recorded." })
+      router.refresh()
+    } else {
+      setMessage({ type: "error", text: res.error })
+    }
+    setClockingOutId(null)
+  }
 
   // Not clocked in and has tasks — show prominent clock-in card
   if (!hasAttendance && hasTasks) {
@@ -66,6 +87,17 @@ export function AttendanceBanner({
   // Clocked in — show each active attendance record
   return (
     <>
+      {message && (
+        <div
+          className={`rounded-md p-3 text-center text-sm ${
+            message.type === "success"
+              ? "bg-success/10 text-success"
+              : "bg-destructive/10 text-destructive"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
       {openAttendance.map((a) => {
         const building = a.buildings as { name: string } | null
         const clockInTime = new Date(a.clock_in_at).toLocaleTimeString([], {
@@ -94,7 +126,7 @@ export function AttendanceBanner({
                     <AlertTriangle className="h-5 w-5 text-warning" />
                   )}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium">
                     Clocked in at {building?.name || "building"}
                   </p>
@@ -103,6 +135,19 @@ export function AttendanceBanner({
                     {!a.geo_verified && " · Unverified"}
                   </p>
                 </div>
+                <Button
+                  onClick={() => handleClockOut(a.id)}
+                  disabled={clockingOutId === a.id}
+                  variant="outline"
+                  size="sm"
+                >
+                  {clockingOutId === a.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="mr-2 h-4 w-4" />
+                  )}
+                  Clock Out
+                </Button>
               </div>
             </CardContent>
           </Card>
