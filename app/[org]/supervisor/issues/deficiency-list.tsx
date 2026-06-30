@@ -22,6 +22,10 @@ interface Deficiency {
     rooms: { name: string; room_types: { name: string } | null } | null
     cleaning_activities: { name: string; scheduled_date: string } | null
   } | null
+  inspections: {
+    id: string
+    rooms: { name: string; room_types: { name: string } | null } | null
+  } | null
   reporter: { first_name: string; last_name: string } | null
   assignee: { first_name: string; last_name: string } | null
 }
@@ -101,11 +105,14 @@ export function DeficiencyList({
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>
-                          {d.room_tasks?.rooms?.name || "Unknown Room"}
+                          {d.room_tasks?.rooms?.name ||
+                            d.inspections?.rooms?.name ||
+                            "Unknown Room"}
                         </span>
                         <span>·</span>
                         <span>
-                          {d.room_tasks?.cleaning_activities?.name || "Unknown Activity"}
+                          {d.room_tasks?.cleaning_activities?.name ||
+                            (d.inspections ? "Standalone Inspection" : "Unknown Activity")}
                         </span>
                         <span>·</span>
                         <span>

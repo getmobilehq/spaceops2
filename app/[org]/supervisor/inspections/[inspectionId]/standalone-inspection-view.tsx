@@ -53,6 +53,17 @@ export function StandaloneInspectionView({
   const isCompleted = inspection.status !== "pending"
 
   async function handleComplete(result: "passed" | "failed") {
+    // A failure must record a reason, which becomes the logged issue's
+    // description (UAT 06.24).
+    if (result === "failed" && !inspectionNote.trim()) {
+      toast({
+        title: "Reason required",
+        description: "Please describe why this inspection failed before submitting.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     const res = await completeInspection({
       inspectionId: inspection.id,
@@ -63,14 +74,18 @@ export function StandaloneInspectionView({
     if (res.success) {
       toast({
         title: result === "passed" ? "Inspection passed" : "Inspection failed",
+        description:
+          result === "failed"
+            ? "An issue has been logged on the Issues dashboard."
+            : undefined,
       })
-      if (result === "failed") {
-        router.push(
-          `/${orgSlug}/supervisor/issues/new?inspectionId=${inspection.id}`
-        )
-      } else {
-        router.push(`/${orgSlug}/supervisor/inspections`)
-      }
+      // The failed inspection auto-creates a deficiency, so send the supervisor
+      // straight to the Issues dashboard where it now appears.
+      router.push(
+        result === "failed"
+          ? `/${orgSlug}/supervisor/issues`
+          : `/${orgSlug}/supervisor/inspections`
+      )
       router.refresh()
     } else {
       toast({
@@ -235,12 +250,15 @@ export function StandaloneInspectionView({
           {/* Inspection note */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Inspection Note (optional)
+              Inspection Note{" "}
+              <span className="text-muted-foreground">
+                (required to fail)
+              </span>
             </label>
             <textarea
               value={inspectionNote}
               onChange={(e) => setInspectionNote(e.target.value)}
-              placeholder="Add any comments about the inspection..."
+              placeholder="Describe any issues found. A reason is required to fail the inspection."
               rows={3}
               maxLength={500}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

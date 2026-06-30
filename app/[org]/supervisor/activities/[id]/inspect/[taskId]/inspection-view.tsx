@@ -110,6 +110,17 @@ export function InspectionView({
     totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
   async function handleInspect(result: "inspected_pass" | "inspected_fail") {
+    // A failure must record a reason, which becomes the logged issue's
+    // description (UAT 06.24).
+    if (result === "inspected_fail" && !inspectionNote.trim()) {
+      toast({
+        title: "Reason required",
+        description: "Please describe why this inspection failed before submitting.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     const res = await inspectRoomTask({
       taskId: task.id,
@@ -360,13 +371,17 @@ export function InspectionView({
           {/* Inspection note */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Inspection Note (optional)
+              Inspection Note{" "}
+              <span className="text-muted-foreground">
+                (required to fail)
+              </span>
             </label>
             <textarea
               value={inspectionNote}
               onChange={(e) => setInspectionNote(e.target.value)}
-              placeholder="Add any comments about the inspection..."
+              placeholder="Describe any issues found. A reason is required to fail the inspection."
               rows={3}
+              maxLength={500}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>

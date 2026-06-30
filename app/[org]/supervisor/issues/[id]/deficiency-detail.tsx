@@ -45,6 +45,11 @@ interface Deficiency {
       scheduled_date: string
     } | null
   } | null
+  inspections: {
+    id: string
+    inspected_at: string | null
+    rooms: { name: string; room_types: { name: string } | null } | null
+  } | null
   reporter: { id: string; first_name: string; last_name: string } | null
   assignee: { id: string; first_name: string; last_name: string } | null
   resolver: { first_name: string; last_name: string } | null
@@ -141,18 +146,30 @@ export function DeficiencyDetail({
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span>
-              {deficiency.room_tasks?.rooms?.name || "Unknown Room"}
-              {deficiency.room_tasks?.rooms?.room_types?.name &&
-                ` (${deficiency.room_tasks.rooms.room_types.name})`}
+              {deficiency.room_tasks?.rooms?.name ||
+                deficiency.inspections?.rooms?.name ||
+                "Unknown Room"}
+              {(deficiency.room_tasks?.rooms?.room_types?.name ||
+                deficiency.inspections?.rooms?.room_types?.name) &&
+                ` (${
+                  deficiency.room_tasks?.rooms?.room_types?.name ||
+                  deficiency.inspections?.rooms?.room_types?.name
+                })`}
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
             <span>
-              {deficiency.room_tasks?.cleaning_activities?.name || "N/A"} &middot;{" "}
+              {deficiency.room_tasks?.cleaning_activities?.name ||
+                (deficiency.inspections ? "Standalone Inspection" : "N/A")}{" "}
+              &middot;{" "}
               {deficiency.room_tasks?.cleaning_activities?.scheduled_date
                 ? new Date(
                     deficiency.room_tasks.cleaning_activities.scheduled_date
+                  ).toLocaleDateString("en-GB")
+                : deficiency.inspections?.inspected_at
+                ? new Date(
+                    deficiency.inspections.inspected_at
                   ).toLocaleDateString("en-GB")
                 : "N/A"}
             </span>

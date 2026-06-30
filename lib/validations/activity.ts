@@ -49,11 +49,18 @@ export const deleteActivitySchema = z.object({
   activityId: z.string().uuid(),
 })
 
-export const inspectRoomTaskSchema = z.object({
-  taskId: z.string().uuid(),
-  result: z.enum(["inspected_pass", "inspected_fail"]),
-  note: z.string().max(500).optional(),
-})
+export const inspectRoomTaskSchema = z
+  .object({
+    taskId: z.string().uuid(),
+    result: z.enum(["inspected_pass", "inspected_fail"]),
+    note: z.string().max(500).optional(),
+  })
+  // A failed inspection must record why (UAT 06.24) — the reason becomes the
+  // resulting deficiency's description.
+  .refine((d) => d.result !== "inspected_fail" || !!d.note?.trim(), {
+    path: ["note"],
+    message: "Please provide a reason for failing the inspection",
+  })
 
 export const checkInToTaskSchema = z.object({
   roomTaskId: z.string().uuid(),
