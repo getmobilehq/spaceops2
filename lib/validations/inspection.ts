@@ -8,11 +8,18 @@ export const createInspectionSchema = z.object({
 
 export type CreateInspectionInput = z.infer<typeof createInspectionSchema>
 
-export const completeInspectionSchema = z.object({
-  inspectionId: z.string().uuid("Invalid inspection ID"),
-  result: z.enum(["passed", "failed"]),
-  notes: z.string().max(500).optional(),
-})
+export const completeInspectionSchema = z
+  .object({
+    inspectionId: z.string().uuid("Invalid inspection ID"),
+    result: z.enum(["passed", "failed"]),
+    notes: z.string().max(500).optional(),
+  })
+  // A failed inspection must record why (UAT 06.24) — the reason becomes the
+  // resulting deficiency's description.
+  .refine((d) => d.result !== "failed" || !!d.notes?.trim(), {
+    path: ["notes"],
+    message: "Please provide a reason for failing the inspection",
+  })
 
 export type CompleteInspectionInput = z.infer<typeof completeInspectionSchema>
 
